@@ -97,15 +97,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.copyDropdown.classList.remove('visible');
                 }
             });
-            this.measureModeToggle?.addEventListener('change', (e) => {
-                this.isMeasureMode = e.target.checked;
+            // Measure/rhyme toggles now use buttons
+            document.getElementById('measure-mode-btn')?.addEventListener('click', () => {
+                this.isMeasureMode = !this.isMeasureMode;
+                const btn = document.getElementById('measure-mode-btn');
+                btn.classList.toggle('active', this.isMeasureMode);
                 this.renderLyrics();
             });
             this.tempoInput?.addEventListener('input', () => {
                 this.renderLyrics();
             });
-            this.rhymeModeToggle?.addEventListener('change', (e) => {
-                this.isRhymeMode = e.target.checked;
+            document.getElementById('rhyme-mode-btn')?.addEventListener('click', () => {
+                this.isRhymeMode = !this.isRhymeMode;
+                const btn = document.getElementById('rhyme-mode-btn');
+                btn.classList.toggle('active', this.isRhymeMode);
                 this.renderLyrics();
             });
         },
