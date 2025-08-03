@@ -1,4 +1,4 @@
-/* Performance Mode Styles */
+/* Editor Mode Styles */
 .editor-mode-overlay {
     position: fixed;
     top: 0;
@@ -106,139 +106,7 @@
     transition: color var(--transition-speed);
 }
 
-.nav-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--bg-secondary, #222);
-    color: var(--accent-secondary, #888);
-    border: none;
-    font-size: 2.1rem;
-    cursor: pointer;
-    padding: 0.7rem 1rem;
-    border-radius: var(--border-radius-base, 10px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    opacity: 0.75;
-    transition: background 0.22s, color 0.15s, opacity 0.22s;
-    z-index: 1010;
-}
 
-.nav-arrow:hover,
-.nav-arrow:focus {
-    background: var(--bg-hover, #333);
-    color: var(--accent-primary, #fff);
-    opacity: 1;
-}
-
-.nav-arrow.left { left: 0.5em; }
-.nav-arrow.right { right: 0.5em; }
-
-.song-progress {
-    font-size: 1.02em;
-    color: var(--accent-secondary, #aaa);
-    margin-top: 0.1em;
-    margin-bottom: 0.4em;
-    letter-spacing: 0.06em;
-    opacity: 0.75;
-    text-align: left;
-    font-family: inherit;
-}
-
-.scroll-to-top-btn,
-.auto-scroll-btn {
-    position: fixed;
-    right: 2.7em;
-    z-index: 2020;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: var(--accent-primary, #00bcd4);
-    color: var(--bg-primary, #111);
-    border: none;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.23);
-    font-size: 1.55rem;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.93;
-    transition: background 0.22s, opacity 0.14s, color 0.14s;
-}
-
-.scroll-to-top-btn {
-    bottom: 120px;
-}
-
-.auto-scroll-btn {
-    bottom: 52px;
-    display: none !important;
-}
-
-.scroll-to-top-btn:active,
-.scroll-to-top-btn:focus,
-.scroll-to-top-btn:focus-visible,
-.auto-scroll-btn:active,
-.auto-scroll-btn:focus,
-.auto-scroll-btn:focus-visible {
-    background: var(--accent-primary);
-    color: var(--bg-primary);
-    outline: none;
-}
-
-.scroll-to-top-btn i,
-.auto-scroll-btn i {
-    color: inherit;
-}
-
-.scroll-to-top-btn.invisible {
-    visibility: hidden;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.18s;
-}
-
-.scroll-to-top-btn {
-    visibility: visible;
-    opacity: 1;
-    pointer-events: auto;
-    transition: opacity 0.18s;
-}
-
-#autoscroll-settings-btn i {
-    color: var(--accent-primary, #fff);
-}
-
-#autoscroll-delay-modal {
-    z-index: 20000;
-    display: none;
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0,0,0,0.82);
-   -cast-align-items: center;
-    justify-content: center;
-}
-
-#autoscroll-delay-modal[style*="display: block"] {
-    display: flex;
-}
-
-#autoscroll-delay-modal .modal-content {
-    position: relative;
-    z-index: 20001;
-    background: var(--bg-primary, #222);
-}
-
-#autoscroll-delay-label {
-    margin-right: 0.5em;
-    font-weight: 500;
-    color: var(--text-secondary, #aaa);
-}
-
-#autoscroll-delay-slider {
-    margin-right: 0.8em;
-}
 
 #font-size-slider.font-slider {
     width: 350px;
@@ -251,13 +119,5 @@
 
 .editor-header label[for="font-size-slider"] {
     display: none;
-}
-
-.autoscroll-toggle-row {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 1.1em;
 }
 

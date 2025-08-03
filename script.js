@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
         item.dataset.id = song.id;
         item.innerHTML = `
           <span>${song.title}</span>
-          <div>
-            <a class="btn" href="editor/editor.html?songId=${song.id}" title="Edit">
+          <div class="song-btn">
+            <a class="song-edit-btn edit-song-btn" href="editor/editor.html?songId=${song.id}" title="Edit">
               <i class="fas fa-pen"></i>
             </a>
-            <button class="btn danger delete-song-btn" title="Delete">
+            <button class="song-delete-btn danger delete-song-btn" title="Delete">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -191,8 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModal() {
       this.songModal.style.display = 'none';
     },
-
-    // saveNewSong removed - saving happens in editor now
   };
 
   app.init();
