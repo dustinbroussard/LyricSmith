@@ -1,6 +1,6 @@
 // config.js
 
-export const CONFIG = {
+const CONFIG = {
   chordsModeEnabled: true,
   autosaveEnabled: true,
   autoscrollDefaultEnabled: true,
@@ -9,4 +9,6 @@ export const CONFIG = {
   minFontSize: 16,
   devMode: true, // use this to show extra info/buttons
 }
+
+module.exports = { CONFIG };
 

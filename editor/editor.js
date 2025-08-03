@@ -141,29 +141,54 @@ document.addEventListener('DOMContentLoaded', () => {
         // Setup event listeners
         setupEventListeners() {
             // FONT SIZE BUTTONS
-            this.decreaseFontBtn.addEventListener('click', () => this.adjustFontSize(-this.fontSizeStep));
-            this.increaseFontBtn.addEventListener('click', () => this.adjustFontSize(this.fontSizeStep));
+            if (this.decreaseFontBtn) {
+                this.decreaseFontBtn.addEventListener('click', () => this.adjustFontSize(-this.fontSizeStep));
+            }
+            if (this.increaseFontBtn) {
+                this.increaseFontBtn.addEventListener('click', () => this.adjustFontSize(this.fontSizeStep));
+            }
 
-            this.toggleThemeBtn.addEventListener('click', () => this.handlePerformanceThemeToggle());
-            this.exitPerformanceBtn.addEventListener('click', () => this.exitPerformanceMode());
-            this.prevSongBtn.addEventListener('click', () => this.navigatePerformanceSong(-1));
-            this.nextSongBtn.addEventListener('click', () => this.navigatePerformanceSong(1));
-            this.scrollToTopBtn.addEventListener('click', () => {
-                this.lyricsDisplay.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-            this.autoScrollBtn.addEventListener('click', () => this.toggleAutoScroll());
-            this.autoscrollSettingsBtn.addEventListener('click', () => {
-                this.autoscrollDelayModal.style.display = 'block';
-                this.autoscrollDelaySlider.value = this.autoscrollDelay;
-                this.autoscrollDelayValue.textContent = this.autoscrollDelay + 's';
-                this.autoscrollSpeedSlider.value = this.autoScrollSpeed;
-                this.autoscrollSpeedValue.textContent = this.autoScrollSpeed;
-            });
-            this.autoscrollDelaySlider.addEventListener('input', (e) => {
-                this.autoscrollDelayValue.textContent = e.target.value + 's';
-            });
-            this.autoscrollSpeedSlider.addEventListener('input', (e) => {
-                this.autoscrollSpeedValue.textContent = e.target.value;
+            if (this.toggleThemeBtn) {
+                this.toggleThemeBtn.addEventListener('click', () => this.handlePerformanceThemeToggle());
+            }
+            if (this.exitPerformanceBtn) {
+                this.exitPerformanceBtn.addEventListener('click', () => this.exitPerformanceMode());
+            }
+            if (this.prevSongBtn) {
+                this.prevSongBtn.addEventListener('click', () => this.navigatePerformanceSong(-1));
+            }
+            if (this.nextSongBtn) {
+                this.nextSongBtn.addEventListener('click', () => this.navigatePerformanceSong(1));
+            }
+            if (this.scrollToTopBtn && this.lyricsDisplay) {
+                this.scrollToTopBtn.addEventListener('click', () => {
+                    this.lyricsDisplay.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+            if (this.autoScrollBtn) {
+                this.autoScrollBtn.addEventListener('click', () => this.toggleAutoScroll());
+            }
+            if (this.autoscrollSettingsBtn && this.autoscrollDelayModal && 
+                this.autoscrollDelaySlider && this.autoscrollDelayValue &&
+                this.autoscrollSpeedSlider && this.autoscrollSpeedValue) {
+                this.autoscrollSettingsBtn.addEventListener('click', () => {
+                    this.autoscrollDelayModal.style.display = 'block';
+                    this.autoscrollDelaySlider.value = this.autoscrollDelay;
+                    this.autoscrollDelayValue.textContent = this.autoscrollDelay + 's';
+                    this.autoscrollSpeedSlider.value = this.autoScrollSpeed;
+                    this.autoscrollSpeedValue.textContent = this.autoScrollSpeed;
+                });
+            }
+            if (this.autoscrollDelaySlider && this.autoscrollDelayValue) {
+                this.autoscrollDelaySlider.addEventListener('input', (e) => {
+                    this.autoscrollDelayValue.textContent = e.target.value + 's';
+                });
+            }
+            if (this.autoscrollSpeedSlider && this.autoscrollSpeedValue) {
+                this.autoscrollSpeedSlider.addEventListener('input', (e) => {
+                    this.autoscrollSpeedValue.textContent = e.target.value;
+                });
+            }
             });
             this.closeAutoscrollDelayModal.addEventListener('click', () => {
                 this.autoscrollDelay = Number(this.autoscrollDelaySlider.value);
