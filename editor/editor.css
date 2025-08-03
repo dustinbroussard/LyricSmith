@@ -170,7 +170,7 @@
 
 .auto-scroll-btn {
     bottom: 52px;
-    display: flex;
+    display: none;
 }
 
 .scroll-to-top-btn:active,

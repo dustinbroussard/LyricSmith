@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.scrollToTopBtn.classList.add('invisible');
             }
 
-            if (needsScroll) {
+            if (needsScroll && this.autoscrollEnabled) {
                 this.autoScrollBtn.style.display = 'flex';
             } else {
                 this.autoScrollBtn.style.display = 'none';
