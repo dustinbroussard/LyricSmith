@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
         editorSongs: [],
         currentEditorSongIndex: -1,
         fontSize: 32,
+        editHistory: [],
+        historyIndex: -1,
+        savePending: false,
         minFontSize: 12,
         maxFontSize: 72,
         fontSizeStep: 1,
@@ -67,6 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         setupEventListeners() {
+            this.setupUndoRedoShortcuts();
+            
+            // Undo/redo/save buttons
+            document.getElementById('undo-btn')?.addEventListener('click', () => this.undo());
+            document.getElementById('redo-btn')?.addEventListener('click', () => this.redo());
+            document.getElementById('save-song-btn')?.addEventListener('click', () => this.saveCurrentSong(true));
+            
             this.decreaseFontBtn?.addEventListener('click', () => this.adjustFontSize(-this.fontSizeStep));
             this.increaseFontBtn?.addEventListener('click', () => this.adjustFontSize(this.fontSizeStep));
             this.toggleThemeBtn?.addEventListener('click', () => this.toggleTheme());
@@ -125,23 +135,88 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         },
 
-        saveCurrentSong() {
-            if (!this.currentSong || !window.CONFIG.autosaveEnabled) return;
+        saveCurrentSong(manualSave = false) {
+            if (!this.currentSong) return;
 
+            // Save title if title editor exists
+            const titleEditor = document.getElementById('song-title-edit');
+            if (titleEditor) {
+                this.currentSong.title = titleEditor.value;
+            }
+
+            // Save lyrics and chords
             const lines = Array.from(this.lyricsDisplay.querySelectorAll('.lyrics-line'));
             const chordLines = Array.from(this.lyricsDisplay.querySelectorAll('.chord-line'));
 
             const lyrics = lines.map(line => line.textContent).join('\n');
             const chords = chordLines.map(line => line.textContent).join('\n');
 
-            this.currentSong.lyrics = lyrics;
-            this.currentSong.chords = chords;
+            // Only push to history if content changed
+            if (this.currentSong.lyrics !== lyrics || this.currentSong.chords !== chords) {
+                this.currentSong.lyrics = lyrics;
+                this.currentSong.chords = chords;
+                
+                // Add to edit history
+                if (this.historyIndex < this.editHistory.length - 1) {
+                    this.editHistory = this.editHistory.slice(0, this.historyIndex + 1);
+                }
+                this.editHistory.push(JSON.parse(JSON.stringify(this.currentSong)));
+                this.historyIndex++;
+            }
 
             const songIndex = this.songs.findIndex(s => s.id === this.currentSong.id);
             if (songIndex !== -1) {
                 this.songs[songIndex] = this.currentSong;
                 localStorage.setItem('songs', JSON.stringify(this.songs));
+                this.savePending = false;
+                
+                if (manualSave) {
+                    // Show save confirmation
+                    const saveBtn = document.getElementById('save-song-btn');
+                    if (saveBtn) {
+                        saveBtn.classList.add('saved');
+                        setTimeout(() => saveBtn.classList.remove('saved'), 1000);
+                    }
+                }
             }
+        },
+
+        undo() {
+            if (this.historyIndex > 0) {
+                this.historyIndex--;
+                this.applyHistoryState();
+            }
+        },
+
+        redo() {
+            if (this.historyIndex < this.editHistory.length - 1) {
+                this.historyIndex++;
+                this.applyHistoryState();
+            }
+        },
+
+        applyHistoryState() {
+            if (this.editHistory[this.historyIndex]) {
+                this.currentSong = JSON.parse(JSON.stringify(this.editHistory[this.historyIndex]));
+                this.renderLyrics();
+            }
+        },
+
+        setupUndoRedoShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'z') {
+                        e.preventDefault();
+                        this.undo();
+                    } else if (e.key === 'y') {
+                        e.preventDefault();
+                        this.redo();
+                    } else if (e.key === 's') {
+                        e.preventDefault();
+                        this.saveCurrentSong(true);
+                    }
+                }
+            });
         },
 
         displayCurrentEditorSong() {
