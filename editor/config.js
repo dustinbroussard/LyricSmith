@@ -5,7 +5,7 @@ export const CONFIG = {
   autosaveEnabled: true,
   autoscrollDefaultEnabled: true,
   showExperimentalFeatures: false,
-  maxFontSize: 64,
+  maxFontSize: 72,
   minFontSize: 16,
   devMode: true, // use this to show extra info/buttons
 }
