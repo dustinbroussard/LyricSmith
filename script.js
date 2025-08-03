@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     init() {
       this.loadSongs();
       this.renderSongs();
+      this.renderToolbar();
       this.bindEvents();
     },
 
@@ -47,12 +48,19 @@ document.addEventListener('DOMContentLoaded', () => {
         .replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
     },
 
-    renderSongs() {
+    renderSongs(searchQuery = "") {
       this.songList.innerHTML = '';
 
-      const sorted = [...this.songs].sort((a, b) => a.title.localeCompare(b.title));
+      const filtered = this.songs
+        .filter(song => song.title.toLowerCase().includes(searchQuery))
+        .sort((a, b) => a.title.localeCompare(b.title));
 
-      for (const song of sorted) {
+      if (filtered.length === 0) {
+        this.songList.innerHTML = `<p class="empty-state">No songs found.</p>`;
+        return;
+      }
+
+      for (const song of filtered) {
         const item = document.createElement('div');
         item.className = 'song-item';
         item.dataset.id = song.id;
@@ -72,11 +80,45 @@ document.addEventListener('DOMContentLoaded', () => {
           if (confirm(`Delete "${song.title}"?`)) {
             this.songs = this.songs.filter(s => s.id !== song.id);
             this.saveSongs();
-            this.renderSongs();
+            this.renderSongs(searchQuery);
           }
         });
 
         this.songList.appendChild(item);
+      }
+    },
+
+    renderToolbar() {
+      const toolbar = document.getElementById('tab-toolbar');
+      toolbar.innerHTML = `
+        <input type="text" id="song-search-input" class="search-input" placeholder="Search songs...">
+        <div class="toolbar-buttons-group">
+          <button id="add-song-btn" class="btn" title="Add Song"><i class="fas fa-plus"></i></button>
+          <button id="delete-all-songs-btn" class="btn danger" title="Delete All Songs"><i class="fas fa-trash"></i></button>
+          <label for="song-upload-input" class="btn" title="Upload Files"><i class="fas fa-upload"></i></label>
+        </div>
+        <input type="file" id="song-upload-input" multiple accept=".txt,.docx" class="hidden-file">
+      `;
+
+      document.getElementById('add-song-btn')?.addEventListener('click', () => this.openModal());
+      document.getElementById('delete-all-songs-btn')?.addEventListener('click', () => this.confirmDeleteAll());
+      document.getElementById('song-search-input')?.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        this.renderSongs(query);
+      });
+
+      // Upload handler (stubbed for now)
+      document.getElementById('song-upload-input')?.addEventListener('change', (e) => {
+        alert("Upload not implemented yet.");
+        e.target.value = ""; // Clear input
+      });
+    },
+
+    confirmDeleteAll() {
+      if (confirm("Delete all songs? This cannot be undone.")) {
+        this.songs = [];
+        this.saveSongs();
+        this.renderSongs();
       }
     },
 
