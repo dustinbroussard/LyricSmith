@@ -56,68 +56,233 @@
     cursor: pointer;
     margin: 0 0.06em;
     opacity: 0.95;
+    position: relative; /* For dropdown */
 }
-
-.editor-controls .icon-btn:hover,
-.editor-controls .icon-btn:focus {
+.editor-controls .icon-btn:hover, .editor-controls .icon-btn:focus {
     background: var(--accent-hover, #fff);
     color: var(--accent-primary, #222);
-    box-shadow: 0 2px 16px var(--accent-glow, #fff8);
-    transform: scale(1.13);
+    box-shadow: 0 2px 16px var(--accent-glow);
+    transform: scale(1.05);
     opacity: 1;
 }
-
-.editor-controls .icon-btn.danger,
-.editor-controls .icon-btn[title*="Exit"] {
-    background: var(--danger, #ef4444);
-    color: #fff;
-    box-shadow: 0 2px 10px rgba(255,0,0,0.10);
+.editor-controls .divider {
+    width: 1px;
+    height: 1.5em;
+    background-color: var(--border-light);
+    margin: 0 0.5em;
 }
-
-.editor-controls .icon-btn.danger:hover,
-.editor-controls .icon-btn.danger:focus,
-.editor-controls .icon-btn[title*="Exit"]:hover,
-.editor-controls .icon-btn[title*="Exit"]:focus {
-    background: #fff;
-    color: var(--danger, #ef4444);
-    box-shadow: 0 0 20px 2px var(--danger, #ef4444), 0 0 8px var(--accent-glow, #fff3);
-}
-
-.editor-controls .icon-btn:active {
-    transform: scale(0.96);
-}
-
-.editor-controls .icon-btn i {
-    font-size: 1.06em;
-}
-
 .lyrics-container {
     flex-grow: 1;
     overflow-y: auto;
-    line-height: 1.33;
-    letter-spacing: 0.01em;
-    word-break: break-word;
-    white-space: pre-line;
-    padding: 0.8em 0.5em 1.2em 0.5em;
-    text-align: center;
-    max-width: 100% !important;
-    margin: 0 auto;
-    color: var(--text-primary);
+    font-size: 1.5rem; /* Base size, slider still works */
+    padding: 2rem;
+    line-height: 1.6;
+    color: var(--text-primary); /* Lyrics use primary text color */
     transition: color var(--transition-speed);
+    text-align: left; /* Adjust for better lyric display */
+    display: flex;
+    white-space: pre-wrap; /* Preserve line breaks and spaces */
+    word-break: break-word;
+}
+.nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-secondary, #222); /* Subtle background */
+    color: var(--accent-secondary, #888); /* From theme, less “clowny” */
+    border: none;
+    font-size: 2.1rem;
+    cursor: pointer;
+    padding: 0.7rem 1rem;
+    border-radius: var(--border-radius-base, 10px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.14s, color 0.16s, box-shadow 0.13s, transform 0.15s;
+    opacity: 0.7;
+    z-index: 1;
 }
 
-
-
-#font-size-slider.font-slider {
-    width: 350px;
-    accent-color: var(--accent-primary, #00bcd4);
-    height: 20px;
-    margin: 0 1.5em;
-    background: var(--bg-tertiary, #222);
-    border-radius: 8px;
+.scroll-to-top-btn {
+    position: fixed;
+    bottom: 2em;
+    right: 2em;
+    width: 52px;
+    height: 52px;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    background-color: var(--accent-primary);
+    color: var(--bg-primary);
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    z-index: 999;
+    opacity: 0.8;
+    transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.scroll-to-top-btn {
+    bottom: 80px;
 }
 
-.editor-header label[for="font-size-slider"] {
+.lyrics-container {
+    display: flex;
+    padding: 2rem;
+    text-align: left;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 1.5rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+#lyrics-editor-container {
+    display: flex;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+.gutter {
+    flex-shrink: 0;
+    width: 3.5em; /* A bit wider to fit a 3-digit number */
+    padding: 2rem 0.5rem 2rem 1.5rem;
+    background-color: var(--bg-secondary);
+    color: var(--text-muted);
+    font-size: 0.7em;
+    line-height: 1.6;
+    text-align: right;
+    user-select: none;
+    border-right: 1px solid var(--border-light);
+}
+#lyrics-display {
+    flex-grow: 1;
+    padding: 2rem;
+    position: relative;
+    caret-color: var(--accent-primary);
+    outline: none;
+}
+#lyrics-display.editable:empty::before {
+    content: "Start typing your lyrics...";
+    color: var(--text-muted);
+}
+#lyrics-display.editable:focus::before {
+    content: "";
+}
+#lyrics-display:not(.editable) {
+    user-select: none;
+    cursor: default;
+}
+.lyrics-line-group {
+    display: flex;
+    flex-direction: column;
+}
+.chord-line {
+    font-family: monospace;
+    font-size: 0.8em;
+    line-height: 1.2;
+    color: var(--text-secondary);
+    height: 1.2em; /* To maintain spacing when empty */
+    overflow: hidden;
+    white-space: pre;
+    cursor: text;
+    user-select: text;
+}
+.chord-line.hidden {
     display: none;
 }
-
+.lyrics-line {
+    position: relative;
+    margin-bottom: 0.5em;
+    min-height: 1em;
+}
+.lyrics-line:focus {
+    outline: none;
+}
+.lyrics-line.rhyme-match-1 { color: #FFAA00; }
+.lyrics-line.rhyme-match-2 { color: #88EEFF; }
+.lyrics-line.rhyme-match-3 { color: #FF66A0; }
+.lyrics-line.rhyme-match-4 { color: #A0FF66; }
+.lyrics-line.rhyme-match-5 { color: #FFDDAA; }
+.lyrics-line.rhyme-match-6 { color: #CC66FF; }
+.lyrics-line.rhyme-match-7 { color: #66CCFF; }
+.lyrics-line.rhyme-match-8 { color: #FF99CC; }
+.lyrics-line.rhyme-match-9 { color: #99FF99; }
+.lyrics-line.rhyme-match-10 { color: #FFCC99; }
+.lyrics-line.rhyme-match-11 { color: #CC99FF; }
+.lyrics-line.rhyme-match-12 { color: #99CCFF; }
+.lyrics-line.rhyme-match-13 { color: #FFCC66; }
+.lyrics-line.rhyme-match-14 { color: #CCFF66; }
+.lyrics-line.rhyme-match-15 { color: #99FFCC; }
+.editor-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2em;
+    padding: 0.5em 1em;
+    background-color: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+}
+.footer-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    color: var(--text-secondary);
+}
+.footer-controls .control-label {
+    font-size: 0.9em;
+}
+#tempo-input {
+    width: 4em;
+    text-align: center;
+    padding: 0.25em;
+    font-size: 0.9em;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-base);
+}
+.copy-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 150px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-base);
+    box-shadow: var(--shadow-md);
+    flex-direction: column;
+    z-index: 10;
+}
+.copy-dropdown-menu.visible {
+    display: flex;
+}
+.copy-option {
+    background: none;
+    border: none;
+    padding: 0.5em 1em;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+}
+.copy-option:hover {
+    background-color: var(--bg-hover);
+}
+.copy-option:first-child {
+    border-radius: var(--border-radius-base) var(--border-radius-base) 0 0;
+}
+.copy-option:last-child {
+    border-radius: 0 0 var(--border-radius-base) var(--border-radius-base);
+}
+/* Read-only styles */
+#lyrics-editor-container.read-only #lyrics-display .lyrics-line-group {
+    pointer-events: none;
+}
+#lyrics-editor-container.read-only #lyrics-display {
+    cursor: default;
+}
+#lyrics-editor-container.read-only #lyrics-display .lyrics-line {
+    user-select: none;
+    -webkit-user-select: none;
+}
+#lyrics-editor-container.read-only #lyrics-display .chord-line {
+    pointer-events: none;
+}
