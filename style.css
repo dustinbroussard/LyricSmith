@@ -799,90 +799,6 @@ img, video, iframe {
     background-color: #ef4444;
 }
 
-/* Improved setlist editor layout */
-.setlist-editor {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px; /* Reduced gap */
-    margin-top: 16px; /* Reduced margin */
-    align-items: stretch; /* columns match height */
-}
-.setlist-editor .column {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    height: 100%;
-    min-height: 0;
-    background: var(--surface-color);
-    border-radius: 8px;
-    padding: 12px; /* Reduced padding */
-    border: 1px solid var(--border-color);
-}
-.setlist-editor .column h3 {
-    margin: 0 0 12px 0; /* Reduced margin */
-    color: var(--text-primary);
-    font-size: 1.1rem;
-}
-
-/* Enhanced song items in setlist editor */
-.song-container .song-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px; /* Reduced padding for song items */
-    margin-bottom: 6px; /* Reduced margin between song items */
-    background: var(--background-color);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.song-container .song-item:hover {
-    border-color: var(--accent-color);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.song-container .song-item .song-number {
-    background: var(--accent-color);
-    color: white;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: bold;
-    margin-right: 12px;
-    flex-shrink: 0;
-}
-
-.song-container .song-item .song-title {
-    flex: 1;
-    color: var(--text-primary);
-}
-
-.song-container .song-item .song-controls {
-    display: flex;
-    gap: 4px;
-}
-
-.song-container .song-item .song-controls .btn {
-    padding: 6px;
-    min-width: auto;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.song-container .song-item .song-controls .btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
 /* Empty state messages */
 .empty-message {
     color: var(--text-secondary);
@@ -908,18 +824,6 @@ img, video, iframe {
     margin-bottom: 10px;
 }
 
-.setlist-select {
-  min-width: 14em;
-  max-width: 22em;
-  width: auto;
-  font-size: 0.9em;
-  padding: 0.37em 1.1em;
-  border-radius: var(--border-radius-base, 8px);
-  background: var(--bg-secondary, #181818);
-  color: var(--text-primary, #fff);
-  border: 1.5px solid var(--border, #333);
-  margin-right: 0.16em;
-}
 
 
 /* Responsive setlist editor */
@@ -992,23 +896,6 @@ img, video, iframe {
     100% { transform: rotate(360deg); }
 }
 
-/* Make setlist editor buttons smaller */
-#current-setlist-songs .song-item .btn,
-#available-songs .song-item .btn {
-    padding: 0.15em 0.35em;
-    font-size: 0.8em;
-    min-width: 24px;
-    min-height: 24px;
-    line-height: 1;
-    border-radius: 6px;
-    margin-left: 1px;
-    margin-right: 1px;
-}
-
-#current-setlist-songs .song-item .btn i,
-#available-songs .song-item .btn i {
-    font-size: 1em;
-}
 
 .drag-handle {
     cursor: grab;
@@ -1081,62 +968,6 @@ img, video, iframe {
 }
 
 
-.setlist-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.2em;
-}
-
-.setlist-actions .btn {
-  /* Make buttons round, icon-only, tight padding */
-  min-width: 2.2em;
-  max-width: 2.2em;
-  height: 2.2em;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.1em;
-  border-radius: 50%;
-  background: var(--bg-tertiary, #222);
-  color: var(--accent-primary, #fff);
-  box-shadow: var(--shadow-sm);
-  transition: background 0.14s, color 0.14s, box-shadow 0.14s;
-  cursor: pointer;
-  margin: 0 0.06em;
-  opacity: 0.95;
-}
-.setlist-actions .btn:hover,
-.setlist-actions .btn:focus {
-  background: var(--bg-hover, #444);
-  color: var(--accent-hover, #f0f0f0);
-}
-
-.setlist-actions .btn.danger {
-  background: var(--danger, #ff0000);
-  color: #fff;
-}
-.setlist-actions .btn.danger:hover {
-  background: #d00000;
-}
-
-.setlist-song-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1em;
-  padding: 0.22em 0.6em 0.22em 0.9em;
-  border-radius: var(--border-radius-base, 8px);
-  background: var(--bg-secondary, #111);
-  margin-bottom: 0.2em;
-  font-size: 1.06em;
-}
-.setlist-song-item span {
-  flex: 1 1 auto;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 
 /* Allow more natural shrink on smaller tablets */
