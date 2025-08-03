@@ -596,9 +596,6 @@ img, video, iframe {
     transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
 }
 
-.song-container {
-    min-height: 180px; /* Reduced min-height for song containers */
-}
 
 /* ========================================
     Editor Mode
@@ -826,22 +823,11 @@ img, video, iframe {
 
 
 
-/* Responsive setlist editor */
+/* Responsive editor */
 @media (max-width: 600px) {
-    .setlist-editor {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-    
     .toolbar {
         flex-direction: column;
         align-items: stretch;
-    }
-
-    .toolbar .setlist-select {
-        min-width: none;
-        max-width: none;
-        width: 100%;
     }
 
     .toolbar-buttons-group {
@@ -856,17 +842,6 @@ img, video, iframe {
     .toolbar-buttons-group > label.btn {
         flex: 1 1 0;
         text-align: center;
-    }
-    
-    .song-container .song-item .song-controls {
-        flex-direction: column;
-        gap: 2px;
-    }
-    
-    .song-container .song-item .song-controls .btn {
-        width: 2.2em;
-        height: 2.2em;
-        font-size: 0.85rem;
     }
 }
 
