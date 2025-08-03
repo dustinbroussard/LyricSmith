@@ -189,17 +189,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.autoscrollSpeedValue.textContent = e.target.value;
                 });
             }
-            });
-            this.closeAutoscrollDelayModal.addEventListener('click', () => {
+            }
+            if (this.closeAutoscrollDelayModal) {
+                this.closeAutoscrollDelayModal.addEventListener('click', () => {
                 this.autoscrollDelay = Number(this.autoscrollDelaySlider.value);
                 localStorage.setItem('autoscrollDelay', this.autoscrollDelay);
                 this.autoScrollSpeed = Number(this.autoscrollSpeedSlider.value);
                 localStorage.setItem('autoscrollSpeed', this.autoScrollSpeed);
                 this.autoscrollDelayModal.style.display = 'none';
-            });
+                });
+            }
 
             // Autoscroll toggle handler
-            this.enableAutoscrollToggle.addEventListener('change', (e) => {
+            if (this.enableAutoscrollToggle) {
+                this.enableAutoscrollToggle.addEventListener('change', (e) => {
                 this.autoscrollEnabled = e.target.checked;
                 localStorage.setItem('autoscrollEnabled', JSON.stringify(this.autoscrollEnabled));
                 this.updateAutoScrollButtonVisibility();
@@ -207,10 +210,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!this.autoscrollEnabled && this.autoScrollActive) {
                     this.stopAutoScroll();
                 }
-            });
-            this.lyricsDisplay.addEventListener('scroll', () => this.updateScrollButtonsVisibility());
-            this.lyricsDisplay.addEventListener('touchstart', () => this.stopAutoScroll());
-            this.lyricsDisplay.addEventListener('mousedown', () => this.stopAutoScroll());
+                });
+            }
+            if (this.lyricsDisplay) {
+                this.lyricsDisplay.addEventListener('scroll', () => this.updateScrollButtonsVisibility());
+                this.lyricsDisplay.addEventListener('touchstart', () => this.stopAutoScroll());
+                this.lyricsDisplay.addEventListener('mousedown', () => this.stopAutoScroll());
+            }
         },
 
         // Display current song
