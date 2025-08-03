@@ -1,947 +1,122 @@
-// ==== THEME HANDLING ====
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize theme
-    const savedTheme = localStorage.getItem('theme');
-    if (!savedTheme) {
-        localStorage.setItem('theme', 'dark');
-        document.documentElement.dataset.theme = 'dark';
-    } else {
-        document.documentElement.dataset.theme = savedTheme;
-    }
-});
+document.addEventListener('DOMContentLoaded', () => {
+  // === THEME TOGGLE ===
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.dataset.theme = savedTheme;
 
-// ==== SETLIST MANAGER MODULE 
-function normalizeSetlistName(name) {
-    return name.replace(/\.[^/.]+$/, '')  // Remove file extension
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  themeToggleBtn?.addEventListener('click', () => {
+    const newTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = newTheme;
+    localStorage.setItem('theme', newTheme);
+  });
+
+  // === APP LOGIC ===
+  const app = {
+    songList: document.getElementById('song-list'),
+    songModal: document.getElementById('song-modal'),
+    songModalTitle: document.getElementById('song-modal-title'),
+    saveSongBtn: document.getElementById('save-song-btn'),
+    cancelSongBtn: document.getElementById('cancel-song-btn'),
+    songTitleInput: document.getElementById('song-title-input'),
+    songLyricsInput: document.getElementById('song-lyrics-input'),
+
+    songs: [],
+    currentSongId: null,
+
+    init() {
+      this.loadSongs();
+      this.renderSongs();
+      this.bindEvents();
+    },
+
+    loadSongs() {
+      this.songs = JSON.parse(localStorage.getItem('songs') || '[]');
+    },
+
+    saveSongs() {
+      localStorage.setItem('songs', JSON.stringify(this.songs));
+    },
+
+    normalizeTitle(title) {
+      return title
+        .replace(/\.[^/.]+$/, '')
         .replace(/[_\-]+/g, ' ')
-        .replace(/[^\w\s]/g, '')
         .replace(/\s+/g, ' ')
         .trim()
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());
-}
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+    },
 
-const SetlistsManager = (() => {
-    let setlists = new Map();
-    const DB_KEY = 'setlists';
+    renderSongs() {
+      this.songList.innerHTML = '';
 
-    function load() {
-        try {
-            const raw = localStorage.getItem(DB_KEY);
-            if (raw) {
-                const arr = JSON.parse(raw);
-                setlists = new Map(arr.map(obj => [obj.id, obj]));
-            }
-        } catch (error) {
-            setlists = new Map();
-        }
-    }
+      const sorted = [...this.songs].sort((a, b) => a.title.localeCompare(b.title));
 
-    function save() {
-        localStorage.setItem(DB_KEY, JSON.stringify(Array.from(setlists.values())));
-    }
+      for (const song of sorted) {
+        const item = document.createElement('div');
+        item.className = 'song-item';
+        item.dataset.id = song.id;
+        item.innerHTML = `
+          <span>${song.title}</span>
+          <div>
+            <a class="btn" href="editor/performance.html?songId=${song.id}" title="Edit">
+              <i class="fas fa-pen"></i>
+            </a>
+            <button class="btn danger delete-song-btn" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `;
 
-    function getAllSetlists() {
-        return Array.from(setlists.values()).sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    function getSetlistById(id) {
-        return setlists.get(id) || null;
-    }
-
-    function addSetlist(name, songIds = []) {
-        const normalized = normalizeSetlistName(name);
-        const existing = Array.from(setlists.values()).find(s => 
-            s.name.toLowerCase() === normalized.toLowerCase()
-        );
-        let finalName = normalized;
-        if (existing) {
-            let counter = 1;
-            while (Array.from(setlists.values()).find(s => 
-                s.name.toLowerCase() === `${normalized} (${counter})`.toLowerCase()
-            )) { counter++; }
-            finalName = `${normalized} (${counter})`;
-        }
-        const setlist = {
-            id: (Date.now().toString() + Math.random().toString(16).slice(2)), 
-            name: finalName,
-            songs: [...songIds],
-            createdAt: Date.now(),
-            updatedAt: Date.now()
-        };
-        setlists.set(setlist.id, setlist);
-        save();
-        return setlist;
-    }
-
-    function renameSetlist(id, newName) {
-        const setlist = setlists.get(id);
-        if (setlist) {
-            const normalized = normalizeSetlistName(newName);
-            const existing = Array.from(setlists.values()).find(s => 
-                s.id !== id && s.name.toLowerCase() === normalized.toLowerCase()
-            );
-            if (existing) throw new Error(`A setlist named "${normalized}" already exists`);
-            setlist.name = newName.trim();
-            setlist.updatedAt = Date.now();
-            save();
-            return setlist;
-        }
-        return null;
-    }
-
-    function duplicateSetlist(id) {
-        const orig = getSetlistById(id);
-        if (orig) return addSetlist(orig.name + ' Copy', orig.songs);
-        return null;
-    }
-
-    function deleteSetlist(id) {
-        const deleted = setlists.delete(id);
-        if (deleted) save();
-        return deleted;
-    }
-
-    function updateSetlistSongs(id, songIds) {
-        const setlist = setlists.get(id);
-        if (setlist) {
-            setlist.songs = [...songIds];
-            setlist.updatedAt = Date.now();
-            save();
-            return setlist;
-        }
-        return null;
-    }
-
-    function addSongToSetlist(setlistId, songId) {
-        const setlist = setlists.get(setlistId);
-        if (setlist && !setlist.songs.includes(songId)) {
-            setlist.songs.push(songId);
-            setlist.updatedAt = Date.now();
-            save();
-            return setlist;
-        }
-        return null;
-    }
-
-    function removeSongFromSetlist(setlistId, songId) {
-        const setlist = setlists.get(setlistId);
-        if (setlist) {
-            const index = setlist.songs.indexOf(songId);
-            if (index > -1) {
-                setlist.songs.splice(index, 1);
-                setlist.updatedAt = Date.now();
-                save();
-                return setlist;
-            }
-        }
-        return null;
-    }
-
-    function moveSongInSetlist(setlistId, songId, direction) {
-        const setlist = setlists.get(setlistId);
-        if (!setlist) return null;
-        const currentIndex = setlist.songs.indexOf(songId);
-        if (currentIndex === -1) return null;
-        const newIndex = currentIndex + direction;
-        if (newIndex < 0 || newIndex >= setlist.songs.length) return null;
-        [setlist.songs[currentIndex], setlist.songs[newIndex]] = 
-        [setlist.songs[newIndex], setlist.songs[currentIndex]];
-        setlist.updatedAt = Date.now();
-        save();
-        return setlist;
-    }
-
-   function importSetlistFromText(name, text, allSongs) {
-    // Normalize and trim setlist name
-    const normalizedName = name.trim();
-    if (!normalizedName) {
-        alert("Setlist name cannot be empty.");
-        return null;
-    }
-
-    // Use Fuse for fuzzy matching
-    const fuse = new Fuse(allSongs, {
-        keys: ['title'],
-        threshold: 0.4,
-        includeScore: true,
-    });
-
-    // Split text into lines and clean up
-    const titles = text.split('\n')
-        .map(line => line.trim().replace(/^\d+[\).\:\-]?\s*/, ''))  // Strip "1.", "2)", etc.
-        .filter(line => line.length > 0);
-
-    const songIds = [];
-    const notFound = [];
-
-    titles.forEach(title => {
-        const results = fuse.search(title);
-        if (results.length && results[0].score <= 0.5) {
-            songIds.push(results[0].item.id);
-        } else {
-            notFound.push(title);
-        }
-    });
-
-    if (songIds.length === 0) {
-        alert("No matching songs found to import.");
-        return null;
-    }
-
-    // Add setlist with fuzzy matched songs
-    let setlist;
-    try {
-        setlist = SetlistsManager.addSetlist(normalizedName, songIds);
-    } catch (err) {
-        alert(err.message || "Failed to create setlist.");
-        return null;
-    }
-
-    // Notify user of any missing songs
-    if (notFound.length > 0) {
-        alert(`The following songs were not found and were not imported:\n- ${notFound.join('\n- ')}`);
-    }
-
-    return { setlist, imported: songIds.length, notFound };
-}
-
-
-    function exportSetlist(setlistId, allSongs, format = 'json') {
-        const setlist = getSetlistById(setlistId);
-        if (!setlist) return null;
-        const songs = setlist.songs
-            .map(songId => allSongs.find(s => s.id === songId))
-            .filter(song => song !== undefined);
-        switch (format) {
-            case 'json':
-                return JSON.stringify({ setlist, songs }, null, 2);
-            case 'txt':
-                return songs.map(song => song.title).join('\n');
-            case 'csv':
-                const header = 'Title,Lyrics\n';
-                const rows = songs.map(song => 
-                    `"${song.title.replace(/"/g, '""')}","${song.lyrics.replace(/"/g, '""')}"`
-                ).join('\n');
-                return header + rows;
-            default:
-                return null;
-        }
-    }
-
-    load();
-
-    return {
-        getAllSetlists,
-        getSetlistById,
-        addSetlist,
-        renameSetlist,
-        duplicateSetlist,
-        deleteSetlist,
-        updateSetlistSongs,
-        addSongToSetlist,
-        removeSongFromSetlist,
-        moveSongInSetlist,
-        importSetlistFromText,
-        exportSetlist,
-        load,
-        save,
-    };
-})();
-
-document.addEventListener('DOMContentLoaded', () => {
-    const app = {
-        normalizeTitle(title) {
-            let t = title.replace(/\.[^/.]+$/, '');
-            t = t.replace(/[_\-]+/g, ' ');
-            t = t.replace(/\s+/g, ' ').trim();
-            t = t.replace(/([a-z])([A-Z])/g, '$1 $2');
-            t = t.replace(/\w\S*/g, (w) =>
-                w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
-            );
-            return t;
-        },
-
-        isDuplicateTitle(title) {
-            const normalized = title.trim().toLowerCase();
-            return this.songs.some(song => song.title.trim().toLowerCase() === normalized);
-        },
-
-        // DOM Elements
-        navButtons: document.querySelectorAll('.nav-button'),
-        tabs: document.querySelectorAll('.tab'),
-        songList: document.getElementById('song-list'),
-        addSongBtn: document.getElementById('add-song-btn'),
-        deleteAllSongsBtn: document.getElementById('delete-all-songs-btn'),
-        songModal: document.getElementById('song-modal'),
-        songModalTitle: document.getElementById('song-modal-title'),
-        saveSongBtn: document.getElementById('save-song-btn'),
-        cancelSongBtn: document.getElementById('cancel-song-btn'),
-        songTitleInput: document.getElementById('song-title-input'),
-        songLyricsInput: document.getElementById('song-lyrics-input'),
-        songSearchInput: document.getElementById('song-search-input'),
-        songUploadInput: document.getElementById('song-upload-input'),
-        setlistSelect: document.getElementById('setlist-select'),
-        newSetlistBtn: document.getElementById('new-setlist-btn'),
-        renameSetlistBtn: document.getElementById('rename-setlist-btn'),
-        duplicateSetlistBtn: document.getElementById('duplicate-setlist-btn'),
-        deleteSetlistBtn: document.getElementById('delete-setlist-btn'),
-        availableSongsContainer: document.getElementById('available-songs'),
-        currentSetlistSongsContainer: document.getElementById('current-setlist-songs'),
-        currentSetlistTitle: document.getElementById('current-setlist-title'),
-        setlistModal: document.getElementById('setlist-modal'),
-        setlistModalTitle: document.getElementById('setlist-modal-title'),
-        setlistNameInput: document.getElementById('setlist-name-input'),
-        saveSetlistBtn: document.getElementById('save-setlist-btn'),
-        cancelSetlistBtn: document.getElementById('cancel-setlist-btn'),
-        editorSetlistSelect: document.getElementById('editor-setlist-select'),
-        editorSongSearch: document.getElementById('editor-song-search'),
-        startPerformanceBtn: document.getElementById('start-editor-btn'),
-        editorSongList: document.getElementById('editor-song-list'),
-
-        // Tab Toolbars
-        tabToolbars: {
-            songs: `
-                <input type="text" id="song-search-input" class="search-input" placeholder="Search songs...">
-                <div class="toolbar-buttons-group">
-                    <button id="add-song-btn" class="btn"><i class="fas fa-plus"></i></button>
-                    <button id="delete-all-songs-btn" class="btn danger"><i class="fas fa-trash"></i></button>
-                    <label for="song-upload-input" class="btn"><i class="fas fa-upload"></i></label>
-                </div>
-                <input type="file" id="song-upload-input" multiple accept=".txt,.docx" class="hidden-file">
-            `,
-            setlists: `
-                <select id="setlist-select" class="setlist-select"></select>
-                <div class="toolbar-buttons-group">
-                    <button id="new-setlist-btn" class="btn" title="New Setlist"><i class="fas fa-plus"></i></button>
-                    <button id="rename-setlist-btn" class="btn" title="Rename"><i class="fas fa-pen"></i></button>
-                    <button id="duplicate-setlist-btn" class="btn" title="Duplicate"><i class="fas fa-copy"></i></button>
-                    <button id="delete-setlist-btn" class="btn danger" title="Delete"><i class="fas fa-trash"></i></button>
-                    <button id="import-setlist-btn" class="btn" title="Import"><i class="fas fa-file-import"></i></button>
-                    <button id="export-setlist-btn" class="btn" title="Export"><i class="fas fa-file-export"></i></button>
-                </div>
-                <input type="file" id="import-setlist-file" accept=".txt,.docx" class="hidden-file">
-            `,
-            editor: `
-                <select id="editor-setlist-select" class="setlist-select"></select>
-                <input type="text" id="editor-song-search" class="search-input" placeholder="Find any song...">
-                <button id="start-editor-btn" class="btn primary"><i class="fas fa-play"></i> Start</button>
-            `
-        },
-
-        // State
-        songs: [],
-        currentSongId: null,
-        currentSetlistId: null,
-        editorSetlistId: null,
-        modalMode: null,
-        sortableSetlist: null,
-        lastPerformance: null,
-
-        // Render the toolbar for the given tab and attach event listeners
-        renderToolbar(tab) {
-            const toolbarDiv = document.getElementById('tab-toolbar');
-            if (!toolbarDiv) {
-                console.error('Tab toolbar element not found');
-                return;
-            }
-            toolbarDiv.innerHTML = this.tabToolbars[tab] || '';
-            
-            if (tab === 'setlists' || tab === 'editor') {
-                this.setlistSelect = document.getElementById('setlist-select');
-                this.editorSetlistSelect = document.getElementById('editor-setlist-select');
-            }
-
-            if (tab === 'songs') {
-                this.songSearchInput = document.getElementById('song-search-input');
-                this.addSongBtn = document.getElementById('add-song-btn');
-                this.deleteAllSongsBtn = document.getElementById('delete-all-songs-btn');
-                this.songUploadInput = document.getElementById('song-upload-input');
-
-                this.songSearchInput.addEventListener('input', () => this.renderSongs());
-                this.addSongBtn.addEventListener('click', () => this.openSongModal());
-                this.deleteAllSongsBtn.addEventListener('click', () => {
-                    if (confirm('Delete ALL songs? This cannot be undone!')) {
-                        this.songs = [];
-                        this.saveData();
-                        this.renderSongs();
-                    }
-                });
-                this.songUploadInput.addEventListener('change', (e) => this.handleFileUpload(e));
-            } else if (tab === 'setlists') {
-                this.setlistSelect = document.getElementById('setlist-select');
-                this.newSetlistBtn = document.getElementById('new-setlist-btn');
-                this.renameSetlistBtn = document.getElementById('rename-setlist-btn');
-                this.duplicateSetlistBtn = document.getElementById('duplicate-setlist-btn');
-                this.deleteSetlistBtn = document.getElementById('delete-setlist-btn');
-                this.setlistSelect.addEventListener('change', (e) => this.handleSetlistSelectChange(e));
-                this.newSetlistBtn.addEventListener('click', () => this.openSetlistModal());
-                this.renameSetlistBtn.addEventListener('click', () => this.openSetlistModal('rename'));
-                this.duplicateSetlistBtn.addEventListener('click', () => this.handleDuplicateSetlist());
-                this.deleteSetlistBtn.addEventListener('click', () => this.handleDeleteSetlist());
-                document.getElementById('import-setlist-btn').addEventListener('click', () => {
-                    document.getElementById('import-setlist-file').click();
-                });
-                document.getElementById('export-setlist-btn').addEventListener('click', () => {
-                    if (!this.currentSetlistId) {
-                        alert("No setlist selected!");
-                        return;
-                    }
-                    const format = prompt("Export format? (json/txt/csv)", "json");
-                    if (!format) return;
-                    const content = SetlistsManager.exportSetlist(
-                        this.currentSetlistId,
-                        this.songs,
-                        format.trim().toLowerCase()
-                    );
-                    if (content) {
-                        let ext = format === "csv" ? "csv" : format === "txt" ? "txt" : "json";
-                        const setlist = SetlistsManager.getSetlistById(this.currentSetlistId);
-                        const name = setlist ? setlist.name.replace(/\s+/g, "_") : "setlist";
-                        this.downloadFile(`${name}.${ext}`, content,
-                            ext === "json" ? "application/json" : ext === "csv" ? "text/csv" : "text/plain"
-                        );
-                    } else {
-                        alert("Export failed.");
-                    }
-                });
-                document.getElementById('import-setlist-file').addEventListener('change', (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        let text = event.target.result;
-                        let setlistName = prompt("Setlist name?", file.name.replace(/\.[^/.]+$/, ''));
-                        if (!setlistName) return;
-                        if (file.name.endsWith('.docx')) {
-                            mammoth.extractRawText({ arrayBuffer: event.target.result })
-                                .then(result => {
-                                    text = result.value;
-                                    finishImportSetlist(setlistName, text);
-                                });
-                        } else {
-                            finishImportSetlist(setlistName, text);
-                        }
-                    };
-                    if (file.name.endsWith('.docx')) {
-                        reader.readAsArrayBuffer(file);
-                    } else {
-                        reader.readAsText(file);
-                    }
-                    e.target.value = '';
-                });
-            } else if (tab === 'editor') {
-                this.editorSetlistSelect = document.getElementById('editor-setlist-select');
-                this.editorSongSearch = document.getElementById('editor-song-search');
-                this.startPerformanceBtn = document.getElementById('start-editor-btn');
-                this.editorSetlistSelect.addEventListener('change', () => this.handlePerformanceSetlistChange());
-                this.editorSongSearch.addEventListener('input', () => this.handlePerformanceSongSearch());
-                this.startPerformanceBtn.addEventListener('click', () => this.handleStartPerformance());
-            }
-        },
-
-        // Core App Initialization
-        init() {
-            this.loadData();
-            this.renderToolbar('songs');
-            this.setlistSelect = document.getElementById('setlist-select');
-            this.editorSetlistSelect = document.getElementById('editor-setlist-select');
-            this.setupEventListeners();
+        item.querySelector('.delete-song-btn').addEventListener('click', () => {
+          if (confirm(`Delete "${song.title}"?`)) {
+            this.songs = this.songs.filter(s => s.id !== song.id);
+            this.saveSongs();
             this.renderSongs();
-            if (this.setlistSelect && this.editorSetlistSelect) {
-                this.renderSetlists();
-            }
+          }
+        });
 
-        },
+        this.songList.appendChild(item);
+      }
+    },
 
-        // Data Management
-        loadData() {
-            this.songs = JSON.parse(localStorage.getItem('songs')) || [];
-            const theme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.dataset.theme = theme;
-        },
+    bindEvents() {
+      this.saveSongBtn?.addEventListener('click', () => this.saveNewSong());
+      this.cancelSongBtn?.addEventListener('click', () => this.closeModal());
 
-        saveData() {
-            localStorage.setItem('songs', JSON.stringify(this.songs));
-        },
+      const addBtn = document.getElementById('add-song-btn');
+      addBtn?.addEventListener('click', () => this.openModal());
+    },
 
-        // Lyrics Management
-        getAllLyrics() {
-            return this.songs;
-        },
+    openModal() {
+      this.currentSongId = null;
+      this.songTitleInput.value = '';
+      this.songLyricsInput.value = '';
+      this.songModalTitle.textContent = 'Add Song';
+      this.songModal.style.display = 'block';
+    },
 
-        getLyricById(id) {
-            return this.songs.find(song => song.id === id);
-        },
+    closeModal() {
+      this.songModal.style.display = 'none';
+    },
 
-        addLyric(song) {
-            this.songs.push(song);
-            this.saveData();
-        },
+    saveNewSong() {
+      const title = this.normalizeTitle(this.songTitleInput.value.trim());
+      const lyrics = this.songLyricsInput.value.trim();
+      if (!title || !lyrics) return;
 
-        removeLyric(id) {
-            this.songs = this.songs.filter(song => song.id !== id);
-            this.saveData();
-        },
+      this.songs.push({
+        id: Date.now().toString(),
+        title,
+        lyrics
+      });
 
-        searchLyrics(query) {
-            query = query.trim().toLowerCase();
-            return this.songs.filter(song =>
-                song.title.toLowerCase().includes(query) ||
-                (song.lyrics && song.lyrics.toLowerCase().includes(query))
-            );
-        },
-
-        renameLyric(id, newTitle) {
-            const song = this.getLyricById(id);
-            if (song) {
-                song.title = newTitle;
-                this.saveData();
-            }
-        },
-
-        editLyric(id, newLyrics) {
-            const song = this.getLyricById(id);
-            if (song) {
-                song.lyrics = newLyrics;
-                this.saveData();
-            }
-        },
-
-        // Event Listeners
-
-        setupEventListeners() {
-            this.navButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    this.tabs.forEach(tab => tab.classList.remove('active'));
-                    this.navButtons.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    const tabName = btn.getAttribute('data-tab');
-                    document.getElementById(tabName).classList.add('active');
-                    this.renderToolbar(tabName);
-                    if (tabName === 'songs') this.renderSongs();
-                    if (tabName === 'setlists') this.renderSetlists();
-                    if (tabName === 'editor') this.renderPerformanceTab();
-                });
-            });
-
-            this.saveSongBtn.onclick = () => this.saveSong();
-            this.cancelSongBtn.onclick = () => this.closeSongModal();
-            this.saveSetlistBtn.addEventListener('click', () => this.saveSetlist());
-            this.cancelSetlistBtn.addEventListener('click', () => this.closeSetlistModal());
-            this.availableSongsContainer.addEventListener('click', (e) => this.handleAvailableSongsClick(e));
-            this.currentSetlistSongsContainer.addEventListener('click', (e) => this.handleCurrentSetlistSongsClick(e));
-            this.editorSongList.addEventListener('click', (e) => this.handlePerformanceSongClick(e));
-            // Add theme toggle button handler
-            document.getElementById('theme-toggle-btn')?.addEventListener('click', () => {
-                const currentTheme = document.documentElement.dataset.theme;
-                const isDark = currentTheme.includes('dark');
-                const newTheme = isDark ? currentTheme.replace('dark', 'light') : currentTheme.replace('light', 'dark');
-                document.documentElement.dataset.theme = newTheme;
-                localStorage.setItem('theme', newTheme);
-            });
-        },
-
-        // Song UI and Actions
-        renderSongs() {
-            const query = this.songSearchInput.value.toLowerCase();
-            const filteredSongs = this.searchLyrics(query)
-                .sort((a, b) => a.title.localeCompare(b.title));
-            this.songList.innerHTML = filteredSongs.map(song => `
-                <div class="song-item" data-id="${song.id}">
-                    <span>${song.title}</span>
-                    <div>
-                        <button class="btn edit-song-btn"><i class="fas fa-pen"></i></button>
-                        <button class="btn danger delete-song-btn"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            `).join('');
-
-            document.querySelectorAll('.edit-song-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = e.target.closest('.song-item').dataset.id;
-                    this.openSongModal(id);
-                });
-            });
-
-            document.querySelectorAll('.delete-song-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = e.target.closest('.song-item').dataset.id;
-                    this.deleteSong(id);
-                });
-            });
-        },
-
-        openSongModal(id = null) {
-            this.currentSongId = id;
-            if (id) {
-                const song = this.getLyricById(id);
-                this.songModalTitle.textContent = 'Edit Song';
-                this.songTitleInput.value = song.title;
-                this.songLyricsInput.value = song.lyrics;
-            } else {
-                this.songModalTitle.textContent = 'Add Song';
-                this.songTitleInput.value = '';
-                this.songLyricsInput.value = '';
-            }
-            this.songModal.style.display = 'block';
-        },
-
-        closeSongModal() {
-            this.songModal.style.display = 'none';
-        },
-
-        saveSong() {
-            const title = this.normalizeTitle(this.songTitleInput.value.trim());
-            const lyrics = this.songLyricsInput.value.trim();
-            if (!title) return;
-            if (this.currentSongId) {
-                const song = this.songs.find(s => s.id === this.currentSongId);
-                song.title = title;
-                song.lyrics = lyrics;
-            } else {
-                if (this.isDuplicateTitle(title)) {
-                    this.closeSongModal();
-                    return;
-                }
-                this.songs.push({
-                    id: Date.now().toString(),
-                    title,
-                    lyrics,
-                });
-            }
-            this.saveData();
-            this.renderSongs();
-            this.closeSonglistModal();
-        },
-
-        deleteSong(id) {
-            if (confirm('Are you sure you want to delete this song?')) {
-                this.removeLyric(id);
-                SetlistsManager.getAllSetlists().forEach(s => {
-                    SetlistsManager.removeSongFromSetlist(s.id, id);
-                });
-                this.renderSongs();
-                this.renderSetlists();
-            }
-        },
-
-        handleFileUpload(event) {
-            const files = event.target.files;
-            for (const file of files) {
-                const reader = new FileReader();
-                if (file.name.endsWith('.docx')) {
-                    reader.onload = (e) => {
-                        mammoth.extractRawText({ arrayBuffer: e.target.result })
-                            .then(result => {
-                                const title = this.normalizeTitle(file.name);
-                                if (this.isDuplicateTitle(title)) return;
-                                const lyrics = result.value;
-                                this.songs.push({ id: Date.now().toString(), title, lyrics });
-                                this.saveData();
-                                this.renderSongs();
-                            });
-                    };
-                    reader.readAsArrayBuffer(file);
-                } else {
-                    reader.onload = (e) => {
-                        const title = this.normalizeTitle(file.name);
-                        if (this.isDuplicateTitle(title)) return;
-                        const lyrics = e.target.result;
-                        this.songs.push({ id: Date.now().toString(), title, lyrics });
-                        this.saveData();
-                        this.renderSongs();
-                    };
-                    reader.readAsText(file);
-                }
-            }
-        },
-
-        // Setlist Management
-        renderSetlists() {
-            const setlists = SetlistsManager.getAllSetlists();
-            if (this.setlistSelect) {
-                this.setlistSelect.innerHTML = '<option value="">Select a setlist...</option>';
-            }
-            if (this.editorSetlistSelect) {
-                this.editorSetlistSelect.innerHTML = '<option value="">All Songs</option>';
-            }
-
-            setlists.forEach(s => {
-                if (this.setlistSelect) {
-                    const opt = document.createElement('option');
-                    opt.value = s.id;
-                    opt.textContent = s.name;
-                    this.setlistSelect.appendChild(opt);
-                }
-                if (this.editorSetlistSelect) {
-                    const perfOpt = document.createElement('option');
-                    perfOpt.value = s.id;
-                    perfOpt.textContent = s.name;
-                    this.editorSetlistSelect.appendChild(perfOpt);
-                }
-            });
-
-            if (setlists.length && this.currentSetlistId) {
-                if (this.setlistSelect) this.setlistSelect.value = this.currentSetlistId;
-                this.renderSetlistSongs();
-            } else if (setlists.length > 0) {
-                this.currentSetlistId = setlists[0].id;
-                if (this.setlistSelect) this.setlistSelect.value = this.currentSetlistId;
-                this.renderSetlistSongs();
-            } else {
-                this.currentSetlistId = null;
-                this.availableSongsContainer.innerHTML = '<p>No songs available</p>';
-                this.currentSetlistSongsContainer.innerHTML = '<p>No setlist selected</p>';
-                this.currentSetlistTitle.textContent = 'Current Setlist';
-            }
-        },
-
-        renderSetlistSongs() {
-            const setlist = SetlistsManager.getSetlistById(this.currentSetlistId);
-            const allSongs = this.songs;
-
-            if (!setlist) {
-                this.availableSongsContainer.innerHTML = '<p>No setlist selected</p>';
-                this.currentSetlistSongsContainer.innerHTML = '<p>No setlist selected</p>';
-                return;
-            }
-
-            const availableSongs = allSongs
-                .filter(s => !setlist.songs.includes(s.id))
-                .sort((a, b) => a.title.localeCompare(b.title));
-            this.availableSongsContainer.innerHTML = availableSongs.length > 0 
-                ? availableSongs.map(s =>
-                    `<div class="song-item" data-id="${s.id}">
-                        <span>${s.title}</span>
-                        <button class="btn add-to-setlist-btn" title="Add to Setlist"><i class="fas fa-arrow-right"></i></button>
-                    </div>`
-                ).join('')
-                : '<p>All songs are in this setlist</p>';
-
-            const setlistSongs = setlist.songs.map(id => allSongs.find(s => s.id === id)).filter(Boolean);
-            this.currentSetlistSongsContainer.innerHTML = setlistSongs.length > 0
-                ? setlistSongs.map(s =>
-                    `<div class="song-item sortable-setlist-song" data-id="${s.id}">
-                        <span class="drag-handle" title="Drag to reorder" style="cursor:grab;"><i class="fas fa-grip-vertical"></i></span>
-                        <span class="song-title">${s.title}</span>
-                        <div>
-                            <button class="btn move-up-btn" title="Move Up"><i class="fas fa-arrow-up"></i></button>
-                            <button class="btn move-down-btn" title="Move Down"><i class="fas fa-arrow-down"></i></button>
-                            <button class="btn remove-from-setlist-btn" title="Remove from Setlist"><i class="fas fa-times"></i></button>
-                        </div>
-                    </div>`
-                ).join('')
-                : '<p>No songs in this setlist</p>';
-
-            if (this.sortableSetlist) {
-                this.sortableSetlist.destroy();
-            }
-            this.sortableSetlist = Sortable.create(this.currentSetlistSongsContainer, {
-                animation: 150,
-                handle: '.drag-handle',
-                ghostClass: 'drag-ghost',
-                delay: 0,
-                touchStartThreshold: 2,
-                onEnd: (evt) => {
-                    const newOrder = Array.from(this.currentSetlistSongsContainer.querySelectorAll('.song-item')).map(item => item.dataset.id);
-                    SetlistsManager.updateSetlistSongs(this.currentSetlistId, newOrder);
-                    this.renderSetlistSongs();
-                }
-            });
-        },
-
-        openSetlistModal(mode = 'add') {
-            this.modalMode = mode;
-            if (mode === 'rename' && this.currentSetlistId) {
-                const setlist = SetlistsManager.getSetlistById(this.currentSetlistId);
-                this.setlistModalTitle.textContent = 'Rename Setlist';
-                this.setlistNameInput.value = setlist?.name || '';
-            } else {
-                this.setlistModalTitle.textContent = 'New Setlist';
-                this.setlistNameInput.value = '';
-            }
-            this.setlistModal.style.display = 'block';
-            this.setlistNameInput.focus();
-        },
-
-        closeSetlistModal() {
-            this.setlistModal.style.display = 'none';
-            this.modalMode = null;
-        },
-
-        saveSetlist() {
-            const name = this.setlistNameInput.value.trim();
-            if (!name) {
-                alert('Please enter a setlist name');
-                return;
-            }
-
-            try {
-                if (this.modalMode === 'rename' && this.currentSetlistId) {
-                    SetlistsManager.renameSetlist(this.currentSetlistId, name);
-                } else {
-                    const setlist = SetlistsManager.addSetlist(name, []);
-                    this.currentSetlistId = setlist.id;
-                }
-            } catch (err) {
-                alert(err.message || 'Could not save setlist.');
-                return;
-            }
-            this.renderSetlists();
-            this.closeSetlistModal();
-        },
-
-        handleDuplicateSetlist() {
-            if (!this.currentSetlistId) return;
-            const newSetlist = SetlistsManager.duplicateSetlist(this.currentSetlistId);
-            if (newSetlist) {
-                this.currentSetlistId = newSetlist.id;
-                this.renderSetlists();
-            }
-        },
-
-        handleDeleteSetlist() {
-            if (!this.currentSetlistId) return;
-            if (confirm('Delete this setlist?')) {
-                SetlistsManager.deleteSetlist(this.currentSetlistId);
-                this.currentSetlistId = null;
-                this.renderSetlists();
-            }
-        },
-
-        handleSetlistSelectChange(e) {
-            this.currentSetlistId = e.target.value || null;
-            this.renderSetlistSongs();
-        },
-
-        handleAvailableSongsClick(e) {
-            if (!e.target.closest('.add-to-setlist-btn')) return;
-            const songItem = e.target.closest('.song-item');
-            if (!songItem || !this.currentSetlistId) return;
-            const id = songItem.dataset.id;
-            SetlistsManager.addSongToSetlist(this.currentSetlistId, id);
-            this.renderSetlistSongs();
-        },
-
-        handleCurrentSetlistSongsClick(e) {
-            const songItem = e.target.closest('.song-item');
-            if (!songItem || !this.currentSetlistId) return;
-            const id = songItem.dataset.id;
-            if (e.target.closest('.remove-from-setlist-btn')) {
-                SetlistsManager.removeSongFromSetlist(this.currentSetlistId, id);
-                this.renderSetlistSongs();
-            } else if (e.target.closest('.move-up-btn')) {
-                SetlistsManager.moveSongInSetlist(this.currentSetlistId, id, -1);
-                this.renderSetlistSongs();
-            } else if (e.target.closest('.move-down-btn')) {
-                SetlistsManager.moveSongInSetlist(this.currentSetlistId, id, 1);
-                this.renderSetlistSongs();
-            }
-        },
-
-        // Performance Mode
-        renderPerformanceTab() {
-            this.renderSetlists();
-            this.handlePerformanceSetlistChange();
-        },
-
-        handlePerformanceSetlistChange() {
-            this.editorSetlistId = this.editorSetlistSelect.value || null;
-            this.renderPerformanceSongList();
-        },
-
-        handlePerformanceSongSearch() {
-            this.renderPerformanceSongList();
-        },
-
-        renderPerformanceSongList() {
-            let songs = [];
-            const query = this.editorSongSearch.value.trim();
-
-            if (this.editorSetlistId) {
-                const setlist = SetlistsManager.getSetlistById(this.editorSetlistId);
-                if (setlist) {
-                    songs = setlist.songs.map(id => this.songs.find(s => s.id === id)).filter(Boolean);
-                }
-            } else {
-                songs = this.songs;
-            }
-
-            if (query) {
-                songs = songs.filter(song =>
-                    song.title.toLowerCase().includes(query.toLowerCase()) ||
-                    song.lyrics.toLowerCase().includes(query.toLowerCase())
-                );
-            }
-
-            this.editorSongList.innerHTML = songs.map(song => `
-                <div class="song-item" data-id="${song.id}">
-                    <span>${song.title}</span>
-                    <button class="btn primary perform-song-btn" title="Perform This Song"><i class="fas fa-play"></i></button>
-                </div>
-            `).join('');
-        },
-
-        handlePerformanceSongClick(e) {
-            if (!e.target.closest('.perform-song-btn')) return;
-            const songItem = e.target.closest('.song-item');
-            if (!songItem) return;
-            const songId = songItem.dataset.id;
-            this.startPerformanceWithSong(songId);
-        },
-
-        handleStartPerformance() {
-            if (this.editorSetlistId) {
-                const setlist = SetlistsManager.getSetlistById(this.editorSetlistId);
-                if (setlist && setlist.songs.length > 0) {
-                    this.startPerformanceWithSong(setlist.songs[0]);
-                } else {
-                    alert('No songs in selected setlist');
-                }
-            } else {
-                if (this.songs.length > 0) {
-                    this.startPerformanceWithSong(this.songs[0].id);
-                } else {
-                    alert('No songs available');
-                }
-            }
-        },
-
-        startPerformanceWithSong(songId) {
-            const params = new URLSearchParams();
-            if (this.editorSetlistId) {
-                params.set('setlistId', this.editorSetlistId);
-            }
-            params.set('songId', songId);
-            window.location.href = `editor/editor.html?${params.toString()}`;
-        },
-
- // Helper for downloading a file
-        downloadFile(filename, content, mime = "text/plain") {
-            const blob = new Blob([content], { type: mime });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            setTimeout(() => {
-                URL.revokeObjectURL(link.href);
-                document.body.removeChild(link);
-            }, 150);
-        }
-    };
-
-    app.init();
-
-    function finishImportSetlist(name, text) {
-        const result = SetlistsManager.importSetlistFromText(name, text, app.songs);
-        if (result) {
-            app.currentSetlistId = result.setlist.id;
-            app.renderSetlists();
-            alert(`Imported: ${result.imported} songs.\nNot found: ${result.notFound.length ? result.notFound.join(', ') : 'None'}`);
-        } else {
-            alert("Import failed.");
-        }
+      this.saveSongs();
+      this.renderSongs();
+      this.closeModal();
     }
+  };
+
+  app.init();
 });
+
