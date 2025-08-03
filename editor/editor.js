@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autoScrollSpeed: Number(localStorage.getItem('autoscrollSpeed')) || 1,
         autoScrollActive: false,
         autoscrollDelay: Number(localStorage.getItem('autoscrollDelay')) || 3,
+        autoscrollEnabled: null,
         resizeObserver: null,
 
         fontSize: 32, // default value; will set per song
@@ -44,16 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize
         init() {
             this.loadData();
+            this.autoscrollEnabled = JSON.parse(localStorage.getItem('autoscrollEnabled'));
+            if (this.autoscrollEnabled === null || this.autoscrollEnabled === undefined) {
+                this.autoscrollEnabled = CONFIG.autoscrollDefaultEnabled;
+            }
             this.setupEventListeners();
             this.loadPerformanceState();
             this.displayCurrentPerformanceSong();
             this.setupResizeObserver();
-
-            // Initialize autoscroll toggle
-            this.enableAutoscrollToggle = document.getElementById('enable-autoscroll-toggle');
-            this.autoscrollEnabled = JSON.parse(localStorage.getItem('autoscrollEnabled')) ?? CONFIG.autoscrollDefaultEnabled;
-            this.enableAutoscrollToggle.checked = this.autoscrollEnabled;
-            this.updateAutoScrollButtonVisibility();
+            if (this.autoScrollBtn) {
+                this.autoScrollBtn.style.display = this.autoscrollEnabled ? 'flex' : 'none';
+            }
         },
 
         // Setup resize observer for auto-fit (unchanged)
@@ -200,15 +202,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Autoscroll toggle handler
+            this.enableAutoscrollToggle = document.getElementById('enable-autoscroll-toggle');
             if (this.enableAutoscrollToggle) {
+                this.enableAutoscrollToggle.checked = this.autoscrollEnabled;
                 this.enableAutoscrollToggle.addEventListener('change', (e) => {
-                this.autoscrollEnabled = e.target.checked;
-                localStorage.setItem('autoscrollEnabled', JSON.stringify(this.autoscrollEnabled));
-                this.updateAutoScrollButtonVisibility();
-                
-                if (!this.autoscrollEnabled && this.autoScrollActive) {
-                    this.stopAutoScroll();
-                }
+                    this.autoscrollEnabled = e.target.checked;
+                    localStorage.setItem('autoscrollEnabled', JSON.stringify(this.autoscrollEnabled));
+                    if (this.autoScrollBtn) {
+                        this.autoScrollBtn.style.display = this.autoscrollEnabled ? 'flex' : 'none';
+                    }
+                    if (!this.autoscrollEnabled && this.autoScrollActive) {
+                        this.stopAutoScroll();
+                        this.updateAutoScrollButton();
+                    }
                 });
             }
             if (this.lyricsDisplay) {
@@ -393,7 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         updateAutoScrollButtonVisibility() {
-            const needsScroll = this.lyricsDisplay?.scrollHeight > this.lyricsDisplay?.clientHeight;
+            if (!this.lyricsDisplay || !this.autoScrollBtn) return;
+            const needsScroll = this.lyricsDisplay.scrollHeight > this.lyricsDisplay.clientHeight;
             this.autoScrollBtn.style.display = 
                 this.autoscrollEnabled && needsScroll ? 'flex' : 'none';
         }
