@@ -189,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.autoscrollSpeedValue.textContent = e.target.value;
                 });
             }
-            }
             if (this.closeAutoscrollDelayModal) {
                 this.closeAutoscrollDelayModal.addEventListener('click', () => {
                 this.autoscrollDelay = Number(this.autoscrollDelaySlider.value);
@@ -258,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.nextSongBtn.style.display = this.currentPerformanceSongIndex < this.editorSongs.length - 1 ? 'block' : 'none';
             this.stopAutoScroll();
             this.updateAutoScrollButton();
-            this.autoScrollBtn.blur();
+            if (this.autoScrollBtn) this.autoScrollBtn.blur();
         },
 
         // Font size methods
@@ -268,10 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	    // Save font size for this song
 	    const song = this.editorSongs[this.currentPerformanceSongIndex];
 	    if (song && song.id) {
-		this.perSongFontSizes[song.id] = this.fontSize;
-		localStorage.setItem('perSongFontSizes', JSON.stringify(this.perSongFontSizes));
+                this.perSongFontSizes[song.id] = this.fontSize;
+                localStorage.setItem('perSongFontSizes', JSON.stringify(this.perSongFontSizes));
 	    }
-	},
+        },
 
         updateFontSize() {
             if (this.lyricsDisplay) {
