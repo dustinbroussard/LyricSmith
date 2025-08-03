@@ -252,3 +252,12 @@
 .editor-header label[for="font-size-slider"] {
     display: none;
 }
+
+.autoscroll-toggle-row {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.1em;
+}
+
