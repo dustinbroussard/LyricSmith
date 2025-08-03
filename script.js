@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         item.innerHTML = `
           <span>${song.title}</span>
           <div>
-            <a class="btn" href="editor/performance.html?songId=${song.id}" title="Edit">
+            <a class="btn" href="editor/editor.html?songId=${song.id}" title="Edit">
               <i class="fas fa-pen"></i>
             </a>
             <button class="btn danger delete-song-btn" title="Delete">
