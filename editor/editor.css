@@ -429,76 +429,97 @@
 
 @media (max-width: 600px) {
     .editor-header {
-        padding: 0.3em 0.5em;
-        font-size: 0.8em;
-        flex-wrap: wrap;
+        padding: 0.5em;
+        flex-direction: column;
+        align-items: stretch;
         gap: 0.5em;
-    }
-
-    .song-title-card {
-        top: 4em;
-        font-size: 1.1em;
-        padding: 0.3em 0.8em;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
     }
 
     .editor-control-group {
-        gap: 0.7em;
+        gap: 0.5em;
+        padding: 0.5em;
+        justify-content: center;
+    }
+
+    .song-title-card {
+        position: static;
+        transform: none;
+        margin: 0.5em auto;
+        width: 90%;
+        font-size: 1.1em;
+        white-space: normal;
+        padding: 0.5em;
     }
 
     #lyrics-editor-container {
-        flex-direction: column; /* Stack lyrics and gutter vertically */
+        flex-direction: column-reverse;
+        padding-bottom: 4em;
     }
 
     .gutter {
-        width: 100%;
-        text-align: left;
-        padding: 1rem;
-        border-right: none;
-        border-bottom: 1px solid var(--border-light);
-        display: none; /* Hide gutter for better use of space */
+        display: none;
     }
 
     #lyrics-display {
-        padding: 1em 0.8em 1.5em 0.8em;
-        font-size: 1.3rem;
+        padding: 1em;
+        font-size: 1.2rem;
+        min-height: calc(100vh - 200px);
     }
 
     .lyrics-line-group {
-        flex-direction: row;
-        align-items: baseline;
+        flex-direction: column;
+        margin-bottom: 0.5em;
     }
 
     .chord-line {
-        flex-shrink: 0;
-        width: 100%; /* Take full width */
-        margin-right: 0.5em;
+        width: 100%;
+        margin-bottom: 0.2em;
+        padding-left: 0.5em;
     }
 
-    .lyrics-line {
-        margin-bottom: 0.3em;
-        min-height: 0.5em;
+    .editor-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        border-radius: 0;
+        margin: 0;
+        padding: 0.5em;
+        z-index: 1000;
+    }
+
+    .footer-controls {
+        flex: 1;
+        justify-content: center;
     }
 
     .copy-lyrics-btn, .scroll-to-top-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 1.2rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
     }
 
     .copy-lyrics-btn {
-        top: 4.5em;
-        right: 0.8em;
+        top: auto;
+        bottom: 4em;
+        right: 0.5em;
     }
 
     .scroll-to-top-btn {
-        bottom: 5.5em;
-        right: 0.8em;
+        bottom: auto;
+        top: 4.5em;
+        right: 0.5em;
     }
 
-    .editor-controls .icon-btn {
-        width: 1.9em;
-        height: 1.9em;
-        font-size: 0.9em;
-        margin: 0 0.06em;
+    .metadata-panel {
+        width: 100%;
+        right: -100%;
+    }
+
+    .metadata-panel.open {
+        right: 0;
     }
 }
