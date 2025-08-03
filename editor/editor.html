@@ -15,18 +15,15 @@
 
     <div id="editor-mode" class="editor-mode-overlay" style="display: flex;">
         <div class="editor-header">
-            <div id="editor-song-info" class="song-info"></div>
-            <div class="editor-controls">
-             
-
+            <div class="editor-control-group left-controls">
                 <button id="toggle-chords-btn" class="icon-btn" title="Toggle Chords">
                     <i class="fas fa-guitar"></i>
                 </button>
                 <button id="toggle-read-only-btn" class="icon-btn" title="Performance Mode">
                     <i class="fas fa-lock"></i>
                 </button>
-                <div class="divider"></div>
-
+            </div>
+            <div class="editor-control-group center-controls">
                 <button id="decrease-font-btn" class="icon-btn" title="Decrease Font Size">
                     <i class="fas fa-minus"></i>
                 </button>
@@ -34,13 +31,16 @@
                 <button id="increase-font-btn" class="icon-btn" title="Increase Font Size">
                     <i class="fas fa-plus"></i>
                 </button>
-                <div class="divider"></div>
+            </div>
+            <div class="editor-control-group right-controls">
                 <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Theme"><i class="fas fa-adjust"></i></button>
                 <button id="exit-editor-btn" class="icon-btn" title="Exit Editor">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
+
+        <div id="song-title-card" class="song-title-card"></div>
 
         <div id="lyrics-editor-container">
             <div class="gutter" id="syllable-gutter"></div>

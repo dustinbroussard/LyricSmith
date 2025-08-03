@@ -32,12 +32,33 @@
     font-weight: bold;
 }
 
-.editor-controls {
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.45em 0.65em;
+}
+
+.editor-control-group {
     display: flex;
     align-items: center;
     gap: 0.5em;
-    justify-content: flex-end;
-    margin-right: 0.35em;
+}
+
+.song-title-card {
+    position: fixed;
+    top: 3.5em;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--bg-tertiary);
+    padding: 0.5em 1em;
+    border-radius: var(--border-radius-base);
+    box-shadow: var(--shadow-md);
+    z-index: 999;
+    max-width: 80%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .copy-lyrics-btn {
@@ -307,13 +328,20 @@ toolbar {
     gap: 1rem;
   }
   .editor-header {
-    padding: 0.3em 0.5em; /* Reduced padding in editor header */
+    padding: 0.3em 0.5em;
     font-size: 0.8em;
+    flex-wrap: wrap;
+    gap: 0.5em;
   }
 
-  .editor-header h2,
-  .editor-header .song-info h2 {
-    font-size: 1.1em; /* Smaller song title in editor */
+  .song-title-card {
+    top: 3em;
+    font-size: 0.9em;
+    padding: 0.3em 0.8em;
+  }
+
+  .editor-control-group {
+    gap: 0.3em;
   }
 
   .lyrics-container {

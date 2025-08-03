@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentSong = this.editorSongs[this.currentEditorSongIndex];
             this.fontSize = this.perSongFontSizes[this.currentSong.id] || 32;
 
-            this.editorSongInfo.innerHTML = `<h2>${this.currentSong.title}</h2>`;
+            document.getElementById('song-title-card').textContent = this.currentSong.title;
             this.fontSizeDisplay.textContent = `${this.fontSize}px`;
             this.renderLyrics();
         },
