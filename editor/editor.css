@@ -115,29 +115,35 @@
 }
 .editor-controls .icon-btn {
     background: var(--bg-tertiary);
-    color: var(--accent-primary, #fff);
+    color: var(--text-primary);
     border: none;
-    border-radius: 50%;
-    width: 2.1em;
-    height: 2.1em;
-    font-size: 1.25em;
+    border-radius: 0.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.15rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 7px rgba(0,0,0,0.08);
-    transition: background 0.14s, color 0.16s, box-shadow 0.13s, transform 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
     cursor: pointer;
-    margin: 0 0.06em;
+    margin: 0 0.25rem;
     opacity: 0.95;
-    position: relative; /* For dropdown */
+    position: relative;
+    border: 1px solid var(--border-light);
 }
 
 .editor-controls .icon-btn:hover, .editor-controls .icon-btn:focus {
-    background: var(--accent-hover, #fff);
-    color: var(--accent-primary, #222);
-    box-shadow: 0 2px 16px var(--accent-glow);
-    transform: scale(1.05);
+    background: var(--accent-primary);
+    color: white;
+    box-shadow: 0 4px 16px var(--accent-glow);
+    transform: translateY(-1px);
     opacity: 1;
+}
+
+.editor-controls .icon-btn:active {
+    transform: scale(0.97);
+    transition: all 0.1s ease-out;
 }
 .editor-controls .divider {
     width: 1px;
