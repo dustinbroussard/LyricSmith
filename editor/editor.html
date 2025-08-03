@@ -36,7 +36,7 @@
                 </button>
                 <div class="divider"></div>
                 <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Theme"><i class="fas fa-adjust"></i></button>
-                <button id="exit-editor-btn" class="icon-btn danger" title="Exit Editor">
+                <button id="exit-editor-btn" class="icon-btn" title="Exit Editor">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -45,7 +45,7 @@
         <div id="lyrics-editor-container">
             <div class="gutter" id="syllable-gutter"></div>
             <div id="lyrics-display"></div>
-            <button id="copy-lyrics-btn" class="icon-btn" title="Copy Lyrics">
+            <button id="copy-lyrics-btn" class="icon-btn copy-lyrics-btn" title="Copy Lyrics">
                     <i class="fas fa-copy"></i>
          </button>
 
@@ -53,18 +53,18 @@
 
         <div class="editor-footer">
             <div class="footer-controls">
-                <label for="measure-mode-toggle" class="control-label">Measure Mode</label>
+                <label for="measure-mode-toggle" class="control-label">Measure</label>
                 <label class="switch">
                     <input type="checkbox" id="measure-mode-toggle">
                     <span class="slider round"></span>
                 </label>
             </div>
             <div class="footer-controls">
-                <label for="tempo-input" class="control-label">Tempo (BPM)</label>
+                <label for="tempo-input" class="control-label">BPM</label>
                 <input type="number" id="tempo-input" value="120" min="60" max="240">
             </div>
             <div class="footer-controls">
-                <label for="rhyme-mode-toggle" class="control-label">Rhyme Match</label>
+                <label for="rhyme-mode-toggle" class="control-label">Rhyme</label>
                 <label class="switch">
                     <input type="checkbox" id="rhyme-mode-toggle">
                     <span class="slider round"></span>
