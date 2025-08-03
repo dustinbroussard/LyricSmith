@@ -286,3 +286,85 @@
 #lyrics-editor-container.read-only #lyrics-display .chord-line {
     pointer-events: none;
 }
+
+
+/* MOBILE POLISH PATCH */
+@media (max-width: 600px) {
+toolbar {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.4em;
+  }
+
+  .setlist-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .editor-header {
+    padding: 0.3em 0.5em; /* Reduced padding in editor header */
+    font-size: 0.8em;
+  }
+
+  .editor-header h2,
+  .editor-header .song-info h2 {
+    font-size: 1.1em; /* Smaller song title in editor */
+  }
+
+  .lyrics-container {
+    font-size: 1.3rem; /* Adjusted base font size for lyrics on tablets */
+    padding: 1em 0.8em 1.5em 0.8em !important; 
+    line-height: 1.4 !important; /* Slightly more relaxed line-height for readability */
+  }
+  
+  .lyrics-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    font-size: 0.5rem; /* Base size, slider still works */
+    padding: 0.5rem;
+    line-height: 1.6;
+    color: var(--text-primary); /* Lyrics use primary text color */
+    transition: color var(--transition-speed);
+    text-align: left; /* Adjust for better lyric display */
+    display: flex;
+    white-space: pre-wrap; /* Preserve line breaks and spaces */
+    word-break: break-word;
+}
+  .scroll-to-top-btn {
+    position: fixed;
+    bottom: 7em;
+    right: 1em;
+    width: 5px;
+    height: 5px;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    background-color: var(--accent-primary);
+    color: var(--bg-primary);
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    z-index: 999;
+    opacity: 0.8;
+    transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lyrics-line {
+    position: relative;
+    margin-bottom: 0.1em;
+    min-height: 0.5em;
+  }
+  
+  #lyrics-display {
+    flex-grow: 1;
+    padding: 1rem;
+    position: relative;
+    caret-color: var(--accent-primary);
+    outline: none;
+}
+}
+
+
+
+

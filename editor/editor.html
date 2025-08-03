@@ -12,15 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Neonderthaw&display=swap" rel="stylesheet">
 </head>
 <body>
+
     <div id="editor-mode" class="editor-mode-overlay" style="display: flex;">
         <div class="editor-header">
             <div id="editor-song-info" class="song-info"></div>
             <div class="editor-controls">
-                <button id="copy-lyrics-btn" class="icon-btn" title="Copy Lyrics">
-                    <i class="fas fa-copy"></i>
-                </button>
-
-                <div class="divider"></div>
+             
 
                 <button id="toggle-chords-btn" class="icon-btn" title="Toggle Chords">
                     <i class="fas fa-guitar"></i>
@@ -48,6 +45,10 @@
         <div id="lyrics-editor-container">
             <div class="gutter" id="syllable-gutter"></div>
             <div id="lyrics-display"></div>
+            <button id="copy-lyrics-btn" class="icon-btn" title="Copy Lyrics">
+                    <i class="fas fa-copy"></i>
+         </button>
+
         </div>
 
         <div class="editor-footer">
@@ -70,7 +71,7 @@
                 </label>
             </div>
         </div>
-
+	
         <button id="scroll-to-top-btn" class="icon-btn scroll-to-top-btn" title="Scroll to Top">
             <i class="fas fa-arrow-up"></i>
         </button>
