@@ -409,6 +409,7 @@ toolbar {
   .footer-controls .control-label {
     font-size: 0.9em;
   }
+  
   #tempo-input {
     width: 4em;
     text-align: center;
@@ -418,6 +419,25 @@ toolbar {
     color: var(--text-primary);
     border: 1px solid var(--border);
     border-radius: var(--border-radius-base);
+  }
+  
+  .editor-controls .icon-btn {
+    background: var(--bg-tertiary, #1a1a1a);
+    color: var(--accent-primary, #fff);
+    border: none;
+    border-radius: 50%;
+    width: 1.9em;
+    height: 1.9em;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 7px rgba(0,0,0,0.08);
+    transition: background 0.14s, color 0.16s, box-shadow 0.13s, transform 0.15s;
+    cursor: pointer;
+    margin: 0 0.06em;
+    opacity: 0.95;
+    position: relative; /* For dropdown */
   }
 }
 
