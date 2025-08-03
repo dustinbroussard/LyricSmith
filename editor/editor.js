@@ -53,10 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
             this.loadPerformanceState();
             this.displayCurrentPerformanceSong();
             this.setupResizeObserver();
-            // Hide autoscroll button initially - will be shown when needed in updateScrollButtonsVisibility
-            if (this.autoScrollBtn) {
-                this.autoScrollBtn.style.display = 'none';
-            }
+            // Hide autoscroll button by default (CSS handles this) and enforce visibility state
+            this.updateScrollButtonsVisibility();
         },
 
         // Setup resize observer for auto-fit (unchanged)
@@ -390,10 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (this.autoScrollBtn) {
-                if (needsScroll && this.autoscrollEnabled) {
-                    this.autoScrollBtn.style.display = 'flex';
-                } else {
-                    this.autoScrollBtn.style.display = 'none';
+                const shouldShow = needsScroll && this.autoscrollEnabled;
+                this.autoScrollBtn.style.display = shouldShow ? 'flex' : 'none';
+                if (!shouldShow) {
                     this.stopAutoScroll();
                 }
             }
