@@ -53,8 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.loadPerformanceState();
             this.displayCurrentPerformanceSong();
             this.setupResizeObserver();
+            // Hide autoscroll button initially - will be shown when needed in updateScrollButtonsVisibility
             if (this.autoScrollBtn) {
-                this.autoScrollBtn.style.display = this.autoscrollEnabled ? 'flex' : 'none';
+                this.autoScrollBtn.style.display = 'none';
             }
         },
 
@@ -221,6 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.lyricsDisplay.addEventListener('scroll', () => this.updateScrollButtonsVisibility());
                 this.lyricsDisplay.addEventListener('touchstart', () => this.stopAutoScroll());
                 this.lyricsDisplay.addEventListener('mousedown', () => this.stopAutoScroll());
+                // Initial visibility check after DOM is ready
+                setTimeout(() => this.updateScrollButtonsVisibility(), 100);
             }
         },
 
@@ -386,11 +389,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.scrollToTopBtn.classList.add('invisible');
             }
 
-            if (needsScroll && this.autoscrollEnabled) {
-                this.autoScrollBtn.style.display = 'flex';
-            } else {
-                this.autoScrollBtn.style.display = 'none';
-                this.stopAutoScroll();
+            if (this.autoScrollBtn) {
+                if (needsScroll && this.autoscrollEnabled) {
+                    this.autoScrollBtn.style.display = 'flex';
+                } else {
+                    this.autoScrollBtn.style.display = 'none';
+                    this.stopAutoScroll();
+                }
             }
         },
 
