@@ -48,6 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
             this.loadPerformanceState();
             this.displayCurrentPerformanceSong();
             this.setupResizeObserver();
+
+            // Initialize autoscroll toggle
+            this.enableAutoscrollToggle = document.getElementById('enable-autoscroll-toggle');
+            this.autoscrollEnabled = JSON.parse(localStorage.getItem('autoscrollEnabled')) ?? CONFIG.autoscrollDefaultEnabled;
+            this.enableAutoscrollToggle.checked = this.autoscrollEnabled;
+            this.updateAutoScrollButtonVisibility();
         },
 
         // Setup resize observer for auto-fit (unchanged)
@@ -166,6 +172,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('autoscrollSpeed', this.autoScrollSpeed);
                 this.autoscrollDelayModal.style.display = 'none';
             });
+
+            // Autoscroll toggle handler
+            this.enableAutoscrollToggle.addEventListener('change', (e) => {
+                this.autoscrollEnabled = e.target.checked;
+                localStorage.setItem('autoscrollEnabled', JSON.stringify(this.autoscrollEnabled));
+                this.updateAutoScrollButtonVisibility();
+                
+                if (!this.autoscrollEnabled && this.autoScrollActive) {
+                    this.stopAutoScroll();
+                }
+            });
             this.lyricsDisplay.addEventListener('scroll', () => this.updateScrollButtonsVisibility());
             this.lyricsDisplay.addEventListener('touchstart', () => this.stopAutoScroll());
             this.lyricsDisplay.addEventListener('mousedown', () => this.stopAutoScroll());
@@ -270,6 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // The rest: autoscroll, buttons, etc. are unchanged from your original
 
         startAutoScroll() {
+            if (!this.autoscrollEnabled) return;
             this.stopAutoScroll();
             const container = this.lyricsDisplay;
             if (!container) return;
@@ -301,6 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         toggleAutoScroll() {
+            if (!this.autoscrollEnabled) return;
+            
             if (this.autoScrollActive) {
                 this.stopAutoScroll();
             } else {
@@ -340,6 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateScrollBtnVisibility() {
             this.updateScrollButtonsVisibility();
+        },
+
+        updateAutoScrollButtonVisibility() {
+            const needsScroll = this.lyricsDisplay?.scrollHeight > this.lyricsDisplay?.clientHeight;
+            this.autoScrollBtn.style.display = 
+                this.autoscrollEnabled && needsScroll ? 'flex' : 'none';
         }
     };
 
