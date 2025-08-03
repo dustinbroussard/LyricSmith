@@ -601,7 +601,7 @@ img, video, iframe {
 }
 
 /* ========================================
-    Performance Mode
+    Editor Mode
     ======================================== */
 .editor-mode-overlay {
     position: fixed;
@@ -621,7 +621,7 @@ img, video, iframe {
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    background-color: var(--bg-secondary); /* Performance header uses secondary background */
+    background-color: var(--bg-secondary); /* Editor header uses secondary background */
     border-bottom: 1px solid var(--border);
     transition: background-color var(--transition-speed), border-color var(--transition-speed);
 }
