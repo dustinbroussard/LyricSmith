@@ -85,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             this.editorSongInfo.innerHTML = `
                 <h2>${song.title}</h2>
-                <div class="song-progress">${this.currentEditorSongIndex + 1} / ${this.editorSongs.length}</div>
             `;
             this.lyricsDisplay.textContent = lines.join('\n');
 

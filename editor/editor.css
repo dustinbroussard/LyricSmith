@@ -100,7 +100,7 @@
     white-space: pre-line;
     padding: 0.8em 0.5em 1.2em 0.5em;
     text-align: center;
-    max-width: 900px;
+    max-width: 100% !important;
     margin: 0 auto;
     color: var(--text-primary);
     transition: color var(--transition-speed);
