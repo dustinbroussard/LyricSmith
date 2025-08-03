@@ -24,6 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
     currentSongId: null,
 
     init() {
+      // Load mammoth for DOCX processing
+      if (typeof mammoth === 'undefined') {
+        console.warn('Mammoth.js not loaded - DOCX support will not work');
+      }
+    
       this.loadSongs();
       this.renderSongs();
       this.renderToolbar();
@@ -107,9 +112,55 @@ document.addEventListener('DOMContentLoaded', () => {
         this.renderSongs(query);
       });
 
-      // Upload handler (stubbed for now)
-      document.getElementById('song-upload-input')?.addEventListener('change', (e) => {
-        alert("Upload not implemented yet.");
+      document.getElementById('song-upload-input')?.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+
+        const processFile = async (file) => {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+              let content = e.target.result;
+              
+              if (file.name.endsWith('.docx')) {
+                try {
+                  const result = await mammoth.extractRawText({arrayBuffer: e.target.result});
+                  content = result.value;
+                } catch (err) {
+                  console.error('Error processing DOCX:', err);
+                  return resolve(null);
+                }
+              }
+              
+              // Extract title from filename (without extension)
+              const title = this.normalizeTitle(file.name);
+              const lyrics = content.trim();
+              
+              if (title && lyrics) {
+                resolve({ id: Date.now().toString(), title, lyrics });
+              } else {
+                resolve(null);
+              }
+            };
+            
+            if (file.name.endsWith('.docx')) {
+              reader.readAsArrayBuffer(file);
+            } else {
+              reader.readAsText(file);
+            }
+          });
+        };
+
+        // Process files sequentially to avoid overwhelming the UI
+        for (const file of files) {
+          const song = await processFile(file);
+          if (song) {
+            this.songs.push(song);
+          }
+        }
+
+        this.saveSongs();
+        this.renderSongs();
         e.target.value = ""; // Clear input
       });
     },
