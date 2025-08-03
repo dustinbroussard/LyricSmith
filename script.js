@@ -174,11 +174,10 @@ document.addEventListener('DOMContentLoaded', () => {
     },
 
     bindEvents() {
-      this.saveSongBtn?.addEventListener('click', () => this.saveNewSong());
-      this.cancelSongBtn?.addEventListener('click', () => this.closeModal());
-
       const addBtn = document.getElementById('add-song-btn');
-      addBtn?.addEventListener('click', () => this.openModal());
+      addBtn?.addEventListener('click', () => {
+        window.location.href = 'editor/editor.html';
+      });
     },
 
     openModal() {
@@ -193,21 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.songModal.style.display = 'none';
     },
 
-    saveNewSong() {
-      const title = this.normalizeTitle(this.songTitleInput.value.trim());
-      const lyrics = this.songLyricsInput.value.trim();
-      if (!title || !lyrics) return;
-
-      this.songs.push({
-        id: Date.now().toString(),
-        title,
-        lyrics
-      });
-
-      this.saveSongs();
-      this.renderSongs();
-      this.closeModal();
-    }
+    // saveNewSong removed - saving happens in editor now
   };
 
   app.init();
