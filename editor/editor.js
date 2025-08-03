@@ -1,11 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
     const app = {
         // DOM Elements
-        editorMode: document.getElementById('editor-mode'),
-        editorSongInfo: document.getElementById('editor-song-info'),
-        lyricsEditorContainer: document.getElementById('lyrics-editor-container'),
-        lyricsDisplay: document.getElementById('lyrics-display'),
-        syllableGutter: document.getElementById('syllable-gutter'),
+        // DOM Elements - safely initialized
+        editorMode: document.getElementById('editor-mode') || { innerHTML: '' },
+        editorSongInfo: document.getElementById('editor-song-info') || { 
+            innerHTML: '',
+            querySelector: () => null,
+            appendChild: () => null
+        },
+        lyricsEditorContainer: document.getElementById('lyrics-editor-container') || { 
+            scrollTo: () => null 
+        },
+        lyricsDisplay: document.getElementById('lyrics-display') || { 
+            innerHTML: '',
+            style: {},
+            querySelectorAll: () => [],
+            addEventListener: () => null,
+            setAttribute: () => null
+        },
+        syllableGutter: document.getElementById('syllable-gutter') || { 
+            innerHTML: '' 
+        },
         decreaseFontBtn: document.getElementById('decrease-font-btn'),
         increaseFontBtn: document.getElementById('increase-font-btn'),
         fontSizeDisplay: document.getElementById('font-size-display'),
@@ -230,11 +245,11 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentSong = this.editorSongs[this.currentEditorSongIndex];
             this.fontSize = this.perSongFontSizes[this.currentSong.id] || 32;
 
-            if (!this.editorSongInfo) {
-                console.error('editorSongInfo element not found');
+            // Skip if editor UI elements aren't ready
+            if (!this.editorSongInfo || !this.editorSongInfo.innerHTML) {
+                console.warn('Editor elements not initialized - skipping render');
                 return;
             }
-            
             this.editorSongInfo.innerHTML = `
                 <div class="title-editor">
                     <input type="text" id="song-title-edit" class="song-title-input" 
