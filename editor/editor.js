@@ -58,8 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.loadEditorState();
             this.displayCurrentEditorSong();
             this.setupResizeObserver();
-            // Initial state based on config
-            this.isChordsVisible = window.CONFIG.chordsModeEnabled;
+            // Initial state - safe fallback if config not loaded
+            const config = window.CONFIG || {};
+            this.isChordsVisible = config.chordsModeEnabled !== false; // Default true if undefined
             this.updateChordsVisibility();
         },
 
@@ -229,6 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentSong = this.editorSongs[this.currentEditorSongIndex];
             this.fontSize = this.perSongFontSizes[this.currentSong.id] || 32;
 
+            if (!this.editorSongInfo) {
+                console.error('editorSongInfo element not found');
+                return;
+            }
+            
             this.editorSongInfo.innerHTML = `
                 <div class="title-editor">
                     <input type="text" id="song-title-edit" class="song-title-input" 
