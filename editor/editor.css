@@ -38,18 +38,28 @@
     padding: 0.45em 0.65em;
 }
 
-.editor-control-group {
+.editor-control-group.left-controls {
     display: flex;
     align-items: center;
-    gap: 0.5em;
+    gap: 2em;
+    margin-left: 1em;
+}
+
+.editor-control-group.right-controls {
+    display: flex;
+    align-items: center;
+    gap: 2em;
+    margin-right: 1em;
 }
 
 .song-title-card {
     position: fixed;
-    top: 3.5em;
+    top: 3em;
     left: 50%;
+    font-size: 1.3em;
     transform: translateX(-50%);
     background-color: var(--bg-tertiary);
+    border: var(--bg-secondary);
     padding: 0.5em 1em;
     border-radius: var(--border-radius-base);
     box-shadow: var(--shadow-md);
@@ -81,7 +91,7 @@
     justify-content: center;
 }
 .editor-controls .icon-btn {
-    background: var(--bg-tertiary, #1a1a1a);
+    background: var(--bg-tertiary);
     color: var(--accent-primary, #fff);
     border: none;
     border-radius: 50%;
@@ -341,7 +351,7 @@ toolbar {
   }
 
   .editor-control-group {
-    gap: 0.3em;
+    gap: 0.7em;
   }
 
   .lyrics-container {
