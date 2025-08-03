@@ -3,17 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LyricSmith- Editor Mode</title>
+    <title>LyricSmith - Editor Mode</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="editor.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Neonderthaw&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles for metadata panel */
+        .metadata-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            padding: 1rem;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .metadata-panel.open {
+            right: 0;
+        }
+        
+        .metadata-panel h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .metadata-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        .metadata-close-btn:hover {
+            color: var(--accent-primary);
+        }
+        
+        .save-status {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius-base);
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 998;
+        }
+        
+        .save-status.visible {
+            opacity: 1;
+        }
+        
+        .save-status.unsaved {
+            background: var(--warning);
+            color: var(--bg-primary);
+        }
+        
+        @media (max-width: 800px) {
+            .metadata-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+    </style>
 </head>
 <body>
 
     <div id="editor-mode" class="editor-mode-overlay" style="display: flex;">
+        <!-- Save Status Indicator -->
+        <div id="save-status" class="save-status">
+            All changes saved
+        </div>
+
         <div class="editor-header">
             <div class="editor-control-group left-controls">
                 <button id="toggle-chords-btn" class="icon-btn" title="Toggle Chords">
@@ -21,6 +98,9 @@
                 </button>
                 <button id="toggle-read-only-btn" class="icon-btn" title="Performance Mode">
                     <i class="fas fa-lock"></i>
+                </button>
+                <button id="save-song-btn" class="icon-btn" title="Save Song (Ctrl+S)">
+                    <i class="fas fa-save"></i>
                 </button>
             </div>
             <div class="editor-control-group center-controls">
@@ -33,7 +113,12 @@
                 </button>
             </div>
             <div class="editor-control-group right-controls">
-                <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Theme"><i class="fas fa-adjust"></i></button>
+                <button id="metadata-toggle-btn" class="icon-btn" title="Song Info & Metadata">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+                <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Theme">
+                    <i class="fas fa-adjust"></i>
+                </button>
                 <button id="exit-editor-btn" class="icon-btn" title="Exit Editor">
                     <i class="fas fa-times"></i>
                 </button>
@@ -45,10 +130,11 @@
         <div id="lyrics-editor-container">
             <div class="gutter" id="syllable-gutter"></div>
             <div id="lyrics-display"></div>
-            <button id="copy-lyrics-btn" class="icon-btn copy-lyrics-btn" title="Copy Lyrics">
-                    <i class="fas fa-copy"></i>
-         </button>
-
+            
+            <!-- Enhanced Copy Button with Dropdown -->
+            <button id="copy-lyrics-btn" class="icon-btn copy-lyrics-btn" title="Copy Options">
+                <i class="fas fa-copy"></i>
+            </button>
         </div>
 
         <div class="editor-footer">
@@ -71,13 +157,131 @@
                 </label>
             </div>
         </div>
-	
+        
         <button id="scroll-to-top-btn" class="icon-btn scroll-to-top-btn" title="Scroll to Top">
             <i class="fas fa-arrow-up"></i>
         </button>
     </div>
 
+    <!-- Metadata Panel -->
+    <div id="metadata-panel" class="metadata-panel">
+        <h3>
+            Song Information
+            <button id="metadata-close-btn" class="metadata-close-btn" title="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </h3>
+        
+        <div class="metadata-editor">
+            <div class="metadata-row">
+                <label for="song-title-meta">Title:</label>
+                <input type="text" id="song-title-meta" placeholder="Song title">
+            </div>
+            
+            <div class="metadata-row">
+                <label for="song-key">Key:</label>
+                <select id="song-key">
+                    <option value="">Select Key</option>
+                    <option value="C">C</option>
+                    <option value="C#">C#</option>
+                    <option value="D">D</option>
+                    <option value="D#">D#</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="F#">F#</option>
+                    <option value="G">G</option>
+                    <option value="G#">G#</option>
+                    <option value="A">A</option>
+                    <option value="A#">A#</option>
+                    <option value="B">B</option>
+                </select>
+            </div>
+            
+            <div class="metadata-row">
+                <label for="song-tempo-meta">Tempo (BPM):</label>
+                <input type="number" id="song-tempo-meta" min="60" max="240">
+            </div>
+            
+            <div class="metadata-row">
+                <label for="song-time-signature">Time Signature:</label>
+                <select id="song-time-signature">
+                    <option value="4/4">4/4</option>
+                    <option value="3/4">3/4</option>
+                    <option value="2/4">2/4</option>
+                    <option value="6/8">6/8</option>
+                    <option value="12/8">12/8</option>
+                </select>
+            </div>
+            
+            <div class="metadata-row">
+                <label for="song-tags">Tags:</label>
+                <input type="text" id="song-tags" placeholder="rock, ballad, easy">
+                <small>Separate tags with commas</small>
+            </div>
+            
+            <div class="metadata-row">
+                <label for="song-notes">Performance Notes:</label>
+                <textarea id="song-notes" placeholder="Structure, performance notes, etc." rows="4"></textarea>
+            </div>
+            
+            <div class="metadata-row">
+                <label>Created:</label>
+                <span id="song-created" class="metadata-info"></span>
+            </div>
+            
+            <div class="metadata-row">
+                <label>Last Edited:</label>
+                <span id="song-edited" class="metadata-info"></span>
+            </div>
+            
+            <div class="metadata-row">
+                <button id="export-single-song" class="btn" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-download"></i>
+                    Export This Song
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="../config.js"></script>
+    <script src="songs.js"></script>
     <script src="editor.js"></script>
+    
+    <script>
+        // Additional functionality for metadata panel
+        document.addEventListener('DOMContentLoaded', () => {
+            const metadataToggleBtn = document.getElementById('metadata-toggle-btn');
+            const metadataPanel = document.getElementById('metadata-panel');
+            const metadataCloseBtn = document.getElementById('metadata-close-btn');
+            const saveBtn = document.getElementById('save-song-btn');
+            const saveStatus = document.getElementById('save-status');
+            
+            // Toggle metadata panel
+            metadataToggleBtn?.addEventListener('click', () => {
+                metadataPanel.classList.toggle('open');
+            });
+            
+            metadataCloseBtn?.addEventListener('click', () => {
+                metadataPanel.classList.remove('open');
+            });
+            
+            // Manual save button
+            saveBtn?.addEventListener('click', () => {
+                if (window.app && window.app.saveCurrentSong) {
+                    window.app.saveCurrentSong(true);
+                }
+            });
+            
+            // Close panel when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 800 && 
+                    metadataPanel.classList.contains('open') && 
+                    !metadataPanel.contains(e.target) && 
+                    !metadataToggleBtn.contains(e.target)) {
+                    metadataPanel.classList.remove('open');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -1,4 +1,29 @@
-/* Editor Mode Styles */
+/*
+ * editor.css
+ *
+ * This stylesheet defines the visual styles and layout for the editor mode of the LyricSmith application.
+ * It focuses on creating a clean, responsive, and intuitive user interface for editing lyrics and chords.
+ *
+ * The styles are organized into logical sections:
+ * 1. Global Editor Layout: Defines the main container and its structure.
+ * 2. Header and Controls: Styles for the top toolbar, title card, and button groups.
+ * 3. Lyrics and Gutter: Layout and typography for the main lyrics display and the syllable gutter.
+ * 4. Interactive Elements: Styles for buttons, toggles, and input fields.
+ * 5. State-based Styles: Styles for different modes like Read-Only and for rhyme matching.
+ * 6. Footer: Styles for the bottom control bar.
+ * 7. Mobile-specific Overrides: Responsive adjustments for smaller screens.
+ *
+ * Adherence to best practices:
+ * - Use of CSS variables (e.g., `var(--bg-primary)`) for themeability and consistency.
+ * - Modular and BEM-like naming conventions (e.g., `.editor-header`, `.editor-control-group`).
+ * - Responsive design using `@media` queries for a mobile-first approach.
+ * - Clear separation of concerns between layout, typography, and state-based styling.
+ */
+
+/* ==========================================================================
+   1. Global Editor Layout
+   ========================================================================== */
+
 .editor-mode-overlay {
     position: fixed;
     top: 0;
@@ -7,16 +32,20 @@
     height: 100%;
     background-color: var(--bg-primary);
     z-index: 1000;
-    display: none;
+    display: flex;
     flex-direction: column;
     transition: background-color var(--transition-speed);
 }
+
+/* ==========================================================================
+   2. Header and Controls
+   ========================================================================== */
 
 .editor-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75em 1.25em;
+    padding: 0.1em 0.1em;
     font-size: 0.92em;
     min-height: unset;
     background-color: var(--bg-secondary);
@@ -68,9 +97,9 @@
 
 .song-title-card {
     position: fixed;
-    top: 1.5rem;
+    top: 5rem;
     left: 50%;
-    font-size: 1.15rem;
+    font-size: 1.4rem;
     font-weight: 500;
     transform: translateX(-50%);
     background: var(--bg-tertiary);
@@ -94,26 +123,99 @@
     box-shadow: 0 6px 24px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
 }
 
-.copy-lyrics-btn {
-    position: fixed;
-    top: 3em;
-    right: 2em;
-    width: 52px;
-    height: 52px;
-    font-size: 1.5rem;
-    border-radius: 50%;
-    color: var(--accent-primary);
-    border: none;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-    z-index: 999;
-    opacity: 0.8;
-    transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
+/* ==========================================================================
+   3. Lyrics and Gutter
+   ========================================================================== */
+
+#lyrics-editor-container {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0; /* Let inner elements handle padding */
 }
-.editor-controls .icon-btn {
+
+.lyrics-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    font-size: 1.5rem; /* Base size, slider still works */
+    padding: 2rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    transition: color var(--transition-speed);
+    text-align: left;
+    display: flex;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.gutter {
+    flex-shrink: 0;
+    width: 3.5em;
+    padding: 2rem 0.5rem 2rem 1.5rem;
+    background-color: var(--bg-secondary);
+    color: var(--text-muted);
+    font-size: 0.7em;
+    line-height: 1.6;
+    text-align: right;
+    user-select: none;
+    border-right: 1px solid var(--border-light);
+}
+
+#lyrics-display {
+    flex-grow: 1;
+    padding: 2rem;
+    position: relative;
+    caret-color: var(--accent-primary);
+    outline: none;
+}
+
+#lyrics-display.editable:empty::before {
+    content: "Start typing your lyrics...";
+    color: var(--text-muted);
+    user-select: none;
+    pointer-events: none;
+}
+
+#lyrics-display.editable:focus::before {
+    content: "";
+}
+
+.lyrics-line-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.chord-line {
+    font-family: monospace;
+    font-size: 0.8em;
+    line-height: 1.2;
+    color: var(--text-secondary);
+    min-height: 1.2em;
+    overflow: hidden;
+    white-space: pre;
+    cursor: text;
+    user-select: text;
+}
+
+.chord-line.hidden {
+    display: none;
+}
+
+.lyrics-line {
+    position: relative;
+    margin-bottom: 0.5em;
+    min-height: 1em;
+}
+
+.lyrics-line:focus {
+    outline: none;
+}
+
+/* ==========================================================================
+   4. Interactive Elements
+   ========================================================================== */
+
+.icon-btn {
     background: var(--bg-tertiary);
     color: var(--text-primary);
     border: none;
@@ -133,7 +235,7 @@
     border: 1px solid var(--border-light);
 }
 
-.editor-controls .icon-btn:hover, .editor-controls .icon-btn:focus {
+.icon-btn:hover, .icon-btn:focus {
     background: var(--accent-primary);
     color: white;
     box-shadow: 0 4px 16px var(--accent-glow);
@@ -141,141 +243,129 @@
     opacity: 1;
 }
 
-.editor-controls .icon-btn:active {
+.icon-btn:active {
     transform: scale(0.97);
     transition: all 0.1s ease-out;
 }
-.editor-controls .divider {
+
+.icon-btn.active {
+    background-color: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
+.divider {
     width: 1px;
     height: 1.5em;
     background-color: var(--border-light);
     margin: 0 0.5em;
 }
-.lyrics-container {
-    flex-grow: 1;
-    overflow-y: auto;
-    font-size: 1.5rem; /* Base size, slider still works */
-    padding: 2rem;
-    line-height: 1.6;
-    color: var(--text-primary); /* Lyrics use primary text color */
-    transition: color var(--transition-speed);
-    text-align: left; /* Adjust for better lyric display */
-    display: flex;
-    white-space: pre-wrap; /* Preserve line breaks and spaces */
-    word-break: break-word;
-}
+
 .nav-arrow {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: var(--bg-secondary, #222); /* Subtle background */
-    color: var(--accent-secondary, #888); /* From theme, less “clowny” */
+    background: var(--bg-secondary);
+    color: var(--accent-secondary);
     border: none;
     font-size: 2.1rem;
     cursor: pointer;
     padding: 0.7rem 1rem;
-    border-radius: var(--border-radius-base, 10px);
+    border-radius: var(--border-radius-base);
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    transition: background 0.14s, color 0.16s, box-shadow 0.13s, transform 0.15s;
+    transition: all 0.15s;
     opacity: 0.7;
     z-index: 1;
 }
 
-.scroll-to-top-btn {
+.copy-lyrics-btn, .scroll-to-top-btn {
     position: fixed;
-    bottom: 2em;
-    right: 2em;
     width: 52px;
     height: 52px;
     font-size: 1.5rem;
     border-radius: 50%;
-    background-color: var(--accent-primary);
-    color: var(--bg-primary);
     border: none;
     cursor: pointer;
     box-shadow: var(--shadow-md);
     z-index: 999;
     opacity: 0.8;
-    transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
+    transition: all var(--transition-speed);
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.scroll-to-top-btn {
-    bottom: 80px;
+
+.copy-lyrics-btn {
+    top: 4em;
+    right: 2em;
+    color: var(--accent-primary);
+    background-color: var(--bg-secondary);
 }
 
-.lyrics-container {
+.scroll-to-top-btn {
+    bottom: 2em;
+    right: 2em;
+    background-color: var(--accent-primary);
+    color: var(--bg-primary);
+}
+
+.copy-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-base);
+    box-shadow: var(--shadow-md);
+    min-width: 150px;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.copy-dropdown-menu.visible {
     display: flex;
-    padding: 2rem;
-    text-align: left;
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-size: 1.5rem;
-    line-height: 1.6;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.copy-option {
+    background: none;
+    border: none;
+    padding: 0.5em 1em;
     color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
 }
-#lyrics-editor-container {
-    display: flex;
-    flex-grow: 1;
-    overflow-y: auto;
+
+.copy-option:hover {
+    background-color: var(--bg-hover);
 }
-.gutter {
-    flex-shrink: 0;
-    width: 3.5em; /* A bit wider to fit a 3-digit number */
-    padding: 2rem 0.5rem 2rem 1.5rem;
-    background-color: var(--bg-secondary);
-    color: var(--text-muted);
-    font-size: 0.7em;
-    line-height: 1.6;
-    text-align: right;
-    user-select: none;
-    border-right: 1px solid var(--border-light);
+
+/* ==========================================================================
+   5. State-based Styles
+   ========================================================================== */
+
+#lyrics-editor-container.read-only #lyrics-display .lyrics-line-group {
+    pointer-events: none;
 }
-#lyrics-display {
-    flex-grow: 1;
-    padding: 2rem;
-    position: relative;
-    caret-color: var(--accent-primary);
-    outline: none;
-}
-#lyrics-display.editable:empty::before {
-    content: "Start typing your lyrics...";
-    color: var(--text-muted);
-}
-#lyrics-display.editable:focus::before {
-    content: "";
-}
-#lyrics-display:not(.editable) {
-    user-select: none;
+
+#lyrics-editor-container.read-only #lyrics-display {
     cursor: default;
 }
-.lyrics-line-group {
-    display: flex;
-    flex-direction: column;
+
+#lyrics-editor-container.read-only #lyrics-display .lyrics-line {
+    user-select: none;
+    -webkit-user-select: none;
 }
-.chord-line {
-    font-family: monospace;
-    font-size: 0.8em;
-    line-height: 1.2;
-    color: var(--text-secondary);
-    height: 1.2em; /* To maintain spacing when empty */
-    overflow: hidden;
-    white-space: pre;
-    cursor: text;
-    user-select: text;
+
+#lyrics-editor-container.read-only #lyrics-display .chord-line {
+    pointer-events: none;
 }
-.chord-line.hidden {
-    display: none;
-}
-.lyrics-line {
-    position: relative;
-    margin-bottom: 0.5em;
-    min-height: 1em;
-}
-.lyrics-line:focus {
-    outline: none;
-}
+
 .lyrics-line.rhyme-match-1 { color: #FFAA00; }
 .lyrics-line.rhyme-match-2 { color: #88EEFF; }
 .lyrics-line.rhyme-match-3 { color: #FF66A0; }
@@ -291,6 +381,11 @@
 .lyrics-line.rhyme-match-13 { color: #FFCC66; }
 .lyrics-line.rhyme-match-14 { color: #CCFF66; }
 .lyrics-line.rhyme-match-15 { color: #99FFCC; }
+
+/* ==========================================================================
+   6. Footer
+   ========================================================================== */
+
 .editor-footer {
     display: flex;
     justify-content: center;
@@ -305,15 +400,18 @@
     box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
     backdrop-filter: blur(4px);
 }
+
 .footer-controls {
     display: flex;
     align-items: center;
     gap: 0.5em;
     color: var(--text-secondary);
 }
+
 .footer-controls .control-label {
     font-size: 0.9em;
 }
+
 #tempo-input {
     width: 4em;
     text-align: center;
@@ -325,194 +423,82 @@
     border-radius: var(--border-radius-base);
 }
 
-.copy-option {
-    background: none;
-    border: none;
-    padding: 0.5em 1em;
-    color: var(--text-primary);
-    text-align: left;
-    cursor: pointer;
-}
-.copy-option:hover {
-    background-color: var(--bg-hover);
-}
-.copy-option:first-child {
-    border-radius: var(--border-radius-base) var(--border-radius-base) 0 0;
-}
-.copy-option:last-child {
-    border-radius: 0 0 var(--border-radius-base) var(--border-radius-base);
-}
-/* Read-only styles */
-#lyrics-editor-container.read-only #lyrics-display .lyrics-line-group {
-    pointer-events: none;
-}
-#lyrics-editor-container.read-only #lyrics-display {
-    cursor: default;
-}
-#lyrics-editor-container.read-only #lyrics-display .lyrics-line {
-    user-select: none;
-    -webkit-user-select: none;
-}
-#lyrics-editor-container.read-only #lyrics-display .chord-line {
-    pointer-events: none;
-}
+/* ==========================================================================
+   7. Mobile-specific Overrides
+   ========================================================================== */
 
-
-/* MOBILE POLISH PATCH */
 @media (max-width: 600px) {
-toolbar {
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.4em;
-  }
+    .editor-header {
+        padding: 0.3em 0.5em;
+        font-size: 0.8em;
+        flex-wrap: wrap;
+        gap: 0.5em;
+    }
 
-  .setlist-editor {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .editor-header {
-    padding: 0.3em 0.5em;
-    font-size: 0.8em;
-    flex-wrap: wrap;
-    gap: 0.5em;
-  }
+    .song-title-card {
+        top: 4em;
+        font-size: 1.1em;
+        padding: 0.3em 0.8em;
+    }
 
-  .song-title-card {
-    top: 3em;
-    font-size: 0.9em;
-    padding: 0.3em 0.8em;
-  }
+    .editor-control-group {
+        gap: 0.7em;
+    }
 
-  .editor-control-group {
-    gap: 0.7em;
-  }
+    #lyrics-editor-container {
+        flex-direction: column; /* Stack lyrics and gutter vertically */
+    }
 
-  .lyrics-container {
-    font-size: 1.3rem; /* Adjusted base font size for lyrics on tablets */
-    padding: 1em 0.8em 1.5em 0.8em !important; 
-    line-height: 1.4 !important; /* Slightly more relaxed line-height for readability */
-  }
-  
-  .lyrics-container {
-    flex-grow: 1;
-    overflow-y: auto;
-    font-size: 0.5rem; /* Base size, slider still works */
-    padding: 0.5rem;
-    line-height: 1.6;
-    color: var(--text-primary); /* Lyrics use primary text color */
-    transition: color var(--transition-speed);
-    text-align: left; /* Adjust for better lyric display */
-    display: flex;
-    white-space: pre-wrap; /* Preserve line breaks and spaces */
-    word-break: break-word;
+    .gutter {
+        width: 100%;
+        text-align: left;
+        padding: 1rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border-light);
+        display: none; /* Hide gutter for better use of space */
+    }
+
+    #lyrics-display {
+        padding: 1em 0.8em 1.5em 0.8em;
+        font-size: 1.3rem;
+    }
+
+    .lyrics-line-group {
+        flex-direction: row;
+        align-items: baseline;
+    }
+
+    .chord-line {
+        flex-shrink: 0;
+        width: 100%; /* Take full width */
+        margin-right: 0.5em;
+    }
+
+    .lyrics-line {
+        margin-bottom: 0.3em;
+        min-height: 0.5em;
+    }
+
+    .copy-lyrics-btn, .scroll-to-top-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+
+    .copy-lyrics-btn {
+        top: 4.5em;
+        right: 0.8em;
+    }
+
+    .scroll-to-top-btn {
+        bottom: 5.5em;
+        right: 0.8em;
+    }
+
+    .editor-controls .icon-btn {
+        width: 1.9em;
+        height: 1.9em;
+        font-size: 0.9em;
+        margin: 0 0.06em;
+    }
 }
-  .scroll-to-top-btn {
-    position: fixed;
-    bottom: 7em;
-    right: 1em;
-    width: 5px;
-    height: 5px;
-    font-size: 1.5rem;
-    border-radius: 50%;
-    background-color: var(--accent-primary);
-    color: var(--bg-primary);
-    border: none;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-    z-index: 999;
-    opacity: 0.8;
-    transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .copy-lyrics-btn {
-    position: fixed;
-    top: 5em;
-    right: 1em;
-    width: 5px;
-    height: 5px;
-    font-size: 1.5rem;
-    border-radius: 50%;
-    color: var(--accent-primary);
-    border: none;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-    z-index: 999;
-    opacity: 0.8;
-    transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .lyrics-line {
-    position: relative;
-    margin-bottom: 0.3em;
-    min-height: 0.5em;
-  }
-  
-  #lyrics-display {
-    flex-grow: 1;
-    padding: 1rem;
-    position: relative;
-    caret-color: var(--accent-primary);
-    outline: none;
-  }
-  .editor-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2em;
-    padding: 0.5em 1em;
-    background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border);
-  }
-
-  .footer-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    color: var(--text-secondary); 
-  }
-  
-  .footer-controls .control-label {
-    font-size: 0.9em;
-  }
-  
-  #tempo-input {
-    width: 4em;
-    text-align: center;
-    padding: 0.25em;
-    font-size: 0.9em;
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--border-radius-base);
-  }
-  
-  .editor-controls .icon-btn {
-    background: var(--bg-tertiary, #1a1a1a);
-    color: var(--accent-primary, #fff);
-    border: none;
-    border-radius: 50%;
-    width: 1.9em;
-    height: 1.9em;
-    font-size: 0.9em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 7px rgba(0,0,0,0.08);
-    transition: background 0.14s, color 0.16s, box-shadow 0.13s, transform 0.15s;
-    cursor: pointer;
-    margin: 0 0.06em;
-    opacity: 0.95;
-    position: relative; /* For dropdown */
-  }
-}
-
-
-
-
