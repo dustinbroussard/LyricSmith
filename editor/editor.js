@@ -229,7 +229,22 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentSong = this.editorSongs[this.currentEditorSongIndex];
             this.fontSize = this.perSongFontSizes[this.currentSong.id] || 32;
 
-            document.getElementById('song-title-card').textContent = this.currentSong.title;
+            this.editorSongInfo.innerHTML = `
+                <div class="title-editor">
+                    <input type="text" id="song-title-edit" class="song-title-input" 
+                           value="${this.currentSong.title}" 
+                           placeholder="Song title">
+                </div>
+                <h2 id="song-title-card" class="song-title">${this.currentSong.title}</h2>
+            `;
+            
+            // Set up title editor events
+            document.getElementById('song-title-edit')?.addEventListener('input', (e) => {
+                this.currentSong.title = e.target.value;
+                document.getElementById('song-title-card').textContent = e.target.value;
+                this.saveCurrentSong();
+            });
+
             this.fontSizeDisplay.textContent = `${this.fontSize}px`;
             this.renderLyrics();
         },
