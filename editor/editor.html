@@ -94,15 +94,22 @@
 
         <div class="editor-header">
             <div class="editor-control-group left-controls">
-                <button id="toggle-chords-btn" class="icon-btn" title="Toggle Chords">
-                    <i class="fas fa-guitar"></i>
-                </button>
-                <button id="toggle-read-only-btn" class="icon-btn" title="Performance Mode">
-                    <i class="fas fa-lock"></i>
-                </button>
-                <button id="save-song-btn" class="icon-btn" title="Save Song (Ctrl+S)">
-                    <i class="fas fa-save"></i>
-                </button>
+                <div class="editor-dropdown">
+                    <button id="editor-menu-btn" class="icon-btn" title="Editor Menu">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    <div class="editor-dropdown-menu">
+                        <button class="dropdown-item" id="toggle-chords-btn">
+                            <i class="fas fa-guitar"></i> Toggle Chords
+                        </button>
+                        <button class="dropdown-item" id="toggle-read-only-btn">
+                            <i class="fas fa-lock"></i> Performance Mode 
+                        </button>
+                        <button class="dropdown-item" id="save-song-btn">
+                            <i class="fas fa-save"></i> Save Song
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="editor-control-group center-controls">
                 <button id="decrease-font-btn" class="icon-btn" title="Decrease Font Size">

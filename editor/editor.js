@@ -180,8 +180,19 @@ document.addEventListener('DOMContentLoaded', () => {
             this.lyricsDisplay?.addEventListener('click', (e) => this.handleLyricsClick(e));
             this.lyricsDisplay?.addEventListener('keydown', (e) => this.handleLyricsKeydown(e));
             this.scrollToTopBtn?.addEventListener('click', () => this.scrollToTop());
-            this.toggleChordsBtn?.addEventListener('click', () => this.toggleChords());
-            this.toggleReadOnlyBtn?.addEventListener('click', () => this.toggleReadOnly());
+            // Handle dropdown items
+            document.getElementById('toggle-chords-btn')?.addEventListener('click', () => {
+                this.toggleChords();
+                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+            });
+            document.getElementById('toggle-read-only-btn')?.addEventListener('click', () => {
+                this.toggleReadOnly();
+                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+            });
+            document.getElementById('save-song-btn')?.addEventListener('click', () => {
+                this.saveCurrentSong(true);
+                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+            });
             
             // Enhanced copy functionality
             this.copyLyricsBtn?.addEventListener('click', () => this.toggleCopyDropdown());
