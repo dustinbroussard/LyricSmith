@@ -1,52 +1,120 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Clipboard Manager Class
+    class ClipboardManager {
+        static async copyToClipboard(text, showToast = true) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    // Fallback for mobile/older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    textArea.remove();
+                }
+                
+                if (showToast) {
+                    this.showToast('Copied to clipboard!', 'success');
+                }
+                return true;
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                if (showToast) {
+                    this.showToast('Failed to copy to clipboard', 'error');
+                }
+                return false;
+            }
+        }
+
+        static showToast(message, type = 'info') {
+            // Remove existing toasts
+            document.querySelectorAll('.toast').forEach(toast => toast.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        static formatLyricsWithChords(lyrics, chords) {
+            const lyricLines = lyrics.split('\n');
+            const chordLines = chords.split('\n');
+            
+            return lyricLines.map((lyricLine, i) => {
+                const chordLine = chordLines[i] || '';
+                if (chordLine.trim()) {
+                    return `${chordLine}\n${lyricLine}`;
+                }
+                return lyricLine;
+            }).join('\n');
+        }
+
+        static formatSongForExport(song, includeMetadata = true) {
+            let output = '';
+            
+            if (includeMetadata) {
+                output += `# ${song.title}\n\n`;
+                if (song.key) output += `**Key:** ${song.key}\n`;
+                if (song.tempo) output += `**Tempo:** ${song.tempo} BPM\n`;
+                if (song.timeSignature) output += `**Time Signature:** ${song.timeSignature}\n`;
+                if (song.tags && song.tags.length > 0) output += `**Tags:** ${song.tags.join(', ')}\n`;
+                output += '\n---\n\n';
+            }
+            
+            // Add lyrics with chords
+            if (song.chords && song.chords.trim()) {
+                output += this.formatLyricsWithChords(song.lyrics, song.chords);
+            } else {
+                output += song.lyrics;
+            }
+            
+            if (song.notes && song.notes.trim()) {
+                output += '\n\n---\n**Notes:**\n' + song.notes;
+            }
+            
+            return output;
+        }
+    }
+
     const app = {
-        // DOM Elements
-        // DOM Elements - safely initialized
-        editorMode: document.getElementById('editor-mode') || { innerHTML: '' },
-        editorSongInfo: document.getElementById('editor-song-info') || { 
-            innerHTML: '',
-            querySelector: () => null,
-            appendChild: () => null
-        },
-        lyricsEditorContainer: document.getElementById('lyrics-editor-container') || { 
-            scrollTo: () => null 
-        },
-        lyricsDisplay: document.getElementById('lyrics-display') || { 
-            innerHTML: '',
-            style: {},
-            querySelectorAll: () => [],
-            addEventListener: () => null,
-            setAttribute: () => null
-        },
-        syllableGutter: document.getElementById('syllable-gutter') || { 
-            innerHTML: '' 
-        },
+        // DOM Elements (keeping existing ones and adding new)
+        editorMode: document.getElementById('editor-mode'),
+        lyricsEditorContainer: document.getElementById('lyrics-editor-container'),
+        lyricsDisplay: document.getElementById('lyrics-display'),
+        syllableGutter: document.getElementById('syllable-gutter'),
         decreaseFontBtn: document.getElementById('decrease-font-btn'),
         increaseFontBtn: document.getElementById('increase-font-btn'),
         fontSizeDisplay: document.getElementById('font-size-display'),
         toggleThemeBtn: document.getElementById('theme-toggle-btn'),
         exitEditorBtn: document.getElementById('exit-editor-btn'),
-        prevSongBtn: document.getElementById('prev-song-btn'),
-        nextSongBtn: document.getElementById('next-song-btn'),
         scrollToTopBtn: document.getElementById('scroll-to-top-btn'),
-        autoScrollBtn: document.getElementById('auto-scroll-btn'),
-        // New UI Elements
         toggleChordsBtn: document.getElementById('toggle-chords-btn'),
         toggleReadOnlyBtn: document.getElementById('toggle-read-only-btn'),
         copyLyricsBtn: document.getElementById('copy-lyrics-btn'),
-        copyDropdown: document.querySelector('.copy-dropdown-menu'),
         measureModeToggle: document.getElementById('measure-mode-toggle'),
         tempoInput: document.getElementById('tempo-input'),
         rhymeModeToggle: document.getElementById('rhyme-mode-toggle'),
 
-        // State
+        // State (keeping existing and adding new)
         songs: [],
         editorSongs: [],
         currentEditorSongIndex: -1,
         fontSize: 32,
-        editHistory: [],
-        historyIndex: -1,
-        savePending: false,
         minFontSize: 12,
         maxFontSize: 72,
         fontSizeStep: 1,
@@ -57,8 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
         isRhymeMode: false,
         currentSong: null,
         resizeObserver: null,
+        copyDropdown: null,
+        hasUnsavedChanges: false, // Track unsaved changes
 
-        // Syllable counting helper
         syllableCount(word) {
             word = word.toLowerCase();
             if (word.length <= 3) { return 1; }
@@ -71,11 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
             this.loadData();
             this.setupEventListeners();
             this.loadEditorState();
+            this.createCopyDropdown();
             this.displayCurrentEditorSong();
             this.setupResizeObserver();
-            // Initial state - safe fallback if config not loaded
-            const config = window.CONFIG || {};
-            this.isChordsVisible = config.chordsModeEnabled !== false; // Default true if undefined
+            this.isChordsVisible = window.CONFIG.chordsModeEnabled;
             this.updateChordsVisibility();
         },
 
@@ -85,50 +153,98 @@ document.addEventListener('DOMContentLoaded', () => {
             document.documentElement.dataset.theme = theme;
         },
 
+        // Enhanced song creation with metadata
+        createSong(title, lyrics = '', chords = '') {
+            return {
+                id: Date.now().toString(),
+                title,
+                lyrics,
+                chords,
+                key: '',
+                tempo: 120,
+                timeSignature: '4/4',
+                notes: '',
+                createdAt: new Date().toISOString(),
+                lastEditedAt: new Date().toISOString(),
+                tags: []
+            };
+        },
+
         setupEventListeners() {
-            this.setupUndoRedoShortcuts();
-            
-            // Undo/redo/save buttons
-            document.getElementById('undo-btn')?.addEventListener('click', () => this.undo());
-            document.getElementById('redo-btn')?.addEventListener('click', () => this.redo());
-            document.getElementById('save-song-btn')?.addEventListener('click', () => this.saveCurrentSong(true));
-            
+            // Existing event listeners
             this.decreaseFontBtn?.addEventListener('click', () => this.adjustFontSize(-this.fontSizeStep));
             this.increaseFontBtn?.addEventListener('click', () => this.adjustFontSize(this.fontSizeStep));
             this.toggleThemeBtn?.addEventListener('click', () => this.toggleTheme());
             this.exitEditorBtn?.addEventListener('click', () => this.exitEditorMode());
-            this.prevSongBtn?.addEventListener('click', () => this.navigateSong(-1));
-            this.nextSongBtn?.addEventListener('click', () => this.navigateSong(1));
             this.lyricsDisplay?.addEventListener('input', () => this.handleLyricsInput());
             this.lyricsDisplay?.addEventListener('click', (e) => this.handleLyricsClick(e));
             this.lyricsDisplay?.addEventListener('keydown', (e) => this.handleLyricsKeydown(e));
             this.scrollToTopBtn?.addEventListener('click', () => this.scrollToTop());
-            this.autoScrollBtn?.addEventListener('click', () => this.toggleAutoScroll());
             this.toggleChordsBtn?.addEventListener('click', () => this.toggleChords());
             this.toggleReadOnlyBtn?.addEventListener('click', () => this.toggleReadOnly());
+            
+            // Enhanced copy functionality
             this.copyLyricsBtn?.addEventListener('click', () => this.toggleCopyDropdown());
-            this.copyDropdown?.addEventListener('click', (e) => this.handleCopySelection(e));
+            
+            // Close dropdown when clicking outside
             document.addEventListener('click', (e) => {
-                if (!this.copyLyricsBtn.contains(e.target) && !this.copyDropdown.contains(e.target)) {
+                if (this.copyDropdown && !this.copyLyricsBtn.contains(e.target) && !this.copyDropdown.contains(e.target)) {
                     this.copyDropdown.classList.remove('visible');
                 }
             });
-            // Measure/rhyme toggles now use buttons
-            document.getElementById('measure-mode-btn')?.addEventListener('click', () => {
-                this.isMeasureMode = !this.isMeasureMode;
-                const btn = document.getElementById('measure-mode-btn');
-                btn.classList.toggle('active', this.isMeasureMode);
+
+            this.measureModeToggle?.addEventListener('change', (e) => {
+                this.isMeasureMode = e.target.checked;
                 this.renderLyrics();
             });
+
             this.tempoInput?.addEventListener('input', () => {
+                this.updateSongMetadata();
                 this.renderLyrics();
             });
-            document.getElementById('rhyme-mode-btn')?.addEventListener('click', () => {
-                this.isRhymeMode = !this.isRhymeMode;
-                const btn = document.getElementById('rhyme-mode-btn');
-                btn.classList.toggle('active', this.isRhymeMode);
+
+            this.rhymeModeToggle?.addEventListener('change', (e) => {
+                this.isRhymeMode = e.target.checked;
                 this.renderLyrics();
             });
+
+            // Add save shortcut (Ctrl+S or Cmd+S)
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    this.saveCurrentSong(true); // explicit save
+                }
+            });
+        },
+
+        createCopyDropdown() {
+            if (this.copyLyricsBtn) {
+                const dropdown = document.createElement('div');
+                dropdown.className = 'copy-dropdown-menu';
+                dropdown.innerHTML = `
+                    <button class="copy-option" data-copy-type="raw">
+                        <i class="fas fa-align-left"></i>
+                        Raw Lyrics
+                    </button>
+                    <button class="copy-option" data-copy-type="chords">
+                        <i class="fas fa-guitar"></i>
+                        Lyrics + Chords
+                    </button>
+                    <button class="copy-option" data-copy-type="formatted">
+                        <i class="fas fa-file-text"></i>
+                        Full Song (Markdown)
+                    </button>
+                    <button class="copy-option" data-copy-type="metadata">
+                        <i class="fas fa-info-circle"></i>
+                        Metadata Only
+                    </button>
+                `;
+                
+                // Position dropdown relative to copy button
+                dropdown.addEventListener('click', (e) => this.handleCopySelection(e));
+                this.copyLyricsBtn.parentNode.appendChild(dropdown);
+                this.copyDropdown = dropdown;
+            }
         },
 
         setupResizeObserver() {
@@ -156,117 +272,65 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         },
 
-        saveCurrentSong(manualSave = false) {
+        updateSongMetadata() {
             if (!this.currentSong) return;
-
-            // Save title if title editor exists
-            const titleEditor = document.getElementById('song-title-edit');
-            if (titleEditor) {
-                this.currentSong.title = titleEditor.value;
+            
+            // Update tempo from the input
+            const tempoValue = parseInt(this.tempoInput?.value) || 120;
+            if (this.currentSong.tempo !== tempoValue) {
+                this.currentSong.tempo = tempoValue;
+                this.hasUnsavedChanges = true;
             }
+        },
 
-            // Save lyrics and chords
+        saveCurrentSong(isExplicit = false) {
+            if (!this.currentSong || (!window.CONFIG.autosaveEnabled && !isExplicit)) return;
+
             const lines = Array.from(this.lyricsDisplay.querySelectorAll('.lyrics-line'));
             const chordLines = Array.from(this.lyricsDisplay.querySelectorAll('.chord-line'));
 
             const lyrics = lines.map(line => line.textContent).join('\n');
             const chords = chordLines.map(line => line.textContent).join('\n');
 
-            // Only push to history if content changed
-            if (this.currentSong.lyrics !== lyrics || this.currentSong.chords !== chords) {
-                this.currentSong.lyrics = lyrics;
-                this.currentSong.chords = chords;
-                
-                // Add to edit history
-                if (this.historyIndex < this.editHistory.length - 1) {
-                    this.editHistory = this.editHistory.slice(0, this.historyIndex + 1);
-                }
-                this.editHistory.push(JSON.parse(JSON.stringify(this.currentSong)));
-                this.historyIndex++;
-            }
+            this.currentSong.lyrics = lyrics;
+            this.currentSong.chords = chords;
+            this.currentSong.lastEditedAt = new Date().toISOString();
 
             const songIndex = this.songs.findIndex(s => s.id === this.currentSong.id);
             if (songIndex !== -1) {
                 this.songs[songIndex] = this.currentSong;
                 localStorage.setItem('songs', JSON.stringify(this.songs));
-                this.savePending = false;
+                this.hasUnsavedChanges = false;
                 
-                if (manualSave) {
-                    // Show save confirmation
-                    const saveBtn = document.getElementById('save-song-btn');
-                    if (saveBtn) {
-                        saveBtn.classList.add('saved');
-                        setTimeout(() => saveBtn.classList.remove('saved'), 1000);
-                    }
+                if (isExplicit) {
+                    ClipboardManager.showToast('Song saved!', 'success');
                 }
             }
-        },
-
-        undo() {
-            if (this.historyIndex > 0) {
-                this.historyIndex--;
-                this.applyHistoryState();
-            }
-        },
-
-        redo() {
-            if (this.historyIndex < this.editHistory.length - 1) {
-                this.historyIndex++;
-                this.applyHistoryState();
-            }
-        },
-
-        applyHistoryState() {
-            if (this.editHistory[this.historyIndex]) {
-                this.currentSong = JSON.parse(JSON.stringify(this.editHistory[this.historyIndex]));
-                this.renderLyrics();
-            }
-        },
-
-        setupUndoRedoShortcuts() {
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey || e.metaKey) {
-                    if (e.key === 'z') {
-                        e.preventDefault();
-                        this.undo();
-                    } else if (e.key === 'y') {
-                        e.preventDefault();
-                        this.redo();
-                    } else if (e.key === 's') {
-                        e.preventDefault();
-                        this.saveCurrentSong(true);
-                    }
-                }
-            });
         },
 
         displayCurrentEditorSong() {
             if (this.currentEditorSongIndex === -1) return;
             this.currentSong = this.editorSongs[this.currentEditorSongIndex];
+            
+            // Ensure song has all metadata fields
+            if (!this.currentSong.key) this.currentSong.key = '';
+            if (!this.currentSong.tempo) this.currentSong.tempo = 120;
+            if (!this.currentSong.timeSignature) this.currentSong.timeSignature = '4/4';
+            if (!this.currentSong.notes) this.currentSong.notes = '';
+            if (!this.currentSong.tags) this.currentSong.tags = [];
+            if (!this.currentSong.createdAt) this.currentSong.createdAt = new Date().toISOString();
+            if (!this.currentSong.lastEditedAt) this.currentSong.lastEditedAt = new Date().toISOString();
+
             this.fontSize = this.perSongFontSizes[this.currentSong.id] || 32;
 
-            // Skip if editor UI elements aren't ready
-            if (!this.editorSongInfo || !this.editorSongInfo.innerHTML) {
-                console.warn('Editor elements not initialized - skipping render');
-                return;
-            }
-            this.editorSongInfo.innerHTML = `
-                <div class="title-editor">
-                    <input type="text" id="song-title-edit" class="song-title-input" 
-                           value="${this.currentSong.title}" 
-                           placeholder="Song title">
-                </div>
-                <h2 id="song-title-card" class="song-title">${this.currentSong.title}</h2>
-            `;
-            
-            // Set up title editor events
-            document.getElementById('song-title-edit')?.addEventListener('input', (e) => {
-                this.currentSong.title = e.target.value;
-                document.getElementById('song-title-card').textContent = e.target.value;
-                this.saveCurrentSong();
-            });
-
+            document.getElementById('song-title-card').textContent = this.currentSong.title;
             this.fontSizeDisplay.textContent = `${this.fontSize}px`;
+            
+            // Update tempo input
+            if (this.tempoInput) {
+                this.tempoInput.value = this.currentSong.tempo;
+            }
+            
             this.renderLyrics();
         },
 
@@ -292,13 +356,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const words = lyricLine.split(/\s+/).filter(w => w.length > 0);
                     let currentMeasure = '';
                     let currentSyllableCount = 0;
-                    let tempo = parseInt(this.tempoInput.value) || 120;
-                    const beatsPerMeasure = 4; // Standard
-                    const syllablesPerBeat = 2; // Approximation
+                    let tempo = parseInt(this.tempoInput?.value) || 120;
+                    const beatsPerMeasure = 4;
+                    const syllablesPerBeat = 2;
                     const maxSyllablesPerMeasure = beatsPerMeasure * syllablesPerBeat;
 
                     let measures = [];
-                    let measureCount = 0;
                     for(let word of words) {
                         const wordSyllables = this.syllableCount(word);
                         if (currentSyllableCount + wordSyllables > maxSyllablesPerMeasure) {
@@ -333,7 +396,10 @@ document.addEventListener('DOMContentLoaded', () => {
             chordElement.className = 'chord-line';
             chordElement.textContent = chords;
             chordElement.setAttribute('contenteditable', 'true');
-            chordElement.addEventListener('input', () => this.saveCurrentSong());
+            chordElement.addEventListener('input', () => {
+                this.hasUnsavedChanges = true;
+                this.saveCurrentSong();
+            });
             lineGroup.appendChild(chordElement);
 
             const lyricElement = document.createElement('div');
@@ -341,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lyricElement.textContent = lyrics;
             lyricElement.setAttribute('contenteditable', 'true');
             lyricElement.addEventListener('input', () => {
+                this.hasUnsavedChanges = true;
                 this.saveCurrentSong();
                 this.updateSyllableCount();
                 this.updateRhymes();
@@ -383,7 +450,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         },
 
-        // Simple rhyme matching algorithm
         findRhymes(lines) {
             const rhymeWords = lines.map(line => {
                 const words = line.trim().split(/\s+/);
@@ -411,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (word.length < 2) continue;
 
                 const rhymeKey = getRhymeKey(word);
-                if (rhymeKey.length < 2) continue; // Ignore very short rhymes
+                if (rhymeKey.length < 2) continue;
 
                 for (let j = i + 1; j < rhymeWords.length; j++) {
                     const nextWord = rhymeWords[j].toLowerCase().replace(/[^a-z]/g, '');
@@ -431,6 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         handleLyricsInput() {
+            this.hasUnsavedChanges = true;
             this.saveCurrentSong();
             this.renderLyrics();
         },
@@ -442,7 +509,6 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         handleLyricsKeydown(e) {
-            // Re-render on enter key to create new line groups
             if (e.key === 'Enter') {
                 e.preventDefault();
                 document.execCommand('insertHTML', false, '<div><br></div>');
@@ -469,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.displayCurrentEditorSong();
         },
 
-	toggleTheme() {
+        toggleTheme() {
             const currentTheme = document.documentElement.dataset.theme;
             const newTheme = currentTheme.includes('dark') ? 'light' : 'dark';
             document.documentElement.dataset.theme = newTheme;
@@ -477,26 +543,19 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         exitEditorMode() {
+            if (this.hasUnsavedChanges) {
+                if (confirm('You have unsaved changes. Are you sure you want to exit?')) {
+                    this.saveCurrentSong(true);
+                } else {
+                    return;
+                }
+            }
             if (this.resizeObserver) this.resizeObserver.disconnect();
             window.location.href = '../index.html';
         },
 
         scrollToTop() {
             this.lyricsEditorContainer.scrollTo({ top: 0, behavior: 'smooth' });
-        },
-
-        toggleAutoScroll() {
-            // Placeholder for autoscroll functionality
-            const icon = this.autoScrollBtn.querySelector('i');
-            if (icon.classList.contains('fa-play')) {
-                icon.classList.remove('fa-play');
-                icon.classList.add('fa-pause');
-                // Start auto-scroll
-            } else {
-                icon.classList.remove('fa-pause');
-                icon.classList.add('fa-play');
-                // Stop auto-scroll
-            }
         },
 
         toggleChords() {
@@ -509,26 +568,30 @@ document.addEventListener('DOMContentLoaded', () => {
             chordLines.forEach(line => {
                 line.classList.toggle('hidden', !this.isChordsVisible);
             });
-            const icon = this.toggleChordsBtn.querySelector('i');
-            if (this.isChordsVisible) {
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-guitar');
-            } else {
-                icon.classList.remove('fa-guitar');
-                icon.classList.add('fa-eye-slash');
+            const icon = this.toggleChordsBtn?.querySelector('i');
+            if (icon) {
+                if (this.isChordsVisible) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-guitar');
+                } else {
+                    icon.classList.remove('fa-guitar');
+                    icon.classList.add('fa-eye-slash');
+                }
             }
         },
 
         toggleReadOnly() {
             this.isReadOnly = !this.isReadOnly;
             this.updateReadOnlyState();
-            const icon = this.toggleReadOnlyBtn.querySelector('i');
-            if (this.isReadOnly) {
-                icon.classList.remove('fa-lock-open');
-                icon.classList.add('fa-lock');
-            } else {
-                icon.classList.remove('fa-lock');
-                icon.classList.add('fa-lock-open');
+            const icon = this.toggleReadOnlyBtn?.querySelector('i');
+            if (icon) {
+                if (this.isReadOnly) {
+                    icon.classList.remove('fa-lock-open');
+                    icon.classList.add('fa-lock');
+                } else {
+                    icon.classList.remove('fa-lock');
+                    icon.classList.add('fa-lock-open');
+                }
             }
         },
 
@@ -537,36 +600,43 @@ document.addEventListener('DOMContentLoaded', () => {
             lines.forEach(line => {
                 line.setAttribute('contenteditable', !this.isReadOnly);
             });
-            this.lyricsEditorContainer.classList.toggle('read-only', this.isReadOnly);
-            this.lyricsDisplay.setAttribute('contenteditable', !this.isReadOnly);
+            this.lyricsEditorContainer?.classList.toggle('read-only', this.isReadOnly);
+            this.lyricsDisplay?.setAttribute('contenteditable', !this.isReadOnly);
         },
 
         toggleCopyDropdown() {
-            this.copyDropdown.classList.toggle('visible');
+            if (this.copyDropdown) {
+                this.copyDropdown.classList.toggle('visible');
+            }
         },
 
         async handleCopySelection(e) {
+            if (!e.target.dataset.copyType) return;
+            
             const copyType = e.target.dataset.copyType;
             let textToCopy = '';
-            if (copyType === 'raw') {
-                textToCopy = this.currentSong.lyrics || '';
-            } else if (copyType === 'chords') {
-                const lyricLines = this.currentSong.lyrics.split('\n');
-                const chordLines = this.currentSong.chords.split('\n');
-                textToCopy = lyricLines.map((line, i) => {
-                    const chord = chordLines[i] || '';
-                    return chord.length > 0 ? `${chord}\n${line}` : line;
-                }).join('\n');
+            
+            switch (copyType) {
+                case 'raw':
+                    textToCopy = this.currentSong.lyrics || '';
+                    break;
+                case 'chords':
+                    textToCopy = ClipboardManager.formatLyricsWithChords(this.currentSong.lyrics, this.currentSong.chords);
+                    break;
+                case 'formatted':
+                    textToCopy = ClipboardManager.formatSongForExport(this.currentSong, true);
+                    break;
+                case 'metadata':
+                    textToCopy = `${this.currentSong.title}\nKey: ${this.currentSong.key || 'N/A'}\nTempo: ${this.currentSong.tempo} BPM\nTime: ${this.currentSong.timeSignature}\nTags: ${this.currentSong.tags?.join(', ') || 'None'}`;
+                    break;
+                default:
+                    textToCopy = this.currentSong.lyrics || '';
             }
-            try {
-                await navigator.clipboard.writeText(textToCopy);
-                alert('Copied to clipboard!');
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
-                alert('Failed to copy to clipboard.');
-            }
+            
+            await ClipboardManager.copyToClipboard(textToCopy);
             this.copyDropdown.classList.remove('visible');
         }
     };
+
     app.init();
 });
