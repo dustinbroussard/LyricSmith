@@ -10,16 +10,75 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('theme', newTheme);
   });
 
+  // === CLIPBOARD MANAGER ===
+  class ClipboardManager {
+    static async copyToClipboard(text, showToast = true) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          // Fallback for mobile/older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          textArea.style.top = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          textArea.remove();
+        }
+        
+        if (showToast) {
+          this.showToast('Copied to clipboard!', 'success');
+        }
+        return true;
+      } catch (err) {
+        console.error('Failed to copy:', err);
+        if (showToast) {
+          this.showToast('Failed to copy to clipboard', 'error');
+        }
+        return false;
+      }
+    }
+
+    static showToast(message, type = 'info') {
+      // Remove existing toasts
+      document.querySelectorAll('.toast').forEach(toast => toast.remove());
+      
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      // Trigger animation
+      setTimeout(() => toast.classList.add('show'), 10);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    static formatLyricsWithChords(lyrics, chords) {
+      const lyricLines = lyrics.split('\n');
+      const chordLines = chords.split('\n');
+      
+      return lyricLines.map((lyricLine, i) => {
+        const chordLine = chordLines[i] || '';
+        if (chordLine.trim()) {
+          return `${chordLine}\n${lyricLine}`;
+        }
+        return lyricLine;
+      }).join('\n');
+    }
+  }
+
   // === APP LOGIC ===
   const app = {
     songList: document.getElementById('song-list'),
-    songModal: document.getElementById('song-modal'),
-    songModalTitle: document.getElementById('song-modal-title'),
-    saveSongBtn: document.getElementById('save-song-btn'),
-    cancelSongBtn: document.getElementById('cancel-song-btn'),
-    songTitleInput: document.getElementById('song-title-input'),
-    songLyricsInput: document.getElementById('song-lyrics-input'),
-
     songs: [],
     currentSongId: null,
 
@@ -37,6 +96,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadSongs() {
       this.songs = JSON.parse(localStorage.getItem('songs') || '[]');
+      // Migrate old songs to new format
+      this.songs = this.songs.map(song => this.migrateSongFormat(song));
+      this.saveSongs();
+    },
+
+    migrateSongFormat(song) {
+      // Ensure all songs have the new metadata fields
+      return {
+        id: song.id || Date.now().toString(),
+        title: song.title || 'Untitled',
+        lyrics: song.lyrics || '',
+        chords: song.chords || '',
+        key: song.key || '',
+        tempo: song.tempo || 120,
+        timeSignature: song.timeSignature || '4/4',
+        notes: song.notes || '',
+        createdAt: song.createdAt || new Date().toISOString(),
+        lastEditedAt: song.lastEditedAt || new Date().toISOString(),
+        tags: song.tags || []
+      };
+    },
+
+    createSong(title, lyrics = '', chords = '') {
+      return {
+        id: Date.now().toString(),
+        title,
+        lyrics,
+        chords,
+        key: '',
+        tempo: 120,
+        timeSignature: '4/4',
+        notes: '',
+        createdAt: new Date().toISOString(),
+        lastEditedAt: new Date().toISOString(),
+        tags: []
+      };
     },
 
     saveSongs() {
@@ -53,11 +148,29 @@ document.addEventListener('DOMContentLoaded', () => {
         .replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
     },
 
+    formatTimeAgo(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+      return date.toLocaleDateString();
+    },
+
     renderSongs(searchQuery = "") {
       this.songList.innerHTML = '';
 
       const filtered = this.songs
-        .filter(song => song.title.toLowerCase().includes(searchQuery))
+        .filter(song => {
+          const titleMatch = song.title.toLowerCase().includes(searchQuery);
+          const tagMatch = song.tags?.some(tag => tag.toLowerCase().includes(searchQuery));
+          const keyMatch = song.key?.toLowerCase().includes(searchQuery);
+          return titleMatch || tagMatch || keyMatch;
+        })
         .sort((a, b) => a.title.localeCompare(b.title));
 
       if (filtered.length === 0) {
@@ -69,19 +182,49 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = document.createElement('div');
         item.className = 'song-item';
         item.dataset.id = song.id;
+        
+        // Build metadata display
+        const metadata = [];
+        if (song.key) metadata.push(song.key);
+        if (song.tempo && song.tempo !== 120) metadata.push(`${song.tempo} BPM`);
+        if (song.timeSignature && song.timeSignature !== '4/4') metadata.push(song.timeSignature);
+        
+        const lastEdited = this.formatTimeAgo(song.lastEditedAt);
+        
         item.innerHTML = `
-          <span>${song.title}</span>
-          <div class="song-btn">
+          <div class="song-info">
+            <span class="song-title">${song.title}</span>
+            ${metadata.length > 0 ? `<div class="song-metadata">${metadata.join(' • ')}</div>` : ''}
+            <div class="song-details">
+              ${song.tags?.length > 0 ? `<span class="song-tags">${song.tags.join(', ')}</span>` : ''}
+              <span class="song-edited">Last edited: ${lastEdited}</span>
+            </div>
+          </div>
+          <div class="song-actions">
+            <button class="song-copy-btn icon-btn" title="Quick Copy" data-song-id="${song.id}">
+              <i class="fas fa-copy"></i>
+            </button>
             <a class="song-edit-btn edit-song-btn" href="editor/editor.html?songId=${song.id}" title="Edit">
               <i class="fas fa-pen"></i>
             </a>
-            <button class="song-delete-btn danger delete-song-btn" title="Delete">
+            <button class="song-delete-btn danger delete-song-btn" title="Delete" data-song-id="${song.id}">
               <i class="fas fa-trash"></i>
             </button>
           </div>
         `;
 
-        item.querySelector('.delete-song-btn').addEventListener('click', () => {
+        // Add event listeners
+        const copyBtn = item.querySelector('.song-copy-btn');
+        copyBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.quickCopySong(song);
+        });
+
+        const deleteBtn = item.querySelector('.song-delete-btn');
+        deleteBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           if (confirm(`Delete "${song.title}"?`)) {
             this.songs = this.songs.filter(s => s.id !== song.id);
             this.saveSongs();
@@ -93,19 +236,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     },
 
+    async quickCopySong(song) {
+      // Default to lyrics with chords if available, otherwise just lyrics
+      let textToCopy = '';
+      if (song.chords && song.chords.trim()) {
+        textToCopy = ClipboardManager.formatLyricsWithChords(song.lyrics, song.chords);
+      } else {
+        textToCopy = song.lyrics || '';
+      }
+      
+      await ClipboardManager.copyToClipboard(textToCopy);
+    },
+
     renderToolbar() {
       const toolbar = document.getElementById('tab-toolbar');
       toolbar.innerHTML = `
-        <input type="text" id="song-search-input" class="search-input" placeholder="Search songs...">
+        <input type="text" id="song-search-input" class="search-input" placeholder="Search songs, tags, or keys...">
         <div class="toolbar-buttons-group">
           <button id="add-song-btn" class="btn" title="Add Song"><i class="fas fa-plus"></i></button>
+          <button id="export-library-btn" class="btn" title="Export Library"><i class="fas fa-download"></i></button>
           <button id="delete-all-songs-btn" class="btn danger" title="Delete All Songs"><i class="fas fa-trash"></i></button>
           <label for="song-upload-input" class="btn" title="Upload Files"><i class="fas fa-upload"></i></label>
         </div>
-        <input type="file" id="song-upload-input" multiple accept=".txt,.docx" class="hidden-file">
+        <input type="file" id="song-upload-input" multiple accept=".txt,.docx,.json" class="hidden-file">
       `;
 
-      document.getElementById('add-song-btn')?.addEventListener('click', () => this.openModal());
+      document.getElementById('add-song-btn')?.addEventListener('click', () => this.createNewSong());
+      document.getElementById('export-library-btn')?.addEventListener('click', () => this.exportLibrary());
       document.getElementById('delete-all-songs-btn')?.addEventListener('click', () => this.confirmDeleteAll());
       document.getElementById('song-search-input')?.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
@@ -115,6 +272,14 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('song-upload-input')?.addEventListener('change', async (e) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
+
+        // Check if it's a JSON library import
+        const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+        if (jsonFiles.length > 0) {
+          await this.importLibrary(jsonFiles[0]);
+          e.target.value = "";
+          return;
+        }
 
         const processFile = async (file) => {
           return new Promise((resolve) => {
@@ -137,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const lyrics = content.trim();
               
               if (title && lyrics) {
-                resolve({ id: Date.now().toString(), title, lyrics });
+                resolve(this.createSong(title, lyrics));
               } else {
                 resolve(null);
               }
@@ -152,17 +317,90 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Process files sequentially to avoid overwhelming the UI
+        let importCount = 0;
         for (const file of files) {
           const song = await processFile(file);
           if (song) {
             this.songs.push(song);
+            importCount++;
           }
         }
 
         this.saveSongs();
         this.renderSongs();
+        ClipboardManager.showToast(`Imported ${importCount} song(s)`, 'success');
         e.target.value = ""; // Clear input
       });
+    },
+
+    createNewSong() {
+      const newSong = this.createSong('New Song', '');
+      this.songs.push(newSong);
+      this.saveSongs();
+      // Redirect to editor for the new song
+      window.location.href = `editor/editor.html?songId=${newSong.id}`;
+    },
+
+    async exportLibrary() {
+      try {
+        // Create export data
+        const exportData = {
+          version: '1.0',
+          exportDate: new Date().toISOString(),
+          songCount: this.songs.length,
+          songs: this.songs
+        };
+
+        // Create and download JSON file
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(dataBlob);
+        link.download = `lyricsmith-library-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        ClipboardManager.showToast(`Exported ${this.songs.length} songs`, 'success');
+      } catch (err) {
+        console.error('Export failed:', err);
+        ClipboardManager.showToast('Export failed', 'error');
+      }
+    },
+
+    async importLibrary(file) {
+      try {
+        const text = await file.text();
+        const importData = JSON.parse(text);
+        
+        // Validate import data
+        if (!importData.songs || !Array.isArray(importData.songs)) {
+          throw new Error('Invalid library format');
+        }
+
+        // Confirm import
+        const confirmMsg = `Import ${importData.songs.length} songs? This will add to your existing library.`;
+        if (!confirm(confirmMsg)) return;
+
+        // Process and migrate imported songs
+        let importCount = 0;
+        for (const songData of importData.songs) {
+          const song = this.migrateSongFormat(songData);
+          // Generate new ID to avoid conflicts
+          song.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+          song.lastEditedAt = new Date().toISOString();
+          this.songs.push(song);
+          importCount++;
+        }
+
+        this.saveSongs();
+        this.renderSongs();
+        ClipboardManager.showToast(`Imported ${importCount} songs`, 'success');
+      } catch (err) {
+        console.error('Import failed:', err);
+        ClipboardManager.showToast('Import failed - invalid file format', 'error');
+      }
     },
 
     confirmDeleteAll() {
@@ -170,29 +408,35 @@ document.addEventListener('DOMContentLoaded', () => {
         this.songs = [];
         this.saveSongs();
         this.renderSongs();
+        ClipboardManager.showToast('All songs deleted', 'info');
       }
     },
 
     bindEvents() {
-      const addBtn = document.getElementById('add-song-btn');
-      addBtn?.addEventListener('click', () => {
-        window.location.href = 'editor/editor.html';
+      // Add keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + N for new song
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+          e.preventDefault();
+          this.createNewSong();
+        }
+        
+        // Ctrl/Cmd + E for export
+        if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+          e.preventDefault();
+          this.exportLibrary();
+        }
       });
-    },
 
-    openModal() {
-      this.currentSongId = null;
-      this.songTitleInput.value = '';
-      this.songLyricsInput.value = '';
-      this.songModalTitle.textContent = 'Add Song';
-      this.songModal.style.display = 'block';
-    },
-
-    closeModal() {
-      this.songModal.style.display = 'none';
-    },
+      // Focus search on '/' key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          document.getElementById('song-search-input')?.focus();
+        }
+      });
+    }
   };
 
   app.init();
 });
-

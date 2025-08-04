@@ -1237,5 +1237,394 @@ html, body {
     box-shadow: var(--shadow-sm); /* Adding a subtle shadow to buttons */
 }
 
+/* ========================================
+    Copy Dropdown Menu Styles
+    ======================================== */
+.copy-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-base);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    min-width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+}
 
+.copy-dropdown-menu.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.copy-option {
+    background: none;
+    border: none;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    transition: background-color 0.15s ease;
+}
+
+.copy-option:hover {
+    background-color: var(--bg-hover);
+}
+
+.copy-option:first-child {
+    border-radius: var(--border-radius-base) var(--border-radius-base) 0 0;
+}
+
+.copy-option:last-child {
+    border-radius: 0 0 var(--border-radius-base) var(--border-radius-base);
+}
+
+.copy-option i {
+    width: 16px;
+    color: var(--accent-secondary);
+}
+
+/* ========================================
+    Enhanced Song List Styles
+    ======================================== */
+.song-item {
+    background-color: var(--bg-tertiary);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--border-radius-base);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-speed);
+}
+
+.song-item:hover {
+    background-color: var(--bg-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.song-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.song-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.song-metadata {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--accent-primary);
+    font-weight: 500;
+}
+
+.song-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.song-tags {
+    color: var(--accent-secondary);
+    font-style: italic;
+}
+
+.song-edited {
+    color: var(--text-muted);
+}
+
+.song-actions {
+    display: flex;
+    gap: 0.25rem;
+    align-items: flex-start;
+    flex-shrink: 0;
+}
+
+.song-copy-btn {
+    background: var(--bg-secondary);
+    color: var(--accent-secondary);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.song-copy-btn:hover {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    transform: scale(1.05);
+}
+
+/* ========================================
+    Metadata Editor Styles
+    ======================================== */
+.metadata-editor {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-base);
+    padding: 1.5rem;
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.metadata-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.metadata-row label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.metadata-row input,
+.metadata-row select,
+.metadata-row textarea {
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-base);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.metadata-row input:focus,
+.metadata-row select:focus,
+.metadata-row textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.metadata-row textarea {
+    min-height: 80px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.metadata-row small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+/* ========================================
+    Enhanced Copy Button in Editor
+    ======================================== */
+.copy-lyrics-btn {
+    position: fixed;
+    top: 3rem;
+    right: 2rem;
+    width: 52px;
+    height: 52px;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+    border: none;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    z-index: 999;
+    opacity: 0.9;
+    transition: all var(--transition-speed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.copy-lyrics-btn:hover {
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
+}
+
+.copy-lyrics-btn:active {
+    transform: scale(0.95);
+}
+
+/* ========================================
+    Toast Notification Styles
+    ======================================== */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius-base);
+    color: white;
+    font-weight: 500;
+    font-size: 0.9rem;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 300px;
+    box-shadow: var(--shadow-lg);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.toast-info {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+}
+
+/* ========================================
+    Mobile Optimizations
+    ======================================== */
+@media (max-width: 600px) {
+    .song-item {
+        padding: 0.75rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .song-info {
+        width: 100%;
+    }
+    
+    .song-actions {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+    
+    .song-copy-btn,
+    .song-edit-btn,
+    .song-delete-btn {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .metadata-editor {
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .metadata-row {
+        gap: 0.5rem;
+    }
+    
+    .copy-dropdown-menu {
+        position: fixed;
+        top: auto;
+        bottom: 100px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%) translateY(10px);
+        min-width: 200px;
+    }
+    
+    .copy-dropdown-menu.visible {
+        transform: translateX(-50%) translateY(0);
+    }
+    
+    .copy-lyrics-btn {
+        top: auto;
+        bottom: 2rem;
+        right: 1rem;
+        width: 48px;
+        height: 48px;
+        font-size: 1.3rem;
+    }
+    
+    .toast {
+        top: auto;
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        max-width: none;
+        transform: translateY(100%);
+    }
+    
+    .toast.show {
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+    Improved Mobile Song List
+    ======================================== */
+@media (max-width: 480px) {
+    .song-item {
+        padding: 0.5rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .song-title {
+        font-size: 1rem;
+    }
+    
+    .song-metadata {
+        font-size: 0.8rem;
+        flex-wrap: wrap;
+    }
+    
+    .song-details {
+        font-size: 0.75rem;
+    }
+    
+    .song-actions {
+        gap: 0.3rem;
+    }
+    
+    .song-copy-btn,
+    .song-edit-btn,
+    .song-delete-btn {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.8rem;
+    }
+    
+    .metadata-row input,
+    .metadata-row select,
+    .metadata-row textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
 
