@@ -276,6 +276,10 @@
 .lyrics-line.rhyme-match-14 { color: #CCFF66; }
 .lyrics-line.rhyme-match-15 { color: #99FFCC; }
 
+[data-theme='light'] .lyrics-line[class*='rhyme-match-'] {
+    filter: brightness(0.75);
+}
+
 .editor-dropdown {
     position: relative;
     display: inline-block;
@@ -289,7 +293,7 @@
     border: 1px solid var(--border);
     border-radius: var(--border-radius-base);
     box-shadow: var(--shadow-lg);
-    z-index: 1000;
+    z-index: 10000;
     min-width: 180px;
     opacity: 0;
     visibility: hidden;
@@ -345,7 +349,7 @@
     border: 1px solid var(--border);
     border-radius: var(--border-radius-base);
     box-shadow: var(--shadow-lg);
-    z-index: 1000;
+    z-index: 10000;
     min-width: 180px;
     opacity: 0;
     visibility: hidden;
@@ -357,6 +361,27 @@
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+}
+
+/* Section-based editing */
+.section-label {
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 1em;
+}
+
+.section.collapsed .section-content {
+    display: none;
+}
+
+.section-label::after {
+    content: ' \25BC';
+    font-size: 0.8em;
+    margin-left: 0.3em;
+}
+
+.section.collapsed .section-label::after {
+    content: ' \25B6';
 }
 
 /* ========================================
@@ -614,5 +639,13 @@ toolbar {
     margin: 0 0.06em;
     opacity: 0.95;
     position: relative; /* For dropdown */
+  }
+}
+
+@media (max-width: 400px) {
+  .copy-dropdown-menu {
+    top: 80px;
+    min-width: 160px;
+    left: 50%;
   }
 }
