@@ -1238,63 +1238,6 @@ html, body {
 }
 
 /* ========================================
-    Copy Dropdown Menu Styles
-    ======================================== */
-.copy-dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--border-radius-base);
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
-    min-width: 180px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.2s ease;
-}
-
-.copy-dropdown-menu.visible {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.copy-option {
-    background: none;
-    border: none;
-    padding: 0.75rem 1rem;
-    color: var(--text-primary);
-    text-align: left;
-    cursor: pointer;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    transition: background-color 0.15s ease;
-}
-
-.copy-option:hover {
-    background-color: var(--bg-hover);
-}
-
-.copy-option:first-child {
-    border-radius: var(--border-radius-base) var(--border-radius-base) 0 0;
-}
-
-.copy-option:last-child {
-    border-radius: 0 0 var(--border-radius-base) var(--border-radius-base);
-}
-
-.copy-option i {
-    width: 16px;
-    color: var(--accent-secondary);
-}
-
-/* ========================================
     Enhanced Song List Styles
     ======================================== */
 .song-item {
@@ -1441,40 +1384,7 @@ html, body {
     margin-top: 0.25rem;
 }
 
-/* ========================================
-    Enhanced Copy Button in Editor
-    ======================================== */
-.copy-lyrics-btn {
-    position: fixed;
-    top: 3rem;
-    right: 2rem;
-    width: 52px;
-    height: 52px;
-    font-size: 1.5rem;
-    border-radius: 50%;
-    background: var(--accent-primary);
-    color: var(--bg-primary);
-    border: none;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-    z-index: 999;
-    opacity: 0.9;
-    transition: all var(--transition-speed);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
 
-.copy-lyrics-btn:hover {
-    opacity: 1;
-    transform: scale(1.05);
-    box-shadow: var(--shadow-lg);
-}
-
-.copy-lyrics-btn:active {
-    transform: scale(0.95);
-}
 
 /* ========================================
     Toast Notification Styles
@@ -1550,29 +1460,7 @@ html, body {
         gap: 0.5rem;
     }
     
-    .copy-dropdown-menu {
-        position: fixed;
-        top: auto;
-        bottom: 100px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%) translateY(10px);
-        min-width: 200px;
-    }
-    
-    .copy-dropdown-menu.visible {
-        transform: translateX(-50%) translateY(0);
-    }
-    
-    .copy-lyrics-btn {
-        top: auto;
-        bottom: 2rem;
-        right: 1rem;
-        width: 48px;
-        height: 48px;
-        font-size: 1.3rem;
-    }
-    
+
     .toast {
         top: auto;
         bottom: 20px;

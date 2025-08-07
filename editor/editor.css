@@ -94,25 +94,7 @@
     box-shadow: 0 6px 24px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
 }
 
-.copy-lyrics-btn {
-    position: fixed;
-    top: 4em;
-    right: 2em;
-    width: 52px;
-    height: 52px;
-    font-size: 1.5rem;
-    border-radius: 50%;
-    color: var(--accent-primary);
-    border: none;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-    z-index: 999;
-    opacity: 0.8;
-    transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+
 .editor-controls .icon-btn {
     background: var(--bg-tertiary);
     color: var(--text-primary);
@@ -300,18 +282,20 @@
 .editor-dropdown-menu {
     position: absolute;
     top: 100%;
-    right: 0;
-    background: var(--bg-tertiary);
+    left: 10;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
     border-radius: var(--border-radius-base);
     box-shadow: var(--shadow-lg);
-    padding: 0.5rem 0;
+    z-index: 1000;
     min-width: 180px;
-    transform: translateY(10px);
     opacity: 0;
     visibility: hidden;
+    transform: translateY(-10px);
     transition: all 0.2s ease;
-    z-index: 1000;
-    border: 1px solid var(--border-light);
+    background: var(--bg-tertiary);
+    padding: 0.5rem 0;
+    transform: translateY(10px);
 }
 
 .editor-dropdown:hover .editor-dropdown-menu,
@@ -343,6 +327,72 @@
     width: 1.2rem;
     text-align: center;
 }
+
+/* ========================================
+    Copy Dropdown Menu Styles
+    ======================================== */
+.copy-dropdown-menu {
+    position: fixed;
+    top: 130px;
+    bottom: auto;
+    left: 75%;
+    right: auto;
+    transform: translateX(-50%) translateY(10px);
+    min-width: 200px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-base);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    min-width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+}
+
+.copy-dropdown-menu.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* ========================================
+    Enhanced Copy Button in Editor
+    ======================================== */
+
+.copy-option {
+    background: none;
+    border: none;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    transition: background-color 0.15s ease;
+}
+
+.copy-option:hover {
+    background-color: var(--bg-hover);
+}
+
+.copy-option:first-child {
+    border-radius: var(--border-radius-base) var(--border-radius-base) 0 0;
+}
+
+.copy-option:last-child {
+    border-radius: 0 0 var(--border-radius-base) var(--border-radius-base);
+}
+
+.copy-option i {
+    width: 16px;
+    color: var(--accent-secondary);
+}
+  
 .editor-footer {
     display: flex;
     justify-content: center;
@@ -431,13 +481,17 @@ toolbar {
   }
 
   .song-title-card {
-    top: 3em;
-    font-size: 0.9em;
+    top: 4em;
+    font-size: 1em;
     padding: 0.3em 0.8em;
   }
 
   .editor-control-group {
     gap: 0.7em;
+  }
+
+  #lyrics-display {
+    margin-top: 2rem;
   }
 
   .lyrics-container {
@@ -480,25 +534,6 @@ toolbar {
     justify-content: center;
   }
   
-  .copy-lyrics-btn {
-    position: fixed;
-    top: 5em;
-    right: 1em;
-    width: 5px;
-    height: 5px;
-    font-size: 1.5rem;
-    border-radius: 50%;
-    color: var(--accent-primary);
-    border: none;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-    z-index: 999;
-    opacity: 0.8;
-    transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
   
   .lyrics-line {
     position: relative;
@@ -545,6 +580,21 @@ toolbar {
     border-radius: var(--border-radius-base);
   }
   
+  .copy-dropdown-menu {
+     position: fixed;
+     top: 100px;
+     bottom: auto;
+     left: 50%;
+     right: auto;
+     transform: translateX(-50%) translateY(10px);
+     min-width: 200px;
+  }
+    
+  .copy-dropdown-menu.visible {
+     transform: translateX(-50%) translateY(0);
+  }
+  
+ 
   .editor-controls .icon-btn {
     background: var(--bg-tertiary, #1a1a1a);
     color: var(--accent-primary, #fff);

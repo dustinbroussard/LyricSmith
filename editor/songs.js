@@ -106,28 +106,6 @@ class ClipboardManager {
     }
 }
 
-// Enhanced copy dropdown menu HTML
-const createCopyDropdownMenu = () => `
-    <div class="copy-dropdown-menu">
-        <button class="copy-option" data-copy-type="raw">
-            <i class="fas fa-align-left"></i>
-            Raw Lyrics
-        </button>
-        <button class="copy-option" data-copy-type="chords">
-            <i class="fas fa-guitar"></i>
-            Lyrics + Chords
-        </button>
-        <button class="copy-option" data-copy-type="formatted">
-            <i class="fas fa-file-text"></i>
-            Full Song (Markdown)
-        </button>
-        <button class="copy-option" data-copy-type="metadata">
-            <i class="fas fa-info-circle"></i>
-            Metadata Only
-        </button>
-    </div>
-`;
-
 // Song metadata editor component
 const createMetadataEditor = (song) => `
     <div class="metadata-editor">
