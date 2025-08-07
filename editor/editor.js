@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Ensure touch devices trigger button actions
+    document.addEventListener('touchstart', (e) => {
+        const btn = e.target.closest('button');
+        if (btn) {
+            e.preventDefault();
+            btn.click();
+        }
+    }, { passive: false });
     // Clipboard Manager Class
     class ClipboardManager {
         static async copyToClipboard(text, showToast = true) {
@@ -106,6 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleChordsBtn: document.getElementById('toggle-chords-btn'),
         toggleReadOnlyBtn: document.getElementById('toggle-read-only-btn'),
         copyLyricsBtn: document.getElementById('copy-lyrics-btn'),
+        undoBtn: document.getElementById('undo-btn'),
+        redoBtn: document.getElementById('redo-btn'),
         measureModeToggle: document.getElementById('measure-mode-toggle'),
         tempoInput: document.getElementById('tempo-input'),
         rhymeModeToggle: document.getElementById('rhyme-mode-toggle'),
@@ -127,6 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeObserver: null,
         copyDropdown: null,
         hasUnsavedChanges: false, // Track unsaved changes
+        undoStack: [],
+        redoStack: [],
+        lastSnapshotTime: 0,
 
         syllableCount(word) {
             word = word.toLowerCase();
@@ -170,6 +183,47 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         },
 
+        getSongState() {
+            return {
+                lyrics: this.currentSong?.lyrics || '',
+                chords: this.currentSong?.chords || ''
+            };
+        },
+
+        pushUndoState() {
+            const now = Date.now();
+            const state = this.getSongState();
+            if (now - this.lastSnapshotTime < 1000) return;
+            this.undoStack.push({ ...state });
+            if (this.undoStack.length > 100) this.undoStack.shift();
+            this.lastSnapshotTime = now;
+            this.redoStack = [];
+        },
+
+        applySongState(state) {
+            if (!this.currentSong) return;
+            this.currentSong.lyrics = state.lyrics;
+            this.currentSong.chords = state.chords;
+            this.renderLyrics();
+            this.saveCurrentSong();
+        },
+
+        undo() {
+            if (this.undoStack.length === 0) return;
+            const current = this.getSongState();
+            this.redoStack.push(current);
+            const prev = this.undoStack.pop();
+            this.applySongState(prev);
+        },
+
+        redo() {
+            if (this.redoStack.length === 0) return;
+            const current = this.getSongState();
+            this.undoStack.push(current);
+            const next = this.redoStack.pop();
+            this.applySongState(next);
+        },
+
         setupEventListeners() {
             // Existing event listeners
             this.decreaseFontBtn?.addEventListener('click', () => this.adjustFontSize(-this.fontSizeStep));
@@ -193,9 +247,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.saveCurrentSong(true);
                 document.querySelector('.editor-dropdown-menu').classList.remove('visible');
             });
-            
+
             // Enhanced copy functionality
             this.copyLyricsBtn?.addEventListener('click', () => this.toggleCopyDropdown());
+
+            this.undoBtn?.addEventListener('click', () => this.undo());
+            this.redoBtn?.addEventListener('click', () => this.redo());
             
             // Close dropdown when clicking outside
             document.addEventListener('click', (e) => {
@@ -219,11 +276,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.renderLyrics();
             });
 
-            // Add save shortcut (Ctrl+S or Cmd+S)
+            // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                     e.preventDefault();
-                    this.saveCurrentSong(true); // explicit save
+                    this.saveCurrentSong(true);
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                    e.preventDefault();
+                    this.undo();
+                }
+                if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+                    e.preventDefault();
+                    this.redo();
                 }
             });
         },
@@ -297,11 +362,21 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCurrentSong(isExplicit = false) {
             if (!this.currentSong || (!window.CONFIG.autosaveEnabled && !isExplicit)) return;
 
-            const lines = Array.from(this.lyricsDisplay.querySelectorAll('.lyrics-line'));
-            const chordLines = Array.from(this.lyricsDisplay.querySelectorAll('.chord-line'));
+            const lyricNodes = Array.from(this.lyricsDisplay.querySelectorAll('.section-label, .lyrics-line'));
+            const lyricLines = [];
+            const chordLines = [];
+            lyricNodes.forEach(node => {
+                if (node.classList.contains('section-label')) {
+                    lyricLines.push(node.textContent);
+                } else {
+                    lyricLines.push(node.textContent);
+                    const chord = node.previousElementSibling?.classList.contains('chord-line') ? node.previousElementSibling.textContent : '';
+                    chordLines.push(chord);
+                }
+            });
 
-            const lyrics = lines.map(line => line.textContent).join('\n');
-            const chords = chordLines.map(line => line.textContent).join('\n');
+            const lyrics = lyricLines.join('\n');
+            const chords = chordLines.join('\n');
 
             this.currentSong.lyrics = lyrics;
             this.currentSong.chords = chords;
@@ -341,15 +416,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.tempoInput) {
                 this.tempoInput.value = this.currentSong.tempo;
             }
-            
+
             this.renderLyrics();
+
+            // Initialize undo/redo stacks for this song
+            this.undoStack = [this.getSongState()];
+            this.redoStack = [];
+            this.lastSnapshotTime = Date.now();
         },
 
         renderLyrics() {
             if (!this.currentSong) return;
 
-            let lyrics = this.currentSong.lyrics || '';
-            let chords = this.currentSong.chords || '';
+            const lyrics = this.currentSong.lyrics || '';
+            const chords = this.currentSong.chords || '';
 
             const lyricLines = lyrics.split('\n');
             const chordLines = chords.split('\n');
@@ -359,21 +439,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const rhymeGroups = this.isRhymeMode ? this.findRhymes(lyricLines) : {};
 
+            let chordIndex = 0;
+            let currentSectionContent = null;
+
             for (let i = 0; i < lyricLines.length; i++) {
                 const lyricLine = lyricLines[i];
-                const chordLine = chordLines[i] || '';
+
+                if (/^\[.*\]$/.test(lyricLine.trim())) {
+                    const section = document.createElement('div');
+                    section.className = 'section';
+                    const header = document.createElement('div');
+                    header.className = 'lyrics-line section-label';
+                    header.textContent = lyricLine.trim();
+                    header.setAttribute('contenteditable', 'true');
+                    header.addEventListener('click', () => section.classList.toggle('collapsed'));
+                    section.appendChild(header);
+                    const content = document.createElement('div');
+                    content.className = 'section-content';
+                    section.appendChild(content);
+                    this.lyricsDisplay.appendChild(section);
+                    currentSectionContent = content;
+                    continue;
+                }
+
+                const chordLine = chordLines[chordIndex] || '';
+                chordIndex++;
+                const targetContainer = currentSectionContent || this.lyricsDisplay;
 
                 if (this.isMeasureMode) {
                     const words = lyricLine.split(/\s+/).filter(w => w.length > 0);
                     let currentMeasure = '';
                     let currentSyllableCount = 0;
-                    let tempo = parseInt(this.tempoInput?.value) || 120;
                     const beatsPerMeasure = 4;
                     const syllablesPerBeat = 2;
                     const maxSyllablesPerMeasure = beatsPerMeasure * syllablesPerBeat;
-
                     let measures = [];
-                    for(let word of words) {
+                    for (let word of words) {
                         const wordSyllables = this.syllableCount(word);
                         if (currentSyllableCount + wordSyllables > maxSyllablesPerMeasure) {
                             measures.push(currentMeasure.trim());
@@ -384,14 +485,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         currentSyllableCount += wordSyllables;
                     }
                     if (currentMeasure) measures.push(currentMeasure.trim());
-
                     for (const measure of measures) {
                         const measureSyllables = measure.split(/\s+/).filter(w => w.length > 0).reduce((sum, word) => sum + this.syllableCount(word), 0);
-                        this.addLyricLine(chordLine, measure, rhymeGroups[i], measureSyllables);
+                        this.addLyricLine(chordLine, measure, rhymeGroups[i], measureSyllables, targetContainer);
                     }
                 } else {
                     const lineSyllables = lyricLine.split(/\s+/).filter(w => w.length > 0).reduce((sum, word) => sum + this.syllableCount(word), 0);
-                    this.addLyricLine(chordLine, lyricLine, rhymeGroups[i], lineSyllables);
+                    this.addLyricLine(chordLine, lyricLine, rhymeGroups[i], lineSyllables, targetContainer);
                 }
             }
             this.lyricsDisplay.style.fontSize = `${this.fontSize}px`;
@@ -399,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.updateChordsVisibility();
         },
 
-        addLyricLine(chords, lyrics, rhymeClass, syllableCount) {
+        addLyricLine(chords, lyrics, rhymeClass, syllableCount, container = this.lyricsDisplay) {
             const lineGroup = document.createElement('div');
             lineGroup.className = 'lyrics-line-group';
 
@@ -408,6 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
             chordElement.textContent = chords;
             chordElement.setAttribute('contenteditable', 'true');
             chordElement.addEventListener('input', () => {
+                this.pushUndoState();
                 this.hasUnsavedChanges = true;
                 this.saveCurrentSong();
             });
@@ -418,6 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
             lyricElement.textContent = lyrics;
             lyricElement.setAttribute('contenteditable', 'true');
             lyricElement.addEventListener('input', () => {
+                this.pushUndoState();
                 this.hasUnsavedChanges = true;
                 this.saveCurrentSong();
                 this.updateSyllableCount();
@@ -429,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             lineGroup.appendChild(lyricElement);
 
-            this.lyricsDisplay.appendChild(lineGroup);
+            container.appendChild(lineGroup);
 
             const gutterLine = document.createElement('div');
             gutterLine.textContent = syllableCount;
@@ -437,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         updateSyllableCount() {
-            const lyricElements = this.lyricsDisplay.querySelectorAll('.lyrics-line');
+            const lyricElements = this.lyricsDisplay.querySelectorAll('.lyrics-line:not(.section-label)');
             this.syllableGutter.innerHTML = '';
             lyricElements.forEach(line => {
                 const text = line.textContent;
@@ -450,19 +552,27 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         updateRhymes() {
-            const lyricElements = this.lyricsDisplay.querySelectorAll('.lyrics-line');
-            const lines = Array.from(lyricElements).map(el => el.textContent);
+            const allLyricElements = Array.from(this.lyricsDisplay.querySelectorAll('.lyrics-line'));
+            const lyricElements = allLyricElements.filter(el => !el.classList.contains('section-label'));
+            const lines = lyricElements.map(el => el.textContent);
             const rhymeGroups = this.isRhymeMode ? this.findRhymes(lines) : {};
-            lyricElements.forEach((el, i) => {
-                el.className = 'lyrics-line';
-                if (rhymeGroups[i]) {
-                    el.classList.add(rhymeGroups[i]);
+            let idx = 0;
+            allLyricElements.forEach(el => {
+                if (el.classList.contains('section-label')) {
+                    el.className = 'lyrics-line section-label';
+                } else {
+                    el.className = 'lyrics-line';
+                    if (rhymeGroups[idx]) {
+                        el.classList.add(rhymeGroups[idx]);
+                    }
+                    idx++;
                 }
             });
         },
 
         findRhymes(lines) {
             const rhymeWords = lines.map(line => {
+                if (/^\[.*\]$/.test(line.trim())) return '';
                 const words = line.trim().split(/\s+/);
                 return words[words.length - 1] || '';
             });

@@ -1,4 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Ensure touch devices trigger button actions
+  document.addEventListener(
+    'touchstart',
+    (e) => {
+      const btn = e.target.closest('button');
+      if (btn) {
+        e.preventDefault();
+        btn.click();
+      }
+    },
+    { passive: false }
+  );
   // === THEME TOGGLE ===
   const savedTheme = localStorage.getItem('theme') || 'dark';
   document.documentElement.dataset.theme = savedTheme;
