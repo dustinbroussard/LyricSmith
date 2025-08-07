@@ -104,37 +104,27 @@
                             <i class="fas fa-guitar"></i> Toggle Chords
                         </button>
                         <button class="dropdown-item" id="toggle-read-only-btn">
-                            <i class="fas fa-lock"></i> Performance Mode 
+                            <i class="fas fa-lock"></i> Performance Mode
                         </button>
                         <button class="dropdown-item" id="save-song-btn">
                             <i class="fas fa-save"></i> Save Song
                         </button>
+                        <button class="dropdown-item" id="undo-btn">
+                            <i class="fas fa-undo"></i> Undo
+                        </button>
+                        <button class="dropdown-item" id="redo-btn">
+                            <i class="fas fa-redo"></i> Redo
+                        </button>
+                        <button class="dropdown-item" id="copy-lyrics-btn">
+                            <i class="fas fa-copy"></i> Copy Options
+                        </button>
+                        <button class="dropdown-item" id="metadata-toggle-btn">
+                            <i class="fas fa-info-circle"></i> Song Info & Metadata
+                        </button>
                     </div>
                 </div>
             </div>
-            
-            <div class="editor-control-group center-controls">
-                <button id="decrease-font-btn" class="icon-btn" title="Decrease Font Size">
-                    <i class="fas fa-minus"></i>
-                </button>
-                <span id="font-size-display"></span>
-                <button id="increase-font-btn" class="icon-btn" title="Increase Font Size">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
             <div class="editor-control-group right-controls">
-                 <button id="undo-btn" class="icon-btn" title="Undo">
-                     <i class="fas fa-undo"></i>
-                </button>
-                 <button id="redo-btn" class="icon-btn" title="Redo">
-                     <i class="fas fa-redo"></i>
-                </button>
-                 <button id="copy-lyrics-btn" class="icon-btn copy-lyrics-btn" title="Copy Options">
-                     <i class="fas fa-copy"></i>
-                </button>
-                <button id="metadata-toggle-btn" class="icon-btn" title="Song Info & Metadata">
-                    <i class="fas fa-info-circle"></i>
-                </button>
                 <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Theme">
                     <i class="fas fa-adjust"></i>
                 </button>
@@ -155,6 +145,15 @@
         </div>
 
         <div class="editor-footer">
+            <div class="footer-controls">
+                <button id="decrease-font-btn" class="icon-btn" title="Decrease Font Size">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <span id="font-size-display"></span>
+                <button id="increase-font-btn" class="icon-btn" title="Increase Font Size">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
             <div class="footer-controls">
                 <label for="measure-mode-toggle" class="control-label">Measure</label>
                 <label class="switch">
@@ -277,6 +276,7 @@
             // Toggle metadata panel
             metadataToggleBtn?.addEventListener('click', () => {
                 metadataPanel.classList.toggle('open');
+                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
             });
             
             metadataCloseBtn?.addEventListener('click', () => {

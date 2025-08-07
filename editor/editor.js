@@ -288,10 +288,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Enhanced copy functionality
-            this.copyLyricsBtn?.addEventListener('click', () => this.toggleCopyDropdown());
+            this.copyLyricsBtn?.addEventListener('click', () => {
+                this.toggleCopyDropdown();
+                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+            });
 
-            this.undoBtn?.addEventListener('click', () => this.undo());
-            this.redoBtn?.addEventListener('click', () => this.redo());
+            this.undoBtn?.addEventListener('click', () => {
+                this.undo();
+                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+            });
+            this.redoBtn?.addEventListener('click', () => {
+                this.redo();
+                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+            });
             
             // Close dropdown when clicking outside
             document.addEventListener('click', (e) => {
@@ -357,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Position dropdown relative to copy button
                 dropdown.addEventListener('click', (e) => this.handleCopySelection(e));
-                this.copyLyricsBtn.parentNode.appendChild(dropdown);
+                document.body.appendChild(dropdown);
                 this.copyDropdown = dropdown;
             }
         },
@@ -458,6 +467,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             this.currentSong.lyrics = this.normalizeSectionLabels(this.currentSong.lyrics || '');
 
+            const linesNoTitle = this.currentSong.lyrics.split('\n');
+            const normalizedTitle = (this.currentSong.title || '').trim().toLowerCase();
+            if (linesNoTitle.length && linesNoTitle[0].trim().toLowerCase() === normalizedTitle) {
+                linesNoTitle.shift();
+                if (linesNoTitle[0]?.trim() === '') {
+                    linesNoTitle.shift();
+                }
+                this.currentSong.lyrics = linesNoTitle.join('\n');
+            }
+
             this.renderLyrics();
 
             // Initialize undo/redo stacks for this song
@@ -473,8 +492,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const lyrics = this.currentSong.lyrics || '';
             const chords = this.currentSong.chords || '';
 
-            const lyricLines = lyrics.split('\n');
-            const chordLines = chords.split('\n');
+            let lyricLines = lyrics.split('\n');
+            let chordLines = chords.split('\n');
+
+            const normalizedTitle = (this.currentSong.title || '').trim().toLowerCase();
+            if (lyricLines.length && lyricLines[0].trim().toLowerCase() === normalizedTitle) {
+                lyricLines.shift();
+                if (lyricLines[0]?.trim() === '') {
+                    lyricLines.shift();
+                }
+                if (chordLines.length) {
+                    chordLines.shift();
+                }
+            }
 
             this.lyricsDisplay.innerHTML = '';
             this.syllableGutter.innerHTML = '';
