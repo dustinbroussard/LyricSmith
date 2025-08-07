@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isMeasureMode: false,
         isRhymeMode: false,
         currentSong: null,
+        defaultSections: "[Intro]\n\n[Verse 1]\n\n[Pre-Chorus]\n\n[Chorus]\n\n[Verse 2]\n\n[Bridge]\n\n[Outro]",
         resizeObserver: null,
         copyDropdown: null,
         hasUnsavedChanges: false, // Track unsaved changes
@@ -168,10 +169,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Enhanced song creation with metadata
         createSong(title, lyrics = '', chords = '') {
+            const normalizedLyrics = lyrics.trim()
+                ? this.normalizeSectionLabels(lyrics)
+                : this.defaultSections;
             return {
                 id: Date.now().toString(),
                 title,
-                lyrics,
+                lyrics: normalizedLyrics,
                 chords,
                 key: '',
                 tempo: 120,
@@ -181,6 +185,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastEditedAt: new Date().toISOString(),
                 tags: []
             };
+        },
+
+        normalizeSectionLabels(text = '') {
+            const sectionKeywords = [
+                'intro',
+                'verse',
+                'prechorus',
+                'chorus',
+                'bridge',
+                'outro',
+                'hook',
+                'refrain',
+                'coda',
+                'solo',
+                'interlude',
+                'ending',
+                'breakdown',
+                'tag'
+            ];
+            return text.split(/\r?\n/).map(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return line;
+                const match = trimmed.match(/^[\*\s\-_=~`]*[\(\[\{]?\s*([^\]\)\}]+?)\s*[\)\]\}]?[\*\s\-_=~`]*:?$/);
+                if (match) {
+                    const label = match[1].trim();
+                    const normalized = label.toLowerCase().replace(/[^a-z]/g, '');
+                    if (sectionKeywords.some(k => normalized.startsWith(k))) {
+                        const formatted = label
+                            .replace(/\s+/g, ' ')
+                            .replace(/(^|\s)\S/g, c => c.toUpperCase());
+                        return `[${formatted}]`;
+                    }
+                }
+                return line;
+            }).join('\n');
         },
 
         getSongState() {
@@ -378,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const lyrics = lyricLines.join('\n');
             const chords = chordLines.join('\n');
 
-            this.currentSong.lyrics = lyrics;
+            this.currentSong.lyrics = this.normalizeSectionLabels(lyrics);
             this.currentSong.chords = chords;
             this.currentSong.lastEditedAt = new Date().toISOString();
 
@@ -411,11 +450,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('song-title-card').textContent = this.currentSong.title;
             this.fontSizeDisplay.textContent = `${this.fontSize}px`;
-            
+
             // Update tempo input
             if (this.tempoInput) {
                 this.tempoInput.value = this.currentSong.tempo;
             }
+
+            this.currentSong.lyrics = this.normalizeSectionLabels(this.currentSong.lyrics || '');
 
             this.renderLyrics();
 
@@ -423,6 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.undoStack = [this.getSongState()];
             this.redoStack = [];
             this.lastSnapshotTime = Date.now();
+            this.saveCurrentSong(true);
         },
 
         renderLyrics() {

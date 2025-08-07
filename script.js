@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     songList: document.getElementById('song-list'),
     songs: [],
     currentSongId: null,
+    defaultSections: "[Intro]\n\n[Verse 1]\n\n[Pre-Chorus]\n\n[Chorus]\n\n[Verse 2]\n\n[Bridge]\n\n[Outro]",
 
     init() {
       // Load mammoth for DOCX processing
@@ -118,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         id: song.id || Date.now().toString(),
         title: song.title || 'Untitled',
-        lyrics: song.lyrics || '',
+        lyrics: this.normalizeSectionLabels(song.lyrics || ''),
         chords: song.chords || '',
         key: song.key || '',
         tempo: song.tempo || 120,
@@ -131,10 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
     },
 
     createSong(title, lyrics = '', chords = '') {
+      const normalizedLyrics = lyrics.trim()
+        ? this.normalizeSectionLabels(lyrics)
+        : this.defaultSections;
       return {
         id: Date.now().toString(),
         title,
-        lyrics,
+        lyrics: normalizedLyrics,
         chords,
         key: '',
         tempo: 120,
@@ -158,6 +162,41 @@ document.addEventListener('DOMContentLoaded', () => {
         .trim()
         .replace(/([a-z])([A-Z])/g, '$1 $2')
         .replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+    },
+
+    normalizeSectionLabels(text = '') {
+      const sectionKeywords = [
+        'intro',
+        'verse',
+        'prechorus',
+        'chorus',
+        'bridge',
+        'outro',
+        'hook',
+        'refrain',
+        'coda',
+        'solo',
+        'interlude',
+        'ending',
+        'breakdown',
+        'tag'
+      ];
+      return text.split(/\r?\n/).map(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return line;
+        const match = trimmed.match(/^[\*\s\-_=~`]*[\(\[\{]?\s*([^\]\)\}]+?)\s*[\)\]\}]?[\*\s\-_=~`]*:?$/);
+        if (match) {
+          const label = match[1].trim();
+          const normalized = label.toLowerCase().replace(/[^a-z]/g, '');
+          if (sectionKeywords.some(k => normalized.startsWith(k))) {
+            const formatted = label
+              .replace(/\s+/g, ' ')
+              .replace(/(^|\s)\S/g, c => c.toUpperCase());
+            return `[${formatted}]`;
+          }
+        }
+        return line;
+      }).join('\n');
     },
 
     formatTimeAgo(dateString) {
