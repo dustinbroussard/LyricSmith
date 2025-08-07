@@ -43,6 +43,28 @@
         </div>
     </div>
     </div>
+    <script>
+        // Register service worker and check for updates
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(reg => {
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'activated') {
+                            // Show update toast when new worker activates
+                            const toast = document.createElement('div');
+                            toast.className = 'toast toast-info';
+                            toast.innerHTML = `
+                                Update available! <a href="#" onclick="window.location.reload()">Refresh</a>
+                            `;
+                            document.body.appendChild(toast);
+                            setTimeout(() => toast.remove(), 10000);
+                        }
+                    });
+                });
+            });
+        }
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
