@@ -138,9 +138,9 @@
 .lyrics-container {
     flex-grow: 1;
     overflow-y: auto;
-    font-size: 1.5rem; /* Base size, slider still works */
-    padding: 2rem;
-    line-height: 1.6;
+    font-size: var(--font-size-lyrics, 1.5rem); /* Base size, slider still works */
+    padding: var(--padding-lyrics, 2rem);
+    line-height: var(--line-height-lyrics, 1.6);
     color: var(--text-primary); /* Lyrics use primary text color */
     transition: color var(--transition-speed);
     text-align: left; /* Adjust for better lyric display */

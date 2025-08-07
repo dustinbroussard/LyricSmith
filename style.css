@@ -1124,7 +1124,7 @@ html, body {
     
   .toolbar-buttons-group{
     width: 30%;
-    display:
+    display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     margin-top: 0.5rem;
