@@ -331,6 +331,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.copyDropdown?.classList.remove('visible');
                 this.editorDropdownMenu?.classList.add('visible');
             });
+            this.editorMenuBtn?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.aiToolsMenu?.classList.remove('visible');
+                    this.copyDropdown?.classList.remove('visible');
+                    this.editorDropdownMenu?.classList.add('visible');
+                }
+            });
             this.editorDropdownCloseBtn?.addEventListener('click', () => {
                 this.editorDropdownMenu?.classList.remove('visible');
             });
@@ -368,12 +376,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.aiToolsMenu?.classList.remove('visible');
                 this.toggleCopyDropdown();
             });
+            this.copyLyricsBtn?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.editorDropdownMenu?.classList.remove('visible');
+                    this.aiToolsMenu?.classList.remove('visible');
+                    this.toggleCopyDropdown();
+                }
+            });
 
             this.undoBtn?.addEventListener('click', () => {
                 this.undo();
             });
             this.redoBtn?.addEventListener('click', () => {
                 this.redo();
+            });
+            document.getElementById('export-single-song')?.addEventListener('click', () => {
+                const content = ClipboardManager.formatSongForExport(this.currentSong, true);
+                const blob = new Blob([content], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${this.currentSong.title.replace(/\s+/g, '_')}.txt`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             });
             // Close dropdowns when clicking outside
             document.addEventListener('click', (e) => {
@@ -413,6 +439,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.editorDropdownMenu?.classList.remove('visible');
                 this.copyDropdown?.classList.remove('visible');
                 this.aiToolsMenu?.classList.add('visible');
+            });
+            this.aiToolsBtn?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.editorDropdownMenu?.classList.remove('visible');
+                    this.copyDropdown?.classList.remove('visible');
+                    this.aiToolsMenu?.classList.add('visible');
+                }
             });
             this.aiToolsCloseBtn?.addEventListener('click', () => {
                 this.aiToolsMenu?.classList.remove('visible');
@@ -1272,4 +1306,5 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     app.init();
+    window.app = app;
 });

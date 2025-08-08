@@ -212,6 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return date.toLocaleDateString();
     },
 
+    highlightMatch(text, query) {
+      if (!query) return text;
+      const regex = new RegExp(`(${query})`, 'ig');
+      return text.replace(regex, '<mark>$1</mark>');
+    },
+
     renderSongs(searchQuery = "") {
       this.songList.innerHTML = '';
 
@@ -241,10 +247,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (song.timeSignature && song.timeSignature !== '4/4') metadata.push(song.timeSignature);
         
         const lastEdited = this.formatTimeAgo(song.lastEditedAt);
-        
+
         item.innerHTML = `
           <div class="song-info">
-            <span class="song-title">${song.title}</span>
+            <span class="song-title">${this.highlightMatch(song.title, searchQuery)}</span>
             ${metadata.length > 0 ? `<div class="song-metadata">${metadata.join(' • ')}</div>` : ''}
             <div class="song-details">
               ${song.tags?.length > 0 ? `<span class="song-tags">${song.tags.join(', ')}</span>` : ''}
@@ -306,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="toolbar-buttons-group">
           <button id="add-song-btn" class="btn" title="Add Song"><i class="fas fa-plus"></i></button>
           <button id="export-library-btn" class="btn" title="Export Library"><i class="fas fa-download"></i></button>
+          <button id="import-clipboard-btn" class="btn" title="Paste Song"><i class="fas fa-paste"></i></button>
           <button id="delete-all-songs-btn" class="btn danger" title="Delete All Songs"><i class="fas fa-trash"></i></button>
           <label for="song-upload-input" class="btn" title="Upload Files"><i class="fas fa-upload"></i></label>
         </div>
@@ -314,6 +321,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       document.getElementById('add-song-btn')?.addEventListener('click', () => this.createNewSong());
       document.getElementById('export-library-btn')?.addEventListener('click', () => this.exportLibrary());
+      document.getElementById('import-clipboard-btn')?.addEventListener('click', async () => {
+        const text = await navigator.clipboard.readText();
+        if (text.trim()) {
+          const title = prompt("Title for pasted song?", "New Song");
+          if (title) {
+            const newSong = this.createSong(title, text);
+            this.songs.push(newSong);
+            this.saveSongs();
+            this.renderSongs();
+          }
+        }
+      });
       document.getElementById('delete-all-songs-btn')?.addEventListener('click', () => this.confirmDeleteAll());
       document.getElementById('song-search-input')?.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
