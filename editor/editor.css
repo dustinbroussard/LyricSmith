@@ -213,6 +213,17 @@
     user-select: none;
     border-right: 1px solid var(--border-light);
 }
+.gutter-chord-line {
+    line-height: 1.2;
+    height: 1.2em;
+}
+.gutter-lyric-line {
+    line-height: 1.6;
+    margin-bottom: 0.5em;
+}
+.gutter-section-label {
+    margin-bottom: 0.5em;
+}
 #lyrics-display {
     flex-grow: 1;
     padding: 2rem;
@@ -280,17 +291,18 @@
 .editor-dropdown {
     position: relative;
     display: inline-block;
+    z-index: 2000;
 }
 
 .editor-dropdown-menu {
     position: absolute;
     top: 100%;
-    left: 10;
+    left: 0;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--border-radius-base);
     box-shadow: var(--shadow-lg);
-    z-index: 10000;
+    z-index: 2001;
     min-width: 180px;
     opacity: 0;
     visibility: hidden;
