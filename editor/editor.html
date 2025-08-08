@@ -98,6 +98,15 @@
                 <button id="editor-menu-btn" class="icon-btn" title="Editor Menu">
                     <i class="fas fa-ellipsis-h"></i>
                 </button>
+                <div id="add-section-dropdown" class="editor-dropdown">
+                    <button id="add-section-btn" class="btn">+ Section</button>
+                    <div id="add-section-menu" class="editor-dropdown-menu">
+                        <button class="dropdown-item" data-section="[Verse]">[Verse]</button>
+                        <button class="dropdown-item" data-section="[Chorus]">[Chorus]</button>
+                        <button class="dropdown-item" data-section="[Bridge]">[Bridge]</button>
+                        <button class="dropdown-item" data-section="[Outro]">[Outro]</button>
+                    </div>
+                </div>
             </div>
             <div class="editor-control-group right-controls">
                 <button id="ai-tools-btn" class="icon-btn" title="AI Tools">
@@ -165,7 +174,7 @@
         <button id="toggle-read-only-btn" class="modal-action-btn"><i class="fas fa-lock"></i> Performance Mode</button>
         <div>
           <label for="edit-mode-select"><i class="fas fa-edit"></i> Edit Mode:</label>
-          <select id="edit-mode-select">
+          <select id="edit-mode-select" class="modal-select">
             <option value="both">Both</option>
             <option value="lyrics">Lyrics</option>
             <option value="chords">Chords</option>

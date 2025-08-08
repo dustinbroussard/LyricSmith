@@ -52,13 +52,23 @@
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'activated') {
                             // Show update toast when new worker activates
+                            let container = document.querySelector('.toast-container');
+                            if (!container) {
+                                container = document.createElement('div');
+                                container.className = 'toast-container';
+                                document.body.appendChild(container);
+                            }
                             const toast = document.createElement('div');
                             toast.className = 'toast toast-info';
                             toast.innerHTML = `
                                 Update available! <a href="#" onclick="window.location.reload()">Refresh</a>
                             `;
-                            document.body.appendChild(toast);
-                            setTimeout(() => toast.remove(), 10000);
+                            container.appendChild(toast);
+                            setTimeout(() => toast.classList.add('show'), 10);
+                            setTimeout(() => {
+                                toast.classList.remove('show');
+                                setTimeout(() => toast.remove(), 300);
+                            }, 10000);
                         }
                     });
                 });

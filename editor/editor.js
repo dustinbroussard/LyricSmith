@@ -41,18 +41,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         static showToast(message, type = 'info') {
-            // Remove existing toasts
-            document.querySelectorAll('.toast').forEach(toast => toast.remove());
-            
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
             toast.textContent = message;
-            document.body.appendChild(toast);
-            
+            container.appendChild(toast);
+
             // Trigger animation
             setTimeout(() => toast.classList.add('show'), 10);
-            
-            // Remove after 3 seconds
+
+            // Remove after 3 seconds with fade out
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);
@@ -147,6 +151,8 @@ document.addEventListener('DOMContentLoaded', () => {
         undoBtn: document.getElementById('undo-btn'),
         redoBtn: document.getElementById('redo-btn'),
         editorMenuBtn: document.getElementById('editor-menu-btn'),
+        addSectionBtn: document.getElementById('add-section-btn'),
+        addSectionMenu: document.getElementById('add-section-menu'),
         aiContextMenu: document.getElementById('ai-context-menu'),
         aiToolsBtn: document.getElementById('ai-tools-btn'),
         aiSettingsBtn: document.getElementById('ai-settings-btn'),
@@ -400,6 +406,23 @@ document.addEventListener('DOMContentLoaded', () => {
             this.rhymeModeToggle?.addEventListener('change', (e) => {
                 this.isRhymeMode = e.target.checked;
                 this.renderLyrics();
+            });
+
+            this.addSectionBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.addSectionMenu?.classList.toggle('visible');
+            });
+            this.addSectionMenu?.querySelectorAll('[data-section]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const label = e.target.dataset.section;
+                    this.insertSectionAtCursor(label);
+                    this.addSectionMenu.classList.remove('visible');
+                });
+            });
+            document.addEventListener('click', (e) => {
+                if (this.addSectionMenu && !this.addSectionMenu.contains(e.target) && e.target !== this.addSectionBtn) {
+                    this.addSectionMenu.classList.remove('visible');
+                }
             });
 
             this.aiSettingsBtn?.addEventListener('click', () => {
@@ -977,6 +1000,43 @@ document.addEventListener('DOMContentLoaded', () => {
             this.updateReadOnlyState();
             this.updateChordsVisibility();
             this.updateSyllableCount();
+        },
+
+        insertSectionAtCursor(label) {
+            const section = document.createElement('div');
+            section.className = 'section';
+            const header = document.createElement('div');
+            header.className = 'lyrics-line section-label';
+            header.textContent = label;
+            header.setAttribute('contenteditable', !this.isReadOnly);
+            header.addEventListener('click', () => section.classList.toggle('collapsed'));
+            section.appendChild(header);
+            const content = document.createElement('div');
+            content.className = 'section-content';
+            section.appendChild(content);
+
+            const selection = window.getSelection();
+            let node = selection?.focusNode;
+            if (node && node.nodeType === Node.TEXT_NODE) {
+                node = node.parentElement;
+            }
+            const currentSection = node?.closest?.('.section');
+            if (currentSection) {
+                this.lyricsDisplay.insertBefore(section, currentSection.nextSibling);
+            } else {
+                const lineGroup = node?.closest?.('.lyrics-line-group');
+                if (lineGroup) {
+                    this.lyricsDisplay.insertBefore(section, lineGroup);
+                } else {
+                    this.lyricsDisplay.appendChild(section);
+                }
+            }
+
+            header.focus();
+            this.pushUndoState();
+            this.handleLyricsInput();
+            this.saveCurrentSong(true);
+            this.updateReadOnlyState();
         },
 
         addLyricLine(chords, lyrics, rhymeClass, syllableCount, container = this.lyricsDisplay, insertBefore = null) {
