@@ -289,25 +289,43 @@
 .lyric-text:focus {
     outline: none;
 }
-.lyrics-line.rhyme-match-1 { color: #FFAA00; }
-.lyrics-line.rhyme-match-2 { color: #88EEFF; }
-.lyrics-line.rhyme-match-3 { color: #FF66A0; }
-.lyrics-line.rhyme-match-4 { color: #A0FF66; }
-.lyrics-line.rhyme-match-5 { color: #FFDDAA; }
-.lyrics-line.rhyme-match-6 { color: #CC66FF; }
-.lyrics-line.rhyme-match-7 { color: #66CCFF; }
-.lyrics-line.rhyme-match-8 { color: #FF99CC; }
-.lyrics-line.rhyme-match-9 { color: #99FF99; }
-.lyrics-line.rhyme-match-10 { color: #FFCC99; }
-.lyrics-line.rhyme-match-11 { color: #CC99FF; }
-.lyrics-line.rhyme-match-12 { color: #99CCFF; }
-.lyrics-line.rhyme-match-13 { color: #FFCC66; }
-.lyrics-line.rhyme-match-14 { color: #CCFF66; }
-.lyrics-line.rhyme-match-15 { color: #99FFCC; }
-
-[data-theme='light'] .lyrics-line[class*='rhyme-match-'] {
-    filter: brightness(0.75);
+/* Higher-contrast rhyme colors */
+:root {
+  --r1:#ffb200; --r2:#00d2ff; --r3:#ff5fa2; --r4:#7dff5f; --r5:#ffd080;
+  --r6:#b066ff; --r7:#67b8ff; --r8:#ff7fb6; --r9:#52ffa3; --r10:#ffb380;
+  --r11:#c7a0ff; --r12:#92baff; --r13:#ffc04d; --r14:#baff4d; --r15:#7fffd4;
 }
+[data-theme='dark'] .lyrics-line.rhyme-match-1  { color: var(--r1); }
+[data-theme='dark'] .lyrics-line.rhyme-match-2  { color: var(--r2); }
+[data-theme='dark'] .lyrics-line.rhyme-match-3  { color: var(--r3); }
+[data-theme='dark'] .lyrics-line.rhyme-match-4  { color: var(--r4); }
+[data-theme='dark'] .lyrics-line.rhyme-match-5  { color: var(--r5); }
+[data-theme='dark'] .lyrics-line.rhyme-match-6  { color: var(--r6); }
+[data-theme='dark'] .lyrics-line.rhyme-match-7  { color: var(--r7); }
+[data-theme='dark'] .lyrics-line.rhyme-match-8  { color: var(--r8); }
+[data-theme='dark'] .lyrics-line.rhyme-match-9  { color: var(--r9); }
+[data-theme='dark'] .lyrics-line.rhyme-match-10 { color: var(--r10); }
+[data-theme='dark'] .lyrics-line.rhyme-match-11 { color: var(--r11); }
+[data-theme='dark'] .lyrics-line.rhyme-match-12 { color: var(--r12); }
+[data-theme='dark'] .lyrics-line.rhyme-match-13 { color: var(--r13); }
+[data-theme='dark'] .lyrics-line.rhyme-match-14 { color: var(--r14); }
+[data-theme='dark'] .lyrics-line.rhyme-match-15 { color: var(--r15); }
+
+[data-theme='light'] .lyrics-line.rhyme-match-1  { color: #a36b00; }
+[data-theme='light'] .lyrics-line.rhyme-match-2  { color: #006a80; }
+[data-theme='light'] .lyrics-line.rhyme-match-3  { color: #9c2f60; }
+[data-theme='light'] .lyrics-line.rhyme-match-4  { color: #3a7a2f; }
+[data-theme='light'] .lyrics-line.rhyme-match-5  { color: #a36b2b; }
+[data-theme='light'] .lyrics-line.rhyme-match-6  { color: #5a2fa3; }
+[data-theme='light'] .lyrics-line.rhyme-match-7  { color: #215e9e; }
+[data-theme='light'] .lyrics-line.rhyme-match-8  { color: #a33e69; }
+[data-theme='light'] .lyrics-line.rhyme-match-9  { color: #2f8e6b; }
+[data-theme='light'] .lyrics-line.rhyme-match-10 { color: #a3652b; }
+[data-theme='light'] .lyrics-line.rhyme-match-11 { color: #6e54a3; }
+[data-theme='light'] .lyrics-line.rhyme-match-12 { color: #4f72a6; }
+[data-theme='light'] .lyrics-line.rhyme-match-13 { color: #8d6b1c; }
+[data-theme='light'] .lyrics-line.rhyme-match-14 { color: #66801c; }
+[data-theme='light'] .lyrics-line.rhyme-match-15 { color: #2f7f6a; }
 
 .editor-dropdown {
     position: relative;
