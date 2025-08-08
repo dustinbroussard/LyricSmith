@@ -415,6 +415,7 @@
 .modal button {
   font-size: 1rem;
 }
+.modal-action-btn,
 .modal-copy-btn {
   background: var(--accent-primary);
   color: white;
@@ -423,6 +424,7 @@
   border-radius: var(--border-radius-base);
   text-align: left;
 }
+.modal-action-btn i,
 .modal-copy-btn i {
   margin-right: 0.5rem;
 }
@@ -506,6 +508,7 @@
     width: calc(100% - 1rem);
     box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
     backdrop-filter: blur(4px);
+    flex-shrink: 0;
 }
 .footer-controls {
     display: flex;
@@ -687,6 +690,10 @@ toolbar {
     border-radius: var(--border-radius-base);
     font-size: 0.85rem;
     cursor: pointer;
+}
+
+.ai-context-menu button i {
+    margin-right: 0.25rem;
 }
 
 .ai-context-menu .ai-menu-close {
