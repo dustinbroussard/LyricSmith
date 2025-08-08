@@ -378,7 +378,7 @@ img, video, iframe {
     }
 
     .lyrics-container {
-        font-size: 1.3rem; /* Adjusted base font size for lyrics on tablets */
+        font-size: 1rem; /* Base font size for lyrics on mobile */
         padding: 1em 0.8em 1.5em 0.8em !important; /* Adjusted padding for lyrics */
         line-height: 1.4 !important; /* Slightly more relaxed line-height for readability */
     }
@@ -592,7 +592,7 @@ img, video, iframe {
 .lyrics-container {
     flex-grow: 1;
     overflow-y: auto;
-    font-size: 1.5rem; /* Base size, slider still works */
+    font-size: 1rem; /* Base size, slider still works */
     padding: 2rem;
     text-align: center;
     line-height: 1.6;
@@ -1206,7 +1206,7 @@ html, body {
   /* Reduce lyric container padding for tighter view */
   .lyrics-container {
     padding: 0.6em 0.3em 1em 0.3em !important;
-    font-size: 1.3rem !important;
+    font-size: 1rem !important;
   }
 }
 
