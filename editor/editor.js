@@ -117,6 +117,18 @@ document.addEventListener('DOMContentLoaded', () => {
         redoBtn: document.getElementById('redo-btn'),
         editorMenuBtn: document.getElementById('editor-menu-btn'),
         editorDropdownMenu: document.querySelector('.editor-dropdown-menu'),
+        editorDropdownCloseBtn: document.getElementById('editor-menu-close-btn'),
+        aiContextMenu: document.getElementById('ai-context-menu'),
+        aiToolsBtn: document.getElementById('ai-tools-btn'),
+        aiToolsMenu: document.getElementById('ai-tools-menu'),
+        aiToolsCloseBtn: document.getElementById('ai-tools-close-btn'),
+        aiSettingsBtn: document.getElementById('ai-settings-btn'),
+        aiSettingsPanel: document.getElementById('ai-settings-panel'),
+        aiSettingsClose: document.getElementById('ai-settings-close'),
+        apiKeyInput: document.getElementById('openrouter-api-key'),
+        modelSearchInput: document.getElementById('model-search'),
+        modelList: document.getElementById('model-list'),
+        saveAISettingsBtn: document.getElementById('save-ai-settings'),
         measureModeToggle: document.getElementById('measure-mode-toggle'),
         rhymeModeToggle: document.getElementById('rhyme-mode-toggle'),
 
@@ -138,6 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeObserver: null,
         copyDropdown: null,
         hasUnsavedChanges: false, // Track unsaved changes
+        availableModels: [],
+        selectedModel: '',
         undoStack: [],
         redoStack: [],
         lastSnapshotTime: 0,
@@ -152,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         init() {
             this.loadData();
+            this.loadAISettings();
             this.setupEventListeners();
             this.loadEditorState();
             this.createCopyDropdown();
@@ -275,55 +290,78 @@ document.addEventListener('DOMContentLoaded', () => {
             this.editorMenuBtn?.addEventListener('click', () => {
                 this.editorDropdownMenu?.classList.toggle('visible');
             });
+            this.editorDropdownCloseBtn?.addEventListener('click', () => {
+                this.editorDropdownMenu?.classList.remove('visible');
+            });
             // Handle dropdown items
             document.getElementById('toggle-chords-btn')?.addEventListener('click', () => {
                 this.toggleChords();
-                this.editorDropdownMenu?.classList.remove('visible');
             });
             document.getElementById('toggle-read-only-btn')?.addEventListener('click', () => {
                 this.toggleReadOnly();
-                this.editorDropdownMenu?.classList.remove('visible');
             });
             document.getElementById('save-song-btn')?.addEventListener('click', () => {
                 this.saveCurrentSong(true);
-                this.editorDropdownMenu?.classList.remove('visible');
             });
 
             // Enhanced copy functionality
             this.copyLyricsBtn?.addEventListener('click', () => {
                 this.toggleCopyDropdown();
-                this.editorDropdownMenu?.classList.remove('visible');
             });
 
             this.undoBtn?.addEventListener('click', () => {
                 this.undo();
-                this.editorDropdownMenu?.classList.remove('visible');
             });
             this.redoBtn?.addEventListener('click', () => {
                 this.redo();
-                this.editorDropdownMenu?.classList.remove('visible');
             });
-
-            // Close dropdown when clicking outside
+            // Close copy dropdown when clicking outside
             document.addEventListener('click', (e) => {
                 if (this.copyDropdown && !this.copyLyricsBtn.contains(e.target) && !this.copyDropdown.contains(e.target)) {
                     this.copyDropdown.classList.remove('visible');
-                }
-                if (this.editorDropdownMenu && !this.editorMenuBtn.contains(e.target) && !this.editorDropdownMenu.contains(e.target)) {
-                    this.editorDropdownMenu.classList.remove('visible');
                 }
             });
 
             this.measureModeToggle?.addEventListener('change', (e) => {
                 this.isMeasureMode = e.target.checked;
                 this.renderLyrics();
-                this.editorDropdownMenu?.classList.remove('visible');
             });
 
             this.rhymeModeToggle?.addEventListener('change', (e) => {
                 this.isRhymeMode = e.target.checked;
                 this.renderLyrics();
-                this.editorDropdownMenu?.classList.remove('visible');
+            });
+
+            // AI Tools dropdown
+            this.aiToolsBtn?.addEventListener('click', () => {
+                this.aiToolsMenu?.classList.toggle('visible');
+            });
+            this.aiToolsCloseBtn?.addEventListener('click', () => {
+                this.aiToolsMenu?.classList.remove('visible');
+            });
+            document.querySelectorAll('.ai-tools-menu .tool-option').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    console.log(btn.dataset.prompt);
+                });
+            });
+            this.aiSettingsBtn?.addEventListener('click', () => {
+                this.openAISettings();
+            });
+            this.aiSettingsClose?.addEventListener('click', () => {
+                this.aiSettingsPanel.style.display = 'none';
+            });
+            this.saveAISettingsBtn?.addEventListener('click', () => this.saveAISettings());
+            this.modelSearchInput?.addEventListener('input', () => this.renderModelList(this.modelSearchInput.value));
+            this.lyricsDisplay?.addEventListener('mouseup', () => this.handleTextSelection());
+            this.lyricsDisplay?.addEventListener('keyup', () => this.handleTextSelection());
+            this.lyricsDisplay?.addEventListener('touchend', () => this.handleTextSelection());
+            document.querySelectorAll('#ai-context-menu button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    const text = window.getSelection().toString();
+                    this.handleAIAction(action, text);
+                    this.aiContextMenu.style.display = 'none';
+                });
             });
 
             // Metadata input listeners
@@ -388,6 +426,122 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 100);
                 });
                 this.resizeObserver.observe(this.editorMode);
+            }
+        },
+
+        loadAISettings() {
+            const key = localStorage.getItem('openrouterApiKey') || '';
+            const model = localStorage.getItem('openrouterModel') || '';
+            window.CONFIG = window.CONFIG || {};
+            window.CONFIG.openrouterApiKey = key;
+            window.CONFIG.defaultModel = model;
+            this.selectedModel = model;
+            if (this.apiKeyInput) this.apiKeyInput.value = key;
+        },
+
+        openAISettings() {
+            if (this.aiSettingsPanel) {
+                this.aiSettingsPanel.style.display = 'block';
+                if (!this.availableModels.length) {
+                    this.fetchModels();
+                } else {
+                    this.renderModelList(this.modelSearchInput?.value || '');
+                }
+            }
+        },
+
+        saveAISettings() {
+            const key = this.apiKeyInput?.value.trim() || '';
+            window.CONFIG.openrouterApiKey = key;
+            window.CONFIG.defaultModel = this.selectedModel;
+            localStorage.setItem('openrouterApiKey', key);
+            localStorage.setItem('openrouterModel', this.selectedModel);
+            this.aiSettingsPanel.style.display = 'none';
+        },
+
+        async fetchModels() {
+            try {
+                const res = await fetch('https://openrouter.ai/api/v1/models');
+                const data = await res.json();
+                this.availableModels = data.data || [];
+                this.renderModelList(this.modelSearchInput?.value || '');
+            } catch (err) {
+                console.error('Failed to fetch models', err);
+            }
+        },
+
+        renderModelList(filter = '') {
+            if (!this.modelList) return;
+            const term = filter.toLowerCase();
+            this.modelList.innerHTML = '';
+            this.availableModels
+                .filter(m => m.id.toLowerCase().includes(term))
+                .forEach(m => {
+                    const item = document.createElement('div');
+                    item.className = 'model-item' + (m.id === this.selectedModel ? ' selected' : '');
+                    item.textContent = m.id;
+                    item.addEventListener('click', () => {
+                        this.selectedModel = m.id;
+                        this.renderModelList(term);
+                    });
+                    this.modelList.appendChild(item);
+                });
+        },
+
+        handleTextSelection() {
+            if (!this.aiContextMenu) return;
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+                const range = selection.getRangeAt(0);
+                const startEl = range.startContainer.parentElement;
+                if (!startEl.closest('.lyrics-line')) {
+                    this.aiContextMenu.style.display = 'none';
+                    return;
+                }
+                const rect = range.getBoundingClientRect();
+                const topOffset = window.innerWidth < 600 ? 20 : 5;
+                this.aiContextMenu.style.top = `${rect.bottom + window.scrollY + topOffset}px`;
+                this.aiContextMenu.style.left = `${rect.left + window.scrollX}px`;
+                this.aiContextMenu.style.display = 'flex';
+            } else {
+                this.aiContextMenu.style.display = 'none';
+            }
+        },
+
+        handleAIAction(action, selectedText) {
+            const prompts = {
+                rhyme: `Find rhymes for: ${selectedText}`,
+                reword: `Suggest alternative wording for: ${selectedText}`,
+                rewrite: `Rewrite this line in a different tone: ${selectedText}`,
+                continue: `Continue the lyrics after: ${selectedText}`
+            };
+            const prompt = prompts[action];
+            if (!window.CONFIG.openrouterApiKey) {
+                console.warn('OpenRouter API key not set');
+                alert('Please set your OpenRouter API key in AI Settings.');
+                return;
+            }
+            console.log(prompt);
+            this.callOpenRouter(prompt);
+        },
+
+        async callOpenRouter(prompt) {
+            try {
+                const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${window.CONFIG.openrouterApiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: window.CONFIG.defaultModel || '',
+                        messages: [{ role: 'user', content: prompt }]
+                    })
+                });
+                const data = await res.json();
+                console.log('OpenRouter response', data);
+            } catch (err) {
+                console.error('OpenRouter error', err);
             }
         },
 

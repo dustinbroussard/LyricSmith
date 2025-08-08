@@ -137,10 +137,38 @@
                         <button class="dropdown-item" id="metadata-toggle-btn">
                             <i class="fas fa-info-circle"></i> Song Info & Metadata
                         </button>
+                        <button class="dropdown-item close-dropdown-btn" id="editor-menu-close-btn">
+                            <i class="fas fa-times"></i> Close
+                        </button>
                     </div>
                 </div>
             </div>
             <div class="editor-control-group right-controls">
+                <div class="editor-dropdown ai-tools-dropdown">
+                    <button id="ai-tools-btn" class="icon-btn" title="AI Tools">
+                        <i class="fas fa-robot"></i>
+                    </button>
+                    <div class="editor-dropdown-menu ai-tools-menu" id="ai-tools-menu">
+                        <button class="dropdown-item tool-option" data-prompt="Generate First Draft">
+                            <i class="fas fa-magic"></i> Generate First Draft
+                        </button>
+                        <button class="dropdown-item tool-option" data-prompt="Polish Lyrics">
+                            <i class="fas fa-brush"></i> Polish Lyrics
+                        </button>
+                        <button class="dropdown-item tool-option" data-prompt="Rewrite in Different Style">
+                            <i class="fas fa-pen"></i> Rewrite in Different Style
+                        </button>
+                        <button class="dropdown-item tool-option" data-prompt="Continue Song">
+                            <i class="fas fa-arrow-down"></i> Continue Song
+                        </button>
+                        <button class="dropdown-item" id="ai-settings-btn">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="dropdown-item close-dropdown-btn" id="ai-tools-close-btn">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                </div>
                 <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Theme">
                     <i class="fas fa-adjust"></i>
                 </button>
@@ -157,6 +185,13 @@
 
             <!-- Enhanced Copy Button with Dropdown -->
 
+        </div>
+
+        <div id="ai-context-menu" class="ai-context-menu">
+            <button data-action="rhyme">🎯 Rhyme</button>
+            <button data-action="reword">🔄 Reword</button>
+            <button data-action="rewrite">✍️ Rewrite</button>
+            <button data-action="continue">💡 Continue</button>
         </div>
 
         <div class="editor-footer">
@@ -257,6 +292,25 @@
         </div>
     </div>
 
+    <div id="ai-settings-panel" class="ai-settings-panel">
+        <h3>
+            AI Settings
+            <button id="ai-settings-close" class="icon-btn" title="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </h3>
+        <div class="settings-row">
+            <label for="openrouter-api-key">API Key</label>
+            <input type="text" id="openrouter-api-key" placeholder="OpenRouter API Key">
+        </div>
+        <div class="settings-row">
+            <label for="model-search">Model</label>
+            <input type="text" id="model-search" placeholder="Search models...">
+            <div id="model-list" class="model-list"></div>
+        </div>
+        <button id="save-ai-settings" class="dropdown-item" style="width:100%">Save</button>
+    </div>
+
     <script src="../config.js"></script>
     <script src="songs.js"></script>
     <script src="editor.js"></script>
@@ -273,7 +327,6 @@
             // Toggle metadata panel
             metadataToggleBtn?.addEventListener('click', () => {
                 metadataPanel.classList.toggle('open');
-                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
             });
             
             metadataCloseBtn?.addEventListener('click', () => {
