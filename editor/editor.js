@@ -311,9 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const state = this.getSongState();
             if (now - this.lastSnapshotTime < 1000) return;
             this.undoStack.push({ ...state });
-            if (this.undoStack.length > 100) this.undoStack.shift();
+            if (this.undoStack.length > 20) this.undoStack.shift();
             this.lastSnapshotTime = now;
             this.redoStack = [];
+            this.saveUndoRedoStacks();
         },
 
         applySongState(state) {
@@ -322,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentSong.chords = state.chords;
             this.renderLyrics();
             this.saveCurrentSong();
+            this.saveUndoRedoStacks();
         },
 
         undo() {
@@ -338,6 +340,13 @@ document.addEventListener('DOMContentLoaded', () => {
             this.undoStack.push(current);
             const next = this.redoStack.pop();
             this.applySongState(next);
+        },
+
+        saveUndoRedoStacks() {
+            if (!this.currentSong) return;
+            const songId = this.currentSong.id;
+            localStorage.setItem(`undoStack_${songId}`, JSON.stringify(this.undoStack.slice(-20)));
+            localStorage.setItem(`redoStack_${songId}`, JSON.stringify(this.redoStack.slice(-20)));
         },
 
         setupEventListeners() {
@@ -383,17 +392,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.redo();
             });
             document.getElementById('export-single-song')?.addEventListener('click', () => {
-                const content = ClipboardManager.formatSongForExport(this.currentSong, true);
-                const blob = new Blob([content], { type: 'text/plain' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `${this.currentSong.title.replace(/\s+/g, '_')}.txt`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                if (!this.currentSong) return;
+                const choice = prompt('Export format? Enter "json" or "txt"', 'json');
+                if (!choice) return;
+                if (choice.toLowerCase().startsWith('j')) {
+                    const dataStr = JSON.stringify(this.currentSong, null, 2);
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `${this.currentSong.title.replace(/\s+/g, '_')}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else {
+                    const content = ClipboardManager.formatSongForExport(this.currentSong, true);
+                    const blob = new Blob([content], { type: 'text/plain' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `${this.currentSong.title.replace(/\s+/g, '_')}.txt`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
             });
             this.measureModeToggle?.addEventListener('change', (e) => {
                 this.isMeasureMode = e.target.checked;
+                if (this.currentSong) {
+                    localStorage.setItem(`measureMode_${this.currentSong.id}`, this.isMeasureMode);
+                }
                 this.renderLyrics();
             });
 
@@ -607,29 +633,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async callOpenRouter(prompt) {
             const originalPrompt = prompt;
-            const song = this.currentSong;
-            const formatted = song ? ClipboardManager.formatLyricsWithChords(song.lyrics || '', song.chords || '') : '';
-
-            // Map high level tool prompts to detailed instructions
-            switch (originalPrompt) {
-                case 'Generate First Draft':
-                    prompt = `Write an original song with chords and lyrics on alternating lines. Only return the song. Title: ${song?.title || 'Untitled'}`;
-                    break;
-                case 'Polish Lyrics':
-                    prompt = `Polish the following song while preserving its meaning. Return chords and lyrics on alternating lines.\n\n${formatted}`;
-                    break;
-                case 'Rewrite in Different Style':
-                    const style = prompt('Enter a style to rewrite in (e.g., Folk, Hip-Hop, Jazz):', '');
-                    if (style === null) return;
-                    prompt = `Rewrite the following song in a ${style} style. Keep the structure and return chords and lyrics on alternating lines.\n\n${formatted}`;
-                    break;
-                case 'Continue Song':
-                    prompt = `Continue the following song. Return only the continuation with chords and lyrics on alternating lines.\n\n${formatted}`;
-                    break;
-                default:
-                    // leave prompt as provided for context actions
-                    break;
-            }
 
             const response = await callOpenRouterAPI(prompt);
             if (!response) return;
@@ -664,7 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // For AI tools or when no selection, apply to entire song
-            const append = originalPrompt === 'Continue Song';
+            const append = originalPrompt.startsWith('Continue the song after');
             this.applyAIResult(response, append);
         },
 
@@ -861,6 +864,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             this.fontSize = this.perSongFontSizes[this.currentSong.id] || 16;
 
+            const storedMeasure = localStorage.getItem(`measureMode_${this.currentSong.id}`);
+            this.isMeasureMode = storedMeasure === 'true';
+            if (this.measureModeToggle) {
+                this.measureModeToggle.checked = this.isMeasureMode;
+            }
+
             document.getElementById('song-title-card').textContent = this.currentSong.title;
             this.fontSizeDisplay.textContent = `${this.fontSize}px`;
 
@@ -886,13 +895,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.currentSong.lyrics = linesNoTitle.join('\n');
             }
 
+            const undoKey = `undoStack_${this.currentSong.id}`;
+            const redoKey = `redoStack_${this.currentSong.id}`;
+            this.undoStack = JSON.parse(localStorage.getItem(undoKey) || '[]');
+            this.redoStack = JSON.parse(localStorage.getItem(redoKey) || '[]');
+            if (this.undoStack.length === 0) {
+                this.undoStack = [this.getSongState()];
+            }
+            if (this.undoStack.length > 20) this.undoStack = this.undoStack.slice(-20);
+            if (this.redoStack.length > 20) this.redoStack = this.redoStack.slice(-20);
+
             this.renderLyrics();
 
-            // Initialize undo/redo stacks for this song
-            this.undoStack = [this.getSongState()];
-            this.redoStack = [];
             this.lastSnapshotTime = Date.now();
             this.saveCurrentSong(true);
+            this.saveUndoRedoStacks();
         },
 
         renderLyrics() {
@@ -1311,8 +1328,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.querySelectorAll('#ai-tools-modal .tool-option')?.forEach(btn => {
         btn.addEventListener('click', () => {
-            const prompt = btn.dataset.prompt;
-            app.callOpenRouter(prompt);
+            const type = btn.dataset.prompt;
+            const song = app.currentSong || {};
+            const lyrics = song.lyrics || '';
+            let promptText = '';
+            if (type === 'Generate First Draft') {
+                const style = song.tags && song.tags.length ? song.tags.join(', ') : 'any style';
+                promptText = `Write a complete first draft of song lyrics in ${style}.`;
+            } else if (type === 'Polish Lyrics') {
+                promptText = `Polish the following lyrics for flow, rhyme, and clarity: ${lyrics}`;
+            } else if (type === 'Rewrite in Different Style') {
+                const styleInput = window.prompt('Enter a style to rewrite in:');
+                if (!styleInput) return;
+                promptText = `Rewrite these lyrics in the style of ${styleInput}: ${lyrics}`;
+            } else if (type === 'Continue Song') {
+                promptText = `Continue the song after these lyrics: ${lyrics}`;
+            }
+            if (promptText) {
+                app.callOpenRouter(promptText);
+            }
             document.getElementById('ai-tools-modal')?.classList.remove('visible');
         });
     });

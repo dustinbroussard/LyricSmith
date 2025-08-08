@@ -100,10 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof mammoth === 'undefined') {
         console.warn('Mammoth.js not loaded - DOCX support will not work');
       }
-    
+
       this.loadSongs();
       this.renderSongs();
       this.renderToolbar();
+      this.setupExportDialog();
       this.bindEvents();
     },
 
@@ -252,10 +253,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="song-info">
             <span class="song-title">${this.highlightMatch(song.title, searchQuery)}</span>
             ${metadata.length > 0 ? `<div class="song-metadata">${metadata.join(' • ')}</div>` : ''}
-            <div class="song-details">
-              ${song.tags?.length > 0 ? `<span class="song-tags">${song.tags.join(', ')}</span>` : ''}
-              <span class="song-edited">Last edited: ${lastEdited}</span>
-            </div>
+              <div class="song-details">
+                ${song.tags?.length > 0 ? `<span class="song-tags">${song.tags.map(t => `<span class=\"song-tag\" data-tag=\"${t}\">${t}</span>`).join(', ')}</span>` : ''}
+                <span class="song-edited">Last edited: ${lastEdited}</span>
+              </div>
           </div>
           <div class="song-actions">
             <button class="song-copy-btn icon-btn" title="Quick Copy" data-song-id="${song.id}">
@@ -289,6 +290,16 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
 
+        item.querySelectorAll('.song-tag').forEach(tagEl => {
+          tagEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const tag = tagEl.dataset.tag;
+            const searchInput = document.getElementById('song-search-input');
+            if (searchInput) searchInput.value = tag;
+            this.renderSongs(tag.toLowerCase());
+          });
+        });
+
         this.songList.appendChild(item);
       }
     },
@@ -320,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
 
       document.getElementById('add-song-btn')?.addEventListener('click', () => this.createNewSong());
-      document.getElementById('export-library-btn')?.addEventListener('click', () => this.exportLibrary());
+      document.getElementById('export-library-btn')?.addEventListener('click', () => this.showExportDialog());
       document.getElementById('import-clipboard-btn')?.addEventListener('click', async () => {
         const text = await navigator.clipboard.readText();
         if (text.trim()) {
@@ -411,14 +422,32 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = `editor/editor.html?songId=${newSong.id}`;
     },
 
-    async exportLibrary() {
+    showExportDialog() {
+      document.getElementById('export-modal')?.classList.add('visible');
+    },
+
+    setupExportDialog() {
+      document.querySelector('#export-modal .close-modal-btn')?.addEventListener('click', () => {
+        document.getElementById('export-modal')?.classList.remove('visible');
+      });
+      document.getElementById('confirm-export-btn')?.addEventListener('click', () => {
+        const includeMeta = document.getElementById('export-include-metadata')?.checked;
+        document.getElementById('export-modal')?.classList.remove('visible');
+        this.exportLibrary(includeMeta);
+      });
+    },
+
+    async exportLibrary(includeMetadata = true) {
       try {
+        const songs = includeMetadata
+          ? this.songs
+          : this.songs.map(({ id, title, lyrics, chords }) => ({ id, title, lyrics, chords }));
         // Create export data
         const exportData = {
           version: '1.0',
           exportDate: new Date().toISOString(),
-          songCount: this.songs.length,
-          songs: this.songs
+          songCount: songs.length,
+          songs
         };
 
         // Create and download JSON file
@@ -432,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         document.body.removeChild(link);
         
-        ClipboardManager.showToast(`Exported ${this.songs.length} songs`, 'success');
+        ClipboardManager.showToast(`Exported ${songs.length} songs`, 'success');
       } catch (err) {
         console.error('Export failed:', err);
         ClipboardManager.showToast('Export failed', 'error');

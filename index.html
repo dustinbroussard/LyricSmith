@@ -36,12 +36,20 @@
                 <div id="song-list" class="song-list"></div>
             </div>
         </section>
-    
+
     </div>
 
-    
+
         </div>
     </div>
+    </div>
+    <div id="export-modal" class="modal-overlay">
+      <div class="modal">
+        <h2>Export Library</h2>
+        <label style="display:flex;align-items:center;gap:0.5rem;"><input type="checkbox" id="export-include-metadata" checked> Include metadata</label>
+        <button id="confirm-export-btn" class="modal-action-btn">Export</button>
+        <button class="close-modal-btn modal-action-btn">Cancel</button>
+      </div>
     </div>
     <script>
         // Register service worker and check for updates

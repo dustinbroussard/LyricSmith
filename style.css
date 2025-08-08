@@ -1524,3 +1524,54 @@ html, body {
     }
 }
 
+/* Modal styles for export dialog */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-speed);
+    z-index: 9999;
+}
+.modal-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+.modal {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-base);
+    box-shadow: var(--shadow-lg);
+    max-width: 90vw;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    transform: scale(0.95);
+    transition: transform var(--transition-speed);
+}
+.modal-overlay.visible .modal {
+    transform: scale(1);
+}
+.modal-action-btn {
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: var(--border-radius-base);
+    box-shadow: var(--shadow-sm);
+    transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+.modal-action-btn:hover {
+    background: var(--accent-hover);
+    box-shadow: var(--shadow-md);
+}
+.close-modal-btn {
+    background: none;
+    color: var(--text-secondary);
+}
+
