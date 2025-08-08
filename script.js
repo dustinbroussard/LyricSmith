@@ -105,11 +105,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof mammoth === 'undefined') {
         console.warn('Mammoth.js not loaded - DOCX support will not work');
       }
-    
+
       this.loadSongs();
       this.renderSongs();
       this.renderToolbar();
       this.bindEvents();
+      this.initDragSort();
     },
 
     loadSongs() {
@@ -221,18 +222,23 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!query) return text;
       const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(escaped, 'ig');
-      return text.replace(regex, (match) => `<strong>${match}</strong>`);
+      return text.replace(regex, match => `<strong>${match}</strong>`);
     },
 
     renderSongs(searchQuery = "") {
       this.songList.innerHTML = '';
 
-      let filtered = this.songs.filter(song => {
-        const titleMatch = song.title.toLowerCase().includes(searchQuery);
-        const tagMatch = song.tags?.some(tag => tag.toLowerCase().includes(searchQuery));
-        const keyMatch = song.key?.toLowerCase().includes(searchQuery);
-        return titleMatch || tagMatch || keyMatch;
-      });
+      let filtered = this.songs;
+      if (searchQuery && searchQuery.trim()) {
+        const fuse = new Fuse(this.songs, {
+          keys: ['title', 'tags', 'key'],
+          threshold: 0.35,
+          ignoreLocation: true,
+          minMatchCharLength: 2
+        });
+        const results = fuse.search(searchQuery.trim());
+        filtered = results.map(r => r.item);
+      }
 
       filtered.sort((a, b) => {
         switch (this.sortOrder) {
@@ -273,13 +279,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           <div class="song-actions">
-            <button class="song-copy-btn icon-btn" title="Quick Copy" data-song-id="${song.id}">
+            <button class="song-copy-btn icon-btn" title="Quick Copy" aria-label="Quick copy ${song.title}" data-song-id="${song.id}">
               <i class="fas fa-copy"></i>
             </button>
-            <a class="song-edit-btn edit-song-btn" href="editor/editor.html?songId=${song.id}" title="Edit">
+            <a class="song-edit-btn edit-song-btn" href="editor/editor.html?songId=${song.id}" title="Edit" aria-label="Edit ${song.title}">
               <i class="fas fa-pen"></i>
             </a>
-            <button class="song-delete-btn danger delete-song-btn" title="Delete" data-song-id="${song.id}">
+            <button class="song-delete-btn danger delete-song-btn" title="Delete" aria-label="Delete ${song.title}" data-song-id="${song.id}">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -308,10 +314,24 @@ document.addEventListener('DOMContentLoaded', () => {
           if (!e.target.closest('.song-actions')) {
             window.location.href = `editor/editor.html?songId=${song.id}`;
           }
-        });
+      });
 
-        this.songList.appendChild(item);
-      }
+      this.songList.appendChild(item);
+    }
+  },
+
+    initDragSort() {
+      if (!this.songList) return;
+      Sortable.create(this.songList, {
+        handle: '.song-info',
+        animation: 150,
+        onEnd: () => {
+          const order = Array.from(this.songList.children).map(child => child.dataset.id);
+          const map = new Map(this.songs.map(s => [s.id, s]));
+          this.songs = order.map(id => map.get(id)).filter(Boolean);
+          this.saveSongs();
+        }
+      });
     },
 
     async quickCopySong(song) {

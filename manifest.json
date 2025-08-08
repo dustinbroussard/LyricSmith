@@ -1,11 +1,11 @@
 {
     "name": "LyricSmith",
     "short_name": "LyricSmith",
-    "start_url": ".",
+    "start_url": "/",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#00bcd4",
-    "description": "A editor-focused manager.",
+    "description": "A modern, touch-friendly lyric & setlist manager.",
     "icons": [
         {
             "src": "assets/icons/icon-192x192.png",

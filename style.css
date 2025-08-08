@@ -136,7 +136,7 @@ mark {
 
 /* Specific adjustments for elements that might cause overflow */
 .page-content,
-.toolbar, {
+.toolbar {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -524,7 +524,7 @@ mark {
     color: var(--text-primary); /* Ensure contrast on danger button */
 }
 .btn.danger:hover {
-    background-color: darken(var(--danger), 10%); /* Subtle darken on hover for danger */
+    filter: brightness(0.9);
 }
 
 .hidden-file {
