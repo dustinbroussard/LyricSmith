@@ -308,6 +308,12 @@
     transform: translateY(0);
 }
 
+.editor-dropdown-menu.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
 .dropdown-item {
     display: flex;
     align-items: center;
@@ -329,6 +335,10 @@
 .dropdown-item i {
     width: 1.2rem;
     text-align: center;
+}
+
+.dropdown-item .switch {
+    margin-left: auto;
 }
 
 /* ========================================
@@ -439,16 +449,6 @@
 }
 .footer-controls .control-label {
     font-size: 0.9em;
-}
-#tempo-input {
-    width: 4em;
-    text-align: center;
-    padding: 0.25em;
-    font-size: 0.9em;
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--border-radius-base);
 }
 
 .copy-option {
@@ -593,16 +593,6 @@ toolbar {
     font-size: 0.9em;
   }
   
-  #tempo-input {
-    width: 4em;
-    text-align: center;
-    padding: 0.25em;
-    font-size: 0.9em;
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--border-radius-base);
-  }
   
   .copy-dropdown-menu {
      position: fixed;
