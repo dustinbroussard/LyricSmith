@@ -124,12 +124,6 @@
                         <button class="dropdown-item" id="regenre-btn">
                             <i class="fas fa-random"></i> Re-Genre (AI Style Flip)
                         </button>
-                        <button class="dropdown-item" id="undo-btn">
-                            <i class="fas fa-undo"></i> Undo
-                        </button>
-                        <button class="dropdown-item" id="redo-btn">
-                            <i class="fas fa-redo"></i> Redo
-                        </button>
                         <button class="dropdown-item" id="copy-lyrics-btn">
                             <i class="fas fa-copy"></i> Copy Options
                         </button>
@@ -157,6 +151,12 @@
                         </button>
                     </div>
                 </div>
+                <button id="undo-btn" class="icon-btn" title="Undo">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button id="redo-btn" class="icon-btn" title="Redo">
+                    <i class="fas fa-redo"></i>
+                </button>
             </div>
             <div class="editor-control-group right-controls">
                 <div class="editor-dropdown ai-tools-dropdown">
@@ -350,7 +350,7 @@
             
             // Manual save button
             saveBtn?.addEventListener('click', () => {
-                if (window.app && window.app.saveCurrentSong) {
+                if (window.app?.saveCurrentSong) {
                     window.app.saveCurrentSong(true);
                 }
             });
