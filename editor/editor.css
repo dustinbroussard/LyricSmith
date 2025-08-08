@@ -689,17 +689,35 @@ toolbar {
     cursor: pointer;
 }
 
+.ai-context-menu .ai-menu-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    margin-left: auto;
+    padding: 0.25rem;
+    cursor: pointer;
+}
+
+.ai-context-menu .ai-menu-close:hover {
+    color: var(--accent-primary);
+}
+
 .ai-context-menu button:active {
     transform: scale(0.97);
 }
 
 @media (max-width: 600px) {
     .ai-context-menu {
-        padding: 0.75rem;
+        flex-direction: column;
+        padding: 0.5rem;
     }
     .ai-context-menu button {
-        padding: 0.75rem 1rem;
-        font-size: 1.1rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.95rem;
+    }
+    .ai-context-menu .ai-menu-close {
+        align-self: flex-end;
+        font-size: 1rem;
     }
 }
 

@@ -385,13 +385,24 @@ document.addEventListener('DOMContentLoaded', () => {
             this.lyricsDisplay?.addEventListener('touchmove', () => this.cancelLongPress());
             this.lyricsDisplay?.addEventListener('mousedown', (e) => this.startLongPress(e));
             this.lyricsDisplay?.addEventListener('mouseup', () => this.cancelLongPress());
-            document.querySelectorAll('#ai-context-menu button').forEach(btn => {
+            document.querySelectorAll('#ai-context-menu button[data-action]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const action = btn.dataset.action;
                     const text = window.getSelection().toString();
                     this.handleAIAction(action, text);
                     this.aiContextMenu.style.display = 'none';
                 });
+            });
+            document.getElementById('ai-menu-close')?.addEventListener('click', () => {
+                this.aiContextMenu.style.display = 'none';
+                window.getSelection()?.removeAllRanges();
+            });
+            document.addEventListener('click', (e) => {
+                if (this.aiContextMenu.style.display === 'flex' &&
+                    !this.aiContextMenu.contains(e.target)) {
+                    this.aiContextMenu.style.display = 'none';
+                    window.getSelection()?.removeAllRanges();
+                }
             });
 
             // Metadata input listeners
@@ -1169,6 +1180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     app.init();
 
     document.getElementById('copy-lyrics-btn')?.addEventListener('click', () => {
+        document.getElementById('editor-modal')?.classList.remove('visible');
         document.getElementById('copy-modal')?.classList.add('visible');
     });
     document.querySelectorAll('.modal-copy-btn')?.forEach(btn => {
