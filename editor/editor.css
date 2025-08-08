@@ -135,7 +135,7 @@
 .lyrics-container {
     flex-grow: 1;
     overflow-y: auto;
-    font-size: var(--font-size-lyrics, 1.5rem); /* Base size, slider still works */
+    font-size: var(--font-size-lyrics, 1rem); /* Base size, slider still works */
     padding: var(--padding-lyrics, 2rem);
     line-height: var(--line-height-lyrics, 1.6);
     color: var(--text-primary); /* Lyrics use primary text color */
@@ -382,29 +382,25 @@
     ======================================== */
 .copy-dropdown-menu {
     position: fixed;
-    top: 130px;
-    bottom: auto;
-    left: 75%;
-    right: auto;
-    transform: translateX(-50%) translateY(10px);
+    top: 0;
+    left: 0;
     min-width: 200px;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--border-radius-base);
     box-shadow: var(--shadow-lg);
     z-index: 10000;
-    min-width: 180px;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.2s ease;
+    transform: translateX(-50%) translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
     pointer-events: none;
 }
 
 .copy-dropdown-menu.visible {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
     pointer-events: auto;
 }
 
@@ -557,24 +553,10 @@ toolbar {
   }
 
   .lyrics-container {
-    font-size: 1.3rem; /* Adjusted base font size for lyrics on tablets */
-    padding: 1em 0.8em 1.5em 0.8em !important; 
+    font-size: 1rem; /* Base font size for lyrics on mobile */
+    padding: 1em 0.8em 1.5em 0.8em !important;
     line-height: 1.4 !important; /* Slightly more relaxed line-height for readability */
   }
-  
-  .lyrics-container {
-    flex-grow: 1;
-    overflow-y: auto;
-    font-size: 0.5rem; /* Base size, slider still works */
-    padding: 0.5rem;
-    line-height: 1.6;
-    color: var(--text-primary); /* Lyrics use primary text color */
-    transition: color var(--transition-speed);
-    text-align: left; /* Adjust for better lyric display */
-    display: flex;
-    white-space: pre-wrap; /* Preserve line breaks and spaces */
-    word-break: break-word;
-}
   .scroll-to-top-btn {
     position: fixed;
     bottom: 7em;

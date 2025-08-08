@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         songs: [],
         editorSongs: [],
         currentEditorSongIndex: -1,
-        fontSize: 32,
+        fontSize: 16,
         minFontSize: 12,
         maxFontSize: 72,
         fontSizeStep: 1,
@@ -325,7 +325,10 @@ document.addEventListener('DOMContentLoaded', () => {
             this.lyricsDisplay?.addEventListener('click', (e) => this.handleLyricsClick(e));
             this.lyricsDisplay?.addEventListener('keydown', (e) => this.handleLyricsKeydown(e));
             this.scrollToTopBtn?.addEventListener('click', () => this.scrollToTop());
-            this.editorMenuBtn?.addEventListener('click', () => {
+            this.editorMenuBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.aiToolsMenu?.classList.remove('visible');
+                this.copyDropdown?.classList.remove('visible');
                 this.editorDropdownMenu?.classList.add('visible');
             });
             this.editorDropdownCloseBtn?.addEventListener('click', () => {
@@ -348,7 +351,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Enhanced copy functionality
-            this.copyLyricsBtn?.addEventListener('click', () => {
+            this.copyLyricsBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.editorDropdownMenu?.classList.remove('visible');
+                this.aiToolsMenu?.classList.remove('visible');
                 this.toggleCopyDropdown();
             });
 
@@ -358,10 +364,25 @@ document.addEventListener('DOMContentLoaded', () => {
             this.redoBtn?.addEventListener('click', () => {
                 this.redo();
             });
-            // Close copy dropdown when clicking outside
+            // Close dropdowns when clicking outside
             document.addEventListener('click', (e) => {
                 if (this.copyDropdown && !this.copyLyricsBtn.contains(e.target) && !this.copyDropdown.contains(e.target)) {
                     this.copyDropdown.classList.remove('visible');
+                }
+                if (this.editorDropdownMenu?.classList.contains('visible') &&
+                    !this.editorMenuBtn.contains(e.target) &&
+                    !this.editorDropdownMenu.contains(e.target)) {
+                    this.editorDropdownMenu.classList.remove('visible');
+                }
+                if (this.aiToolsMenu?.classList.contains('visible') &&
+                    !this.aiToolsBtn.contains(e.target) &&
+                    !this.aiToolsMenu.contains(e.target)) {
+                    this.aiToolsMenu.classList.remove('visible');
+                }
+            });
+            window.addEventListener('resize', () => {
+                if (this.copyDropdown?.classList.contains('visible')) {
+                    this.positionCopyDropdown();
                 }
             });
 
@@ -376,7 +397,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // AI Tools dropdown
-            this.aiToolsBtn?.addEventListener('click', () => {
+            this.aiToolsBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.editorDropdownMenu?.classList.remove('visible');
+                this.copyDropdown?.classList.remove('visible');
                 this.aiToolsMenu?.classList.add('visible');
             });
             this.aiToolsCloseBtn?.addEventListener('click', () => {
@@ -430,6 +454,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.preventDefault();
                     this.redo();
                 }
+                if (e.key === 'Escape') {
+                    this.editorDropdownMenu?.classList.remove('visible');
+                    this.aiToolsMenu?.classList.remove('visible');
+                    this.copyDropdown?.classList.remove('visible');
+                }
             });
         },
 
@@ -456,10 +485,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 `;
                 
-                // Position dropdown relative to copy button
                 dropdown.addEventListener('click', (e) => this.handleCopySelection(e));
                 document.body.appendChild(dropdown);
                 this.copyDropdown = dropdown;
+                this.positionCopyDropdown();
+            }
+        },
+
+        positionCopyDropdown() {
+            if (this.copyDropdown && this.copyLyricsBtn) {
+                const rect = this.copyLyricsBtn.getBoundingClientRect();
+                this.copyDropdown.style.top = `${rect.bottom + 8}px`;
+                this.copyDropdown.style.left = `${rect.left + rect.width / 2}px`;
             }
         },
 
@@ -730,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!this.currentSong.createdAt) this.currentSong.createdAt = new Date().toISOString();
             if (!this.currentSong.lastEditedAt) this.currentSong.lastEditedAt = new Date().toISOString();
 
-            this.fontSize = this.perSongFontSizes[this.currentSong.id] || 32;
+            this.fontSize = this.perSongFontSizes[this.currentSong.id] || 16;
 
             document.getElementById('song-title-card').textContent = this.currentSong.title;
             this.fontSizeDisplay.textContent = `${this.fontSize}px`;
@@ -1116,6 +1153,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleCopyDropdown() {
             if (this.copyDropdown) {
+                if (!this.copyDropdown.classList.contains('visible')) {
+                    this.positionCopyDropdown();
+                }
                 this.copyDropdown.classList.toggle('visible');
             }
         },
