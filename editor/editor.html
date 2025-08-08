@@ -122,11 +122,11 @@
         </div>
 
         <div id="ai-context-menu" class="ai-context-menu">
-            <button data-action="rhyme">🎯 Rhyme</button>
-            <button data-action="reword">🔄 Reword</button>
-            <button data-action="rewrite">✍️ Rewrite</button>
-            <button data-action="continue">💡 Continue</button>
-            <button id="ai-menu-close" class="ai-menu-close">✖</button>
+            <button data-action="rhyme"><i class="fas fa-bullseye"></i> Rhyme</button>
+            <button data-action="reword"><i class="fas fa-sync"></i> Reword</button>
+            <button data-action="rewrite"><i class="fas fa-pen"></i> Rewrite</button>
+            <button data-action="continue"><i class="fas fa-lightbulb"></i> Continue</button>
+            <button id="ai-menu-close" class="ai-menu-close"><i class="fas fa-times"></i></button>
         </div>
 
         <div class="editor-footer">
@@ -161,8 +161,8 @@
     <div id="editor-modal" class="modal-overlay">
       <div class="modal">
         <h2>Editor Options</h2>
-        <button id="toggle-chords-btn"><i class="fas fa-guitar"></i> Toggle Chords</button>
-        <button id="toggle-read-only-btn"><i class="fas fa-lock"></i> Performance Mode</button>
+        <button id="toggle-chords-btn" class="modal-action-btn"><i class="fas fa-guitar"></i> Toggle Chords</button>
+        <button id="toggle-read-only-btn" class="modal-action-btn"><i class="fas fa-lock"></i> Performance Mode</button>
         <div>
           <label for="edit-mode-select"><i class="fas fa-edit"></i> Edit Mode:</label>
           <select id="edit-mode-select">
@@ -171,13 +171,11 @@
             <option value="chords">Chords</option>
           </select>
         </div>
-        <button id="save-song-btn"><i class="fas fa-save"></i> Save Song</button>
-        <button id="ai-format-btn"><i class="fas fa-broom"></i> Clean Format (AI)</button>
-        <button id="regenre-btn"><i class="fas fa-random"></i> Re-Genre (AI)</button>
-        <button id="copy-lyrics-btn"><i class="fas fa-copy"></i> Copy Options</button>
-        <button id="undo-btn"><i class="fas fa-undo"></i> Undo</button>
-        <button id="redo-btn"><i class="fas fa-redo"></i> Redo</button>
-        <button id="metadata-toggle-btn"><i class="fas fa-info-circle"></i> Song Metadata</button>
+        <button id="save-song-btn" class="modal-action-btn"><i class="fas fa-save"></i> Save Song</button>
+        <button id="copy-lyrics-btn" class="modal-action-btn"><i class="fas fa-copy"></i> Copy Options</button>
+        <button id="undo-btn" class="modal-action-btn"><i class="fas fa-undo"></i> Undo</button>
+        <button id="redo-btn" class="modal-action-btn"><i class="fas fa-redo"></i> Redo</button>
+        <button id="metadata-toggle-btn" class="modal-action-btn"><i class="fas fa-info-circle"></i> Song Metadata</button>
         <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
       </div>
     </div>
@@ -185,11 +183,13 @@
     <div id="ai-tools-modal" class="modal-overlay">
       <div class="modal">
         <h2>AI Tools</h2>
-        <button class="tool-option" data-prompt="Generate First Draft"><i class="fas fa-magic"></i> Generate First Draft</button>
-        <button class="tool-option" data-prompt="Polish Lyrics"><i class="fas fa-brush"></i> Polish Lyrics</button>
-        <button class="tool-option" data-prompt="Rewrite in Different Style"><i class="fas fa-pen"></i> Rewrite in Style</button>
-        <button class="tool-option" data-prompt="Continue Song"><i class="fas fa-arrow-down"></i> Continue Song</button>
-        <button id="ai-settings-btn"><i class="fas fa-cog"></i> Settings</button>
+        <button class="tool-option modal-action-btn" data-prompt="Generate First Draft"><i class="fas fa-magic"></i> Generate First Draft</button>
+        <button class="tool-option modal-action-btn" data-prompt="Polish Lyrics"><i class="fas fa-brush"></i> Polish Lyrics</button>
+        <button class="tool-option modal-action-btn" data-prompt="Rewrite in Different Style"><i class="fas fa-pen"></i> Rewrite in Style</button>
+        <button class="tool-option modal-action-btn" data-prompt="Continue Song"><i class="fas fa-arrow-down"></i> Continue Song</button>
+        <button id="ai-format-btn" class="modal-action-btn"><i class="fas fa-broom"></i> Clean Format (AI)</button>
+        <button id="regenre-btn" class="modal-action-btn"><i class="fas fa-random"></i> Re-Genre (AI)</button>
+        <button id="ai-settings-btn" class="modal-action-btn"><i class="fas fa-cog"></i> Settings</button>
         <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
       </div>
     </div>

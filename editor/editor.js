@@ -379,12 +379,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             this.saveAISettingsBtn?.addEventListener('click', () => this.saveAISettings());
             this.modelSearchInput?.addEventListener('input', () => this.renderModelList(this.modelSearchInput.value));
-            // Long-press to show AI context menu
+            // Long-press or right-click to show AI context menu
             this.lyricsDisplay?.addEventListener('touchstart', (e) => this.startLongPress(e));
             this.lyricsDisplay?.addEventListener('touchend', () => this.cancelLongPress());
             this.lyricsDisplay?.addEventListener('touchmove', () => this.cancelLongPress());
             this.lyricsDisplay?.addEventListener('mousedown', (e) => this.startLongPress(e));
             this.lyricsDisplay?.addEventListener('mouseup', () => this.cancelLongPress());
+            this.lyricsDisplay?.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                this.handleTextSelection();
+            });
             document.querySelectorAll('#ai-context-menu button[data-action]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const action = btn.dataset.action;
