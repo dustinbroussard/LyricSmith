@@ -126,6 +126,7 @@
             <button data-action="reword">🔄 Reword</button>
             <button data-action="rewrite">✍️ Rewrite</button>
             <button data-action="continue">💡 Continue</button>
+            <button id="ai-menu-close" class="ai-menu-close">✖</button>
         </div>
 
         <div class="editor-footer">
@@ -308,6 +309,7 @@
             // Toggle metadata panel
             metadataToggleBtn?.addEventListener('click', () => {
                 metadataPanel.classList.toggle('open');
+                document.getElementById('editor-modal')?.classList.remove('visible');
             });
             
             metadataCloseBtn?.addEventListener('click', () => {
