@@ -350,6 +350,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.saveCurrentSong(true);
             });
 
+            document.getElementById('ai-format-btn')?.addEventListener('click', () => {
+                this.invokeAIFormat();
+            });
+
+            document.getElementById('regenre-btn')?.addEventListener('click', () => {
+                const genre = prompt('Enter target genre (e.g., "Country", "Jazz", "Trap")');
+                if (genre) {
+                    this.invokeReGenre(genre);
+                }
+            });
+
             // Enhanced copy functionality
             this.copyLyricsBtn?.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -653,6 +664,61 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('OpenRouter response', data);
             } catch (err) {
                 console.error('OpenRouter error', err);
+            }
+        },
+
+        async invokeAIFormat() {
+            if (!this.currentSong) return;
+            try {
+                const song = this.currentSong;
+                const formatted = ClipboardManager.formatLyricsWithChords(song.lyrics || '', song.chords || '');
+                const prompt = `Clean up the formatting for this song and return chords and lyrics on alternating lines.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTime Signature: ${song.timeSignature}\n\n${formatted}`;
+                const response = await callOpenRouterAPI(prompt);
+                if (response) {
+                    const lines = response.trim().split(/\r?\n/);
+                    const newLyrics = [];
+                    const newChords = [];
+                    for (let i = 0; i < lines.length; i += 2) {
+                        newChords.push(lines[i] || '');
+                        if (lines[i + 1] !== undefined) {
+                            newLyrics.push(lines[i + 1]);
+                        }
+                    }
+                    song.lyrics = newLyrics.join('\n');
+                    song.chords = newChords.join('\n');
+                    this.renderLyrics();
+                    ClipboardManager.showToast('AI formatting applied!', 'success');
+                }
+            } catch (err) {
+                console.error('AI format error', err);
+            }
+        },
+
+        async invokeReGenre(newGenre) {
+            if (!this.currentSong) return;
+            try {
+                const song = this.currentSong;
+                const formatted = ClipboardManager.formatLyricsWithChords(song.lyrics || '', song.chords || '');
+                const tags = song.tags?.length ? song.tags.join(', ') : '';
+                const prompt = `Rewrite the following song in the ${newGenre} genre while preserving meaning and structure. Return chords and lyrics on alternating lines.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTags: ${tags}\n\n${formatted}`;
+                const response = await callOpenRouterAPI(prompt);
+                if (response) {
+                    const lines = response.trim().split(/\r?\n/);
+                    const newLyrics = [];
+                    const newChords = [];
+                    for (let i = 0; i < lines.length; i += 2) {
+                        newChords.push(lines[i] || '');
+                        if (lines[i + 1] !== undefined) {
+                            newLyrics.push(lines[i + 1]);
+                        }
+                    }
+                    song.lyrics = newLyrics.join('\n');
+                    song.chords = newChords.join('\n');
+                    this.renderLyrics();
+                    ClipboardManager.showToast(`Re-genred as ${newGenre}`, 'success');
+                }
+            } catch (err) {
+                console.error('Re-genre error', err);
             }
         },
 
