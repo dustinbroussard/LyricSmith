@@ -99,6 +99,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function callOpenRouterAPI(prompt) {
+        try {
+            if (!window.CONFIG.openrouterApiKey) {
+                throw new Error('Missing OpenRouter API key');
+            }
+            const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.CONFIG.openrouterApiKey}`
+                },
+                body: JSON.stringify({
+                    model: window.CONFIG.defaultModel || 'openrouter/auto',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'You are a helpful songwriting assistant. When chords are provided, return chords and lyrics on alternating lines without additional commentary.'
+                        },
+                        { role: 'user', content: prompt }
+                    ]
+                })
+            });
+            const data = await res.json();
+            return data?.choices?.[0]?.message?.content?.trim() || '';
+        } catch (err) {
+            console.error('OpenRouter request failed', err);
+            ClipboardManager.showToast('AI request failed', 'error');
+            return '';
+        }
+    }
+
     const app = {
         // DOM Elements (keeping existing ones and adding new)
         editorMode: document.getElementById('editor-mode'),
@@ -567,28 +598,70 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Please set your OpenRouter API key in AI Settings.');
                 return;
             }
-            console.log(prompt);
             this.callOpenRouter(prompt);
         },
 
         async callOpenRouter(prompt) {
-            try {
-                const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${window.CONFIG.openrouterApiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: window.CONFIG.defaultModel || '',
-                        messages: [{ role: 'user', content: prompt }]
-                    })
-                });
-                const data = await res.json();
-                console.log('OpenRouter response', data);
-            } catch (err) {
-                console.error('OpenRouter error', err);
+            const originalPrompt = prompt;
+            const song = this.currentSong;
+            const formatted = song ? ClipboardManager.formatLyricsWithChords(song.lyrics || '', song.chords || '') : '';
+
+            // Map high level tool prompts to detailed instructions
+            switch (originalPrompt) {
+                case 'Generate First Draft':
+                    prompt = `Write an original song with chords and lyrics on alternating lines. Only return the song. Title: ${song?.title || 'Untitled'}`;
+                    break;
+                case 'Polish Lyrics':
+                    prompt = `Polish the following song while preserving its meaning. Return chords and lyrics on alternating lines.\n\n${formatted}`;
+                    break;
+                case 'Rewrite in Different Style':
+                    const style = prompt('Enter a style to rewrite in (e.g., Folk, Hip-Hop, Jazz):', '');
+                    if (style === null) return;
+                    prompt = `Rewrite the following song in a ${style} style. Keep the structure and return chords and lyrics on alternating lines.\n\n${formatted}`;
+                    break;
+                case 'Continue Song':
+                    prompt = `Continue the following song. Return only the continuation with chords and lyrics on alternating lines.\n\n${formatted}`;
+                    break;
+                default:
+                    // leave prompt as provided for context actions
+                    break;
             }
+
+            const response = await callOpenRouterAPI(prompt);
+            if (!response) return;
+
+            // Handle context menu actions based on original prompt
+            if (originalPrompt.startsWith('Find rhymes for:')) {
+                ClipboardManager.showToast(response, 'info');
+                return;
+            }
+
+            const selection = window.getSelection();
+            if (originalPrompt.startsWith('Suggest alternative wording') || originalPrompt.startsWith('Rewrite this line')) {
+                if (selection && !selection.isCollapsed) {
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(document.createTextNode(response));
+                    selection.removeAllRanges();
+                    this.saveCurrentSong(true);
+                }
+                return;
+            }
+
+            if (originalPrompt.startsWith('Continue the lyrics after:')) {
+                if (selection && !selection.isCollapsed) {
+                    const range = selection.getRangeAt(0);
+                    range.collapse(false);
+                    range.insertNode(document.createTextNode('\n' + response));
+                    selection.removeAllRanges();
+                    this.saveCurrentSong(true);
+                }
+                return;
+            }
+
+            // For AI tools or when no selection, apply to entire song
+            const append = originalPrompt === 'Continue Song';
+            this.applyAIResult(response, append);
         },
 
         async invokeAIFormat() {
@@ -644,6 +717,31 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 console.error('Re-genre error', err);
             }
+        },
+
+        applyAIResult(responseText, append = false) {
+            if (!this.currentSong) return;
+            const lines = responseText.trim().split(/\r?\n/);
+            const newLyrics = [];
+            const newChords = [];
+            for (let i = 0; i < lines.length; i += 2) {
+                newChords.push(lines[i] || '');
+                if (lines[i + 1] !== undefined) {
+                    newLyrics.push(lines[i + 1]);
+                }
+            }
+
+            if (append) {
+                this.currentSong.lyrics = [this.currentSong.lyrics, newLyrics.join('\n')].filter(Boolean).join('\n');
+                this.currentSong.chords = [this.currentSong.chords, newChords.join('\n')].filter(Boolean).join('\n');
+            } else {
+                this.currentSong.lyrics = newLyrics.join('\n');
+                this.currentSong.chords = newChords.join('\n');
+            }
+
+            this.renderLyrics();
+            this.saveCurrentSong(true);
+            ClipboardManager.showToast('AI update applied', 'success');
         },
 
         loadEditorState() {
