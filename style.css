@@ -163,12 +163,20 @@ mark {
 .header-top {
     display: flex;
     align-items: center;
-    width: 40%;
-    margin-bottom: 3rem;
-    margin-top: 1.5rem;
-    justify-content: space-between;
-    padding: 0.29rem 1.2rem 0.11rem 1.27rem;
-    gap: 1.2rem;
+    justify-content: center;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.app-logo-img {
+    max-height: 40px;
+}
+
+.theme-toggle-btn {
+    margin-left: auto;
 }
 
 .theme-toggle-wrapper {
@@ -291,6 +299,15 @@ mark {
   opacity: 1;
 }
 
+.btn.icon-btn {
+  padding: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .theme-icon-btn {
   position: absolute;
   top: 1.1rem;
@@ -316,11 +333,13 @@ mark {
         padding: 0 0 0.5rem 0;
     }
     .header-top {
-	flex-direction: column;
+        flex-direction: row;
         align-items: center;
         justify-content: center;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
+        padding: 0.5rem;
+    }
+    .app-logo-img {
+        max-height: 32px;
     }
     .app-title {
         font-size: 1.08rem;
