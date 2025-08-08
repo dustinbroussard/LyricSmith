@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         minFontSize: 12,
         maxFontSize: 72,
         fontSizeStep: 1,
+        syllableScale: 0.7,
         perSongFontSizes: JSON.parse(localStorage.getItem('perSongFontSizes') || '{}'),
         isReadOnly: false,
         isChordsVisible: true,
@@ -583,6 +584,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     content.className = 'section-content';
                     section.appendChild(content);
                     this.lyricsDisplay.appendChild(section);
+                    const gutterLine = document.createElement('div');
+                    gutterLine.className = 'gutter-section-label';
+                    this.syllableGutter.appendChild(gutterLine);
                     currentSectionContent = content;
                     continue;
                 }
@@ -620,6 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             this.lyricsDisplay.style.fontSize = `${this.fontSize}px`;
+            this.syllableGutter.style.fontSize = `${this.fontSize * this.syllableScale}px`;
             this.updateReadOnlyState();
             this.updateChordsVisibility();
         },
@@ -657,22 +662,50 @@ document.addEventListener('DOMContentLoaded', () => {
             lineGroup.appendChild(lyricElement);
 
             container.appendChild(lineGroup);
+            const chordPlaceholder = document.createElement('div');
+            chordPlaceholder.className = 'gutter-chord-line';
+            if (!this.isChordsVisible) {
+                chordPlaceholder.style.display = 'none';
+            }
+            this.syllableGutter.appendChild(chordPlaceholder);
 
             const gutterLine = document.createElement('div');
+            gutterLine.className = 'gutter-lyric-line';
             gutterLine.textContent = syllableCount;
             this.syllableGutter.appendChild(gutterLine);
         },
 
         updateSyllableCount() {
-            const lyricElements = this.lyricsDisplay.querySelectorAll('.lyrics-line:not(.section-label)');
             this.syllableGutter.innerHTML = '';
-            lyricElements.forEach(line => {
-                const text = line.textContent;
+            const processLineGroup = (group) => {
+                const chordPlaceholder = document.createElement('div');
+                chordPlaceholder.className = 'gutter-chord-line';
+                if (!this.isChordsVisible) {
+                    chordPlaceholder.style.display = 'none';
+                }
+                this.syllableGutter.appendChild(chordPlaceholder);
+
+                const lyricEl = group.querySelector('.lyrics-line');
+                const text = lyricEl.textContent;
                 const words = text.split(/\s+/).filter(w => w.length > 0);
                 const count = words.reduce((sum, word) => sum + this.syllableCount(word), 0);
                 const gutterLine = document.createElement('div');
+                gutterLine.className = 'gutter-lyric-line';
                 gutterLine.textContent = count;
                 this.syllableGutter.appendChild(gutterLine);
+            };
+
+            const children = Array.from(this.lyricsDisplay.children);
+            children.forEach(child => {
+                if (child.classList.contains('section')) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'gutter-section-label';
+                    this.syllableGutter.appendChild(placeholder);
+                    const inner = child.querySelector('.section-content');
+                    Array.from(inner.children).forEach(processLineGroup);
+                } else if (child.classList.contains('lyrics-line-group')) {
+                    processLineGroup(child);
+                }
             });
         },
 
@@ -767,6 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.perSongFontSizes[this.currentSong.id] = this.fontSize;
             localStorage.setItem('perSongFontSizes', JSON.stringify(this.perSongFontSizes));
             this.lyricsDisplay.style.fontSize = `${this.fontSize}px`;
+            this.syllableGutter.style.fontSize = `${this.fontSize * this.syllableScale}px`;
             this.fontSizeDisplay.textContent = `${this.fontSize}px`;
         },
 
@@ -813,6 +847,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const chordLines = this.lyricsDisplay.querySelectorAll('.chord-line');
             chordLines.forEach(line => {
                 line.classList.toggle('hidden', !this.isChordsVisible);
+            });
+            const chordGutterLines = this.syllableGutter.querySelectorAll('.gutter-chord-line');
+            chordGutterLines.forEach(line => {
+                line.style.display = this.isChordsVisible ? 'block' : 'none';
             });
             const icon = this.toggleChordsBtn?.querySelector('i');
             if (icon) {
