@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.lyricsDisplay?.addEventListener('keydown', (e) => this.handleLyricsKeydown(e));
             this.scrollToTopBtn?.addEventListener('click', () => this.scrollToTop());
             this.editorMenuBtn?.addEventListener('click', () => {
-                this.editorDropdownMenu?.classList.toggle('visible');
+                this.editorDropdownMenu?.classList.add('visible');
             });
             this.editorDropdownCloseBtn?.addEventListener('click', () => {
                 this.editorDropdownMenu?.classList.remove('visible');
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // AI Tools dropdown
             this.aiToolsBtn?.addEventListener('click', () => {
-                this.aiToolsMenu?.classList.toggle('visible');
+                this.aiToolsMenu?.classList.add('visible');
             });
             this.aiToolsCloseBtn?.addEventListener('click', () => {
                 this.aiToolsMenu?.classList.remove('visible');
@@ -482,6 +482,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.textContent = m.id;
                     item.addEventListener('click', () => {
                         this.selectedModel = m.id;
+                        window.CONFIG.defaultModel = m.id;
+                        localStorage.setItem('openrouterModel', m.id);
                         this.renderModelList(term);
                     });
                     this.modelList.appendChild(item);
@@ -499,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 const rect = range.getBoundingClientRect();
-                const topOffset = window.innerWidth < 600 ? 20 : 5;
+                const topOffset = window.innerWidth < 600 ? 40 : 8;
                 this.aiContextMenu.style.top = `${rect.bottom + window.scrollY + topOffset}px`;
                 this.aiContextMenu.style.left = `${rect.left + window.scrollX}px`;
                 this.aiContextMenu.style.display = 'flex';
