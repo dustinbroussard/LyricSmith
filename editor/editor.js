@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToTopBtn: document.getElementById('scroll-to-top-btn'),
         toggleChordsBtn: document.getElementById('toggle-chords-btn'),
         toggleReadOnlyBtn: document.getElementById('toggle-read-only-btn'),
+        editModeSelect: document.getElementById('edit-mode-select'),
         copyLyricsBtn: document.getElementById('copy-lyrics-btn'),
         undoBtn: document.getElementById('undo-btn'),
         redoBtn: document.getElementById('redo-btn'),
@@ -145,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isChordsVisible: true,
         isMeasureMode: false,
         isRhymeMode: false,
+        editMode: localStorage.getItem('editorMode') || 'both',
         currentSong: null,
         defaultSections: "[Intro]\n\n[Verse 1]\n\n[Pre-Chorus]\n\n[Chorus]\n\n[Verse 2]\n\n[Bridge]\n\n[Outro]",
         resizeObserver: null,
@@ -169,6 +171,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.loadAISettings();
             this.setupEventListeners();
             this.loadEditorState();
+            if (this.editModeSelect) {
+                this.editModeSelect.value = this.editMode;
+            }
             this.createCopyDropdown();
             this.displayCurrentEditorSong();
             this.setupResizeObserver();
@@ -237,6 +242,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('\n');
         },
 
+        trimExtraEmptyLines(text = '') {
+            const lines = text.split('\n');
+            const result = [];
+            let prevEmpty = false;
+            for (const line of lines) {
+                const isEmpty = line.trim() === '';
+                if (isEmpty && prevEmpty) continue;
+                result.push(line);
+                prevEmpty = isEmpty;
+            }
+            return result.join('\n');
+        },
+
+        trimDomEmptyLines() {
+            const trimContainer = (container) => {
+                let prevEmpty = false;
+                Array.from(container.children).forEach(child => {
+                    if (!child.classList.contains('lyrics-line-group')) return;
+                    const lyric = child.querySelector('.lyric-text')?.textContent.trim() || '';
+                    const chord = child.querySelector('.chord-line')?.textContent.trim() || '';
+                    const isEmpty = lyric === '' && chord === '';
+                    if (isEmpty && prevEmpty) {
+                        child.remove();
+                    } else {
+                        prevEmpty = isEmpty;
+                    }
+                });
+            };
+            trimContainer(this.lyricsDisplay);
+            this.lyricsDisplay.querySelectorAll('.section-content').forEach(sc => trimContainer(sc));
+        },
+
         getSongState() {
             return {
                 lyrics: this.currentSong?.lyrics || '',
@@ -299,6 +336,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             document.getElementById('toggle-read-only-btn')?.addEventListener('click', () => {
                 this.toggleReadOnly();
+            });
+            this.editModeSelect?.addEventListener('change', (e) => {
+                this.editMode = e.target.value;
+                localStorage.setItem('editorMode', this.editMode);
+                this.updateReadOnlyState();
             });
             document.getElementById('save-song-btn')?.addEventListener('click', () => {
                 this.saveCurrentSong(true);
@@ -625,8 +667,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            const lyrics = lyricLines.join('\n');
-            const chords = chordLines.join('\n');
+            const lyrics = this.trimExtraEmptyLines(lyricLines.join('\n'));
+            const chords = this.trimExtraEmptyLines(chordLines.join('\n'));
 
             this.currentSong.lyrics = this.normalizeSectionLabels(lyrics);
             this.currentSong.chords = chords;
@@ -696,9 +738,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderLyrics() {
             if (!this.currentSong) return;
+            const lyrics = this.trimExtraEmptyLines(this.currentSong.lyrics || '');
+            const chords = this.trimExtraEmptyLines(this.currentSong.chords || '');
 
-            const lyrics = this.currentSong.lyrics || '';
-            const chords = this.currentSong.chords || '';
+            this.currentSong.lyrics = lyrics;
+            this.currentSong.chords = chords;
 
             let lyricLines = lyrics.split('\n');
             let chordLines = chords.split('\n');
@@ -786,7 +830,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const chordElement = document.createElement('div');
             chordElement.className = 'chord-line';
             chordElement.textContent = chords;
-            chordElement.setAttribute('contenteditable', 'true');
+            const editableChords = !this.isReadOnly && (this.editMode === 'chords' || this.editMode === 'both');
+            chordElement.setAttribute('contenteditable', editableChords);
+            chordElement.classList.toggle('editable', editableChords);
+            chordElement.classList.toggle('non-editable', !editableChords);
             chordElement.addEventListener('input', () => {
                 this.pushUndoState();
                 this.handleLyricsInput();
@@ -798,13 +845,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const syllableSpan = document.createElement('span');
             syllableSpan.className = 'syllable-count';
-            syllableSpan.textContent = String(syllableCount).padStart(2, ' ');
+            syllableSpan.textContent = syllableCount > 0 ? String(syllableCount).padStart(2, ' ') : '';
             lyricElement.appendChild(syllableSpan);
 
             const textSpan = document.createElement('span');
             textSpan.className = 'lyric-text';
             textSpan.textContent = lyrics;
-            textSpan.setAttribute('contenteditable', 'true');
+            const editableLyrics = !this.isReadOnly && (this.editMode === 'lyrics' || this.editMode === 'both');
+            textSpan.setAttribute('contenteditable', editableLyrics);
+            textSpan.classList.toggle('editable', editableLyrics);
+            textSpan.classList.toggle('non-editable', !editableLyrics);
             textSpan.addEventListener('input', () => {
                 this.pushUndoState();
                 this.handleLyricsInput();
@@ -836,7 +886,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const text = textSpan.textContent;
                 const words = text.split(/\s+/).filter(w => w.length > 0);
                 const count = words.reduce((sum, word) => sum + this.syllableCount(word), 0);
-                countSpan.textContent = String(count).padStart(2, ' ');
+                countSpan.textContent = count > 0 ? String(count).padStart(2, ' ') : '';
             });
         },
 
@@ -908,6 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         handleLyricsInput() {
             this.hasUnsavedChanges = true;
+            this.trimDomEmptyLines();
             this.saveCurrentSong();
         },
 
@@ -1010,11 +1061,27 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         updateReadOnlyState() {
-            const lines = this.lyricsDisplay.querySelectorAll('.lyric-text, .chord-line, .section-label');
-            lines.forEach(line => {
-                line.setAttribute('contenteditable', !this.isReadOnly);
+            const mode = this.editMode;
+            const isReadOnly = this.isReadOnly;
+            this.lyricsDisplay.querySelectorAll('.lyric-text').forEach(line => {
+                const editable = !isReadOnly && (mode === 'lyrics' || mode === 'both');
+                line.setAttribute('contenteditable', editable);
+                line.classList.toggle('editable', editable);
+                line.classList.toggle('non-editable', !editable);
             });
-            this.lyricsEditorContainer?.classList.toggle('read-only', this.isReadOnly);
+            this.lyricsDisplay.querySelectorAll('.chord-line').forEach(line => {
+                const editable = !isReadOnly && (mode === 'chords' || mode === 'both');
+                line.setAttribute('contenteditable', editable);
+                line.classList.toggle('editable', editable);
+                line.classList.toggle('non-editable', !editable);
+            });
+            this.lyricsDisplay.querySelectorAll('.section-label').forEach(label => {
+                const editable = !isReadOnly;
+                label.setAttribute('contenteditable', editable);
+                label.classList.toggle('editable', editable);
+                label.classList.toggle('non-editable', !editable);
+            });
+            this.lyricsEditorContainer?.classList.toggle('read-only', isReadOnly);
         },
 
         toggleCopyDropdown() {
