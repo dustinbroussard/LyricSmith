@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         redoBtn: document.getElementById('redo-btn'),
         editorMenuBtn: document.getElementById('editor-menu-btn'),
         addSectionBtn: document.getElementById('add-section-btn'),
-        addSectionMenu: document.getElementById('add-section-menu'),
+        addSectionModal: document.getElementById('add-section-modal'),
         aiContextMenu: document.getElementById('ai-context-menu'),
         aiToolsBtn: document.getElementById('ai-tools-btn'),
         aiSettingsBtn: document.getElementById('ai-settings-btn'),
@@ -164,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveAISettingsBtn: document.getElementById('save-ai-settings'),
         measureModeToggle: document.getElementById('measure-mode-toggle'),
         rhymeModeToggle: document.getElementById('rhyme-mode-toggle'),
+        sectionMenu: document.getElementById('section-menu'),
 
         // State (keeping existing and adding new)
         songs: [],
@@ -188,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedModel: '',
         undoStack: [],
         redoStack: [],
+        sectionMenuTarget: null,
+        sectionSortable: null,
         lastSnapshotTime: 0,
 
         syllableCount(word) {
@@ -205,6 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.loadEditorState();
             if (this.editModeSelect) {
                 this.editModeSelect.value = this.editMode;
+            }
+            if (this.rhymeModeToggle) {
+                this.rhymeModeToggle.checked = this.isRhymeMode;
             }
             this.displayCurrentEditorSong();
             this.setupResizeObserver();
@@ -432,21 +438,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.renderLyrics();
             });
 
-            this.addSectionBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.addSectionMenu?.classList.toggle('visible');
+            this.addSectionBtn?.addEventListener('click', () => {
+                this.addSectionModal?.classList.add('visible');
             });
-            this.addSectionMenu?.querySelectorAll('[data-section]').forEach(btn => {
+            this.addSectionModal?.querySelectorAll('[data-section]').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const label = e.target.dataset.section;
+                    const label = e.currentTarget.dataset.section;
                     this.insertSectionAtCursor(label);
-                    this.addSectionMenu.classList.remove('visible');
+                    this.addSectionModal.classList.remove('visible');
                 });
             });
-            document.addEventListener('click', (e) => {
-                if (this.addSectionMenu && !this.addSectionMenu.contains(e.target) && e.target !== this.addSectionBtn) {
-                    this.addSectionMenu.classList.remove('visible');
-                }
+            this.addSectionModal?.querySelector('.close-modal-btn')?.addEventListener('click', () => {
+                this.addSectionModal.classList.remove('visible');
             });
 
             this.aiSettingsBtn?.addEventListener('click', () => {
@@ -465,7 +468,11 @@ document.addEventListener('DOMContentLoaded', () => {
             this.lyricsDisplay?.addEventListener('mouseup', () => this.cancelLongPress());
             this.lyricsDisplay?.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                this.handleTextSelection();
+                if (e.target.classList.contains('section-label')) {
+                    this.openSectionMenu(e);
+                } else {
+                    this.handleTextSelection();
+                }
             });
             document.querySelectorAll('#ai-context-menu button[data-action]').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -479,11 +486,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.aiContextMenu.style.display = 'none';
                 window.getSelection()?.removeAllRanges();
             });
+            this.sectionMenu?.querySelectorAll('button[data-action]')?.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    this.handleSectionMenuAction(action);
+                    this.sectionMenu.style.display = 'none';
+                });
+            });
+            document.getElementById('section-menu-close')?.addEventListener('click', () => {
+                this.sectionMenu.style.display = 'none';
+            });
             document.addEventListener('click', (e) => {
                 if (this.aiContextMenu.style.display === 'flex' &&
                     !this.aiContextMenu.contains(e.target)) {
                     this.aiContextMenu.style.display = 'none';
                     window.getSelection()?.removeAllRanges();
+                }
+                if (this.sectionMenu && this.sectionMenu.style.display === 'flex' && !this.sectionMenu.contains(e.target)) {
+                    this.sectionMenu.style.display = 'none';
                 }
             });
 
@@ -634,6 +654,51 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 this.aiContextMenu.style.display = 'none';
             }
+        },
+
+        openSectionMenu(e) {
+            if (!this.sectionMenu) return;
+            this.sectionMenuTarget = e.target.closest('.section');
+            if (this.aiContextMenu) this.aiContextMenu.style.display = 'none';
+            this.sectionMenu.style.display = 'flex';
+            this.sectionMenu.style.left = `${e.pageX}px`;
+            this.sectionMenu.style.top = `${e.pageY}px`;
+        },
+
+        handleSectionMenuAction(action) {
+            if (!this.sectionMenuTarget) return;
+            const section = this.sectionMenuTarget;
+            if (action === 'rename') {
+                const label = section.querySelector('.section-label');
+                label?.focus();
+                document.execCommand?.('selectAll', false, null);
+            } else if (action === 'delete-label') {
+                const content = section.querySelector('.section-content');
+                while (content.firstChild) {
+                    this.lyricsDisplay.insertBefore(content.firstChild, section);
+                }
+                section.remove();
+                this.handleLyricsInput();
+                this.initSectionDrag();
+            } else if (action === 'delete-section') {
+                section.remove();
+                this.handleLyricsInput();
+                this.initSectionDrag();
+            }
+            this.sectionMenuTarget = null;
+        },
+
+        initSectionDrag() {
+            if (!this.lyricsDisplay || typeof Sortable === 'undefined') return;
+            if (this.sectionSortable) {
+                this.sectionSortable.destroy();
+            }
+            this.sectionSortable = Sortable.create(this.lyricsDisplay, {
+                animation: 150,
+                handle: '.section-label',
+                draggable: '.section',
+                onEnd: () => this.handleLyricsInput()
+            });
         },
 
         handleAIAction(action, selectedText) {
@@ -967,6 +1032,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     header.textContent = lyricLine.trim();
                     header.setAttribute('contenteditable', 'true');
                     header.addEventListener('click', () => section.classList.toggle('collapsed'));
+                    header.addEventListener('input', () => this.handleLyricsInput());
                     section.appendChild(header);
                     const content = document.createElement('div');
                     content.className = 'section-content';
@@ -1009,6 +1075,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             this.lyricsDisplay.style.fontSize = `${this.fontSize}px`;
+            this.initSectionDrag();
             this.updateReadOnlyState();
             this.updateChordsVisibility();
             this.updateSyllableCount();
@@ -1022,6 +1089,7 @@ document.addEventListener('DOMContentLoaded', () => {
             header.textContent = label;
             header.setAttribute('contenteditable', !this.isReadOnly);
             header.addEventListener('click', () => section.classList.toggle('collapsed'));
+            header.addEventListener('input', () => this.handleLyricsInput());
             section.appendChild(header);
             const content = document.createElement('div');
             content.className = 'section-content';
@@ -1044,6 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            this.initSectionDrag();
             header.focus();
             this.pushUndoState();
             this.handleLyricsInput();
