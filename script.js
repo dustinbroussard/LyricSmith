@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="song-title">${this.highlightMatch(song.title, searchQuery)}</span>
             ${metadata.length > 0 ? `<div class="song-metadata">${metadata.join(' • ')}</div>` : ''}
             <div class="song-details">
-              ${song.tags?.length > 0 ? `<span class="song-tags">${song.tags.map(tag => this.highlightMatch(tag, searchQuery)).join(', ')}</span>` : ''}
+              ${song.tags?.length > 0 ? `<span class="song-tags">${song.tags.map(tag => `<span class=\"song-tag\" data-tag=\"${tag}\">${this.highlightMatch(tag, searchQuery)}</span>`).join(', ')}</span>` : ''}
               <span class="song-edited">Last edited: ${lastEdited}</span>
             </div>
           </div>
@@ -308,6 +308,16 @@ document.addEventListener('DOMContentLoaded', () => {
             this.saveSongs();
             this.renderSongs(searchQuery);
           }
+        });
+
+        item.querySelectorAll('.song-tag').forEach(tagEl => {
+          tagEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const tag = tagEl.dataset.tag;
+            const input = document.getElementById('song-search-input');
+            if (input) input.value = tag;
+            this.renderSongs(tag.toLowerCase());
+          });
         });
 
         item.addEventListener('click', (e) => {
@@ -374,7 +384,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       document.getElementById('add-song-btn')?.addEventListener('click', () => this.createNewSong());
-      document.getElementById('export-library-btn')?.addEventListener('click', () => this.exportLibrary());
+      document.getElementById('export-library-btn')?.addEventListener('click', () => {
+        const includeMetadata = confirm('Include metadata in export?');
+        this.exportLibrary(includeMetadata);
+      });
       document.getElementById('import-clipboard-btn')?.addEventListener('click', async () => {
         const text = await navigator.clipboard.readText();
         if (text.trim()) {
@@ -465,14 +478,17 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = `editor/editor.html?songId=${newSong.id}`;
     },
 
-    async exportLibrary() {
+    async exportLibrary(includeMetadata = true) {
       try {
+        const songs = includeMetadata
+          ? this.songs
+          : this.songs.map(({ title, lyrics, chords }) => ({ title, lyrics, chords }));
         // Create export data
         const exportData = {
           version: '1.0',
           exportDate: new Date().toISOString(),
-          songCount: this.songs.length,
-          songs: this.songs
+          songCount: songs.length,
+          songs
         };
 
         // Create and download JSON file
