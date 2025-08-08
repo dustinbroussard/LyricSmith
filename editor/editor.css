@@ -145,6 +145,17 @@
     white-space: pre-wrap; /* Preserve line breaks and spaces */
     word-break: break-word;
 }
+
+.lyric-text.editable:hover,
+.chord-line.editable:hover {
+    outline: 1px dashed var(--accent-primary);
+}
+
+.lyric-text.non-editable,
+.chord-line.non-editable {
+    opacity: 0.6;
+    cursor: default;
+}
 .nav-arrow {
     position: absolute;
     top: 50%;
