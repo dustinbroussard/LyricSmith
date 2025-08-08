@@ -6,4 +6,6 @@ window.CONFIG = {
   maxFontSize: 64,
   minFontSize: 16,
   devMode: true,
+  openrouterApiKey: '',
+  defaultModel: '',
 };
