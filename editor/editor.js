@@ -909,11 +909,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderLyrics() {
             if (!this.currentSong) return;
-            const lyrics = this.trimExtraEmptyLines(this.currentSong.lyrics || '');
-            const chords = this.trimExtraEmptyLines(this.currentSong.chords || '');
-
-            this.currentSong.lyrics = lyrics;
-            this.currentSong.chords = chords;
+            const lyrics = this.currentSong.lyrics || '';
+            const chords = this.currentSong.chords || '';
 
             let lyricLines = lyrics.split('\n');
             let chordLines = chords.split('\n');
