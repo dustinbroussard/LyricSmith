@@ -95,95 +95,14 @@
 
         <div class="editor-header">
             <div class="editor-control-group left-controls">
-                <div class="editor-dropdown">
-                    <button id="editor-menu-btn" class="icon-btn" title="Editor Menu">
-                        <i class="fas fa-ellipsis-h"></i>
-                    </button>
-                    <div class="editor-dropdown-menu">
-                        <button class="dropdown-item" id="toggle-chords-btn">
-                            <i class="fas fa-guitar"></i> Toggle Chords
-                        </button>
-                        <button class="dropdown-item" id="toggle-read-only-btn">
-                            <i class="fas fa-lock"></i> Performance Mode
-                        </button>
-                        <div class="dropdown-item">
-                            <i class="fas fa-edit"></i>
-                            <span class="control-label">Edit Mode</span>
-                            <select id="edit-mode-select">
-                                <option value="both">Both</option>
-                                <option value="lyrics">Lyrics</option>
-                                <option value="chords">Chords</option>
-                            </select>
-                        </div>
-                        <button class="dropdown-item" id="save-song-btn">
-                            <i class="fas fa-save"></i> Save Song
-                        </button>
-                        <button class="dropdown-item" id="ai-format-btn">
-                            <i class="fas fa-broom"></i> Clean Format (AI)
-                        </button>
-                        <button class="dropdown-item" id="regenre-btn">
-                            <i class="fas fa-random"></i> Re-Genre (AI Style Flip)
-                        </button>
-                        <button class="dropdown-item" id="copy-lyrics-btn">
-                            <i class="fas fa-copy"></i> Copy Options
-                        </button>
-                        <div class="dropdown-item">
-                            <i class="fas fa-ruler"></i>
-                            <span class="control-label">Measure</span>
-                            <label class="switch">
-                                <input type="checkbox" id="measure-mode-toggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <div class="dropdown-item">
-                            <i class="fas fa-magic"></i>
-                            <span class="control-label">Rhyme</span>
-                            <label class="switch">
-                                <input type="checkbox" id="rhyme-mode-toggle">
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
-                        <button class="dropdown-item" id="metadata-toggle-btn">
-                            <i class="fas fa-info-circle"></i> Song Info & Metadata
-                        </button>
-                        <button class="dropdown-item close-dropdown-btn" id="editor-menu-close-btn">
-                            <i class="fas fa-times"></i> Close
-                        </button>
-                    </div>
-                </div>
-                <button id="undo-btn" class="icon-btn" title="Undo">
-                    <i class="fas fa-undo"></i>
-                </button>
-                <button id="redo-btn" class="icon-btn" title="Redo">
-                    <i class="fas fa-redo"></i>
+                <button id="editor-menu-btn" class="icon-btn" title="Editor Menu">
+                    <i class="fas fa-ellipsis-h"></i>
                 </button>
             </div>
             <div class="editor-control-group right-controls">
-                <div class="editor-dropdown ai-tools-dropdown">
-                    <button id="ai-tools-btn" class="icon-btn" title="AI Tools">
-                        <i class="fas fa-robot"></i>
-                    </button>
-                    <div class="editor-dropdown-menu ai-tools-menu" id="ai-tools-menu">
-                        <button class="dropdown-item tool-option" data-prompt="Generate First Draft">
-                            <i class="fas fa-magic"></i> Generate First Draft
-                        </button>
-                        <button class="dropdown-item tool-option" data-prompt="Polish Lyrics">
-                            <i class="fas fa-brush"></i> Polish Lyrics
-                        </button>
-                        <button class="dropdown-item tool-option" data-prompt="Rewrite in Different Style">
-                            <i class="fas fa-pen"></i> Rewrite in Different Style
-                        </button>
-                        <button class="dropdown-item tool-option" data-prompt="Continue Song">
-                            <i class="fas fa-arrow-down"></i> Continue Song
-                        </button>
-                        <button class="dropdown-item" id="ai-settings-btn">
-                            <i class="fas fa-cog"></i> Settings
-                        </button>
-                        <button class="dropdown-item close-dropdown-btn" id="ai-tools-close-btn">
-                            <i class="fas fa-times"></i> Close
-                        </button>
-                    </div>
-                </div>
+                <button id="ai-tools-btn" class="icon-btn" title="AI Tools">
+                    <i class="fas fa-robot"></i>
+                </button>
                 <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Theme">
                     <i class="fas fa-adjust"></i>
                 </button>
@@ -225,7 +144,54 @@
             <i class="fas fa-arrow-up"></i>
         </button>
     </div>
-            
+
+    <div id="copy-modal" class="modal-overlay">
+      <div class="modal">
+        <h2>Copy Options</h2>
+        <button class="modal-copy-btn" data-copy-type="raw"><i class="fas fa-align-left"></i> Raw Lyrics</button>
+        <button class="modal-copy-btn" data-copy-type="chords"><i class="fas fa-guitar"></i> Lyrics + Chords</button>
+        <button class="modal-copy-btn" data-copy-type="formatted"><i class="fas fa-file-alt"></i> Full Song (Markdown)</button>
+        <button class="modal-copy-btn" data-copy-type="metadata"><i class="fas fa-info-circle"></i> Metadata Only</button>
+        <button class="modal-copy-btn" data-copy-type="download"><i class="fas fa-download"></i> Download as TXT</button>
+        <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
+      </div>
+    </div>
+
+    <div id="editor-modal" class="modal-overlay">
+      <div class="modal">
+        <h2>Editor Options</h2>
+        <button id="toggle-chords-btn"><i class="fas fa-guitar"></i> Toggle Chords</button>
+        <button id="toggle-read-only-btn"><i class="fas fa-lock"></i> Performance Mode</button>
+        <div>
+          <label for="edit-mode-select"><i class="fas fa-edit"></i> Edit Mode:</label>
+          <select id="edit-mode-select">
+            <option value="both">Both</option>
+            <option value="lyrics">Lyrics</option>
+            <option value="chords">Chords</option>
+          </select>
+        </div>
+        <button id="save-song-btn"><i class="fas fa-save"></i> Save Song</button>
+        <button id="ai-format-btn"><i class="fas fa-broom"></i> Clean Format (AI)</button>
+        <button id="regenre-btn"><i class="fas fa-random"></i> Re-Genre (AI)</button>
+        <button id="copy-lyrics-btn"><i class="fas fa-copy"></i> Copy Options</button>
+        <button id="undo-btn"><i class="fas fa-undo"></i> Undo</button>
+        <button id="redo-btn"><i class="fas fa-redo"></i> Redo</button>
+        <button id="metadata-toggle-btn"><i class="fas fa-info-circle"></i> Song Metadata</button>
+        <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
+      </div>
+    </div>
+
+    <div id="ai-tools-modal" class="modal-overlay">
+      <div class="modal">
+        <h2>AI Tools</h2>
+        <button class="tool-option" data-prompt="Generate First Draft"><i class="fas fa-magic"></i> Generate First Draft</button>
+        <button class="tool-option" data-prompt="Polish Lyrics"><i class="fas fa-brush"></i> Polish Lyrics</button>
+        <button class="tool-option" data-prompt="Rewrite in Different Style"><i class="fas fa-pen"></i> Rewrite in Style</button>
+        <button class="tool-option" data-prompt="Continue Song"><i class="fas fa-arrow-down"></i> Continue Song</button>
+        <button id="ai-settings-btn"><i class="fas fa-cog"></i> Settings</button>
+        <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
+      </div>
+    </div>
 
     <!-- Metadata Panel -->
     <div id="metadata-panel" class="metadata-panel">

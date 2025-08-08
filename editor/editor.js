@@ -113,16 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleChordsBtn: document.getElementById('toggle-chords-btn'),
         toggleReadOnlyBtn: document.getElementById('toggle-read-only-btn'),
         editModeSelect: document.getElementById('edit-mode-select'),
-        copyLyricsBtn: document.getElementById('copy-lyrics-btn'),
         undoBtn: document.getElementById('undo-btn'),
         redoBtn: document.getElementById('redo-btn'),
         editorMenuBtn: document.getElementById('editor-menu-btn'),
-        editorDropdownMenu: document.querySelector('.editor-dropdown-menu'),
-        editorDropdownCloseBtn: document.getElementById('editor-menu-close-btn'),
         aiContextMenu: document.getElementById('ai-context-menu'),
         aiToolsBtn: document.getElementById('ai-tools-btn'),
-        aiToolsMenu: document.getElementById('ai-tools-menu'),
-        aiToolsCloseBtn: document.getElementById('ai-tools-close-btn'),
         aiSettingsBtn: document.getElementById('ai-settings-btn'),
         aiSettingsPanel: document.getElementById('ai-settings-panel'),
         aiSettingsClose: document.getElementById('ai-settings-close'),
@@ -150,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSong: null,
         defaultSections: "[Intro]\n\n[Verse 1]\n\n[Pre-Chorus]\n\n[Chorus]\n\n[Verse 2]\n\n[Bridge]\n\n[Outro]",
         resizeObserver: null,
-        copyDropdown: null,
         longPressTimer: null,
         hasUnsavedChanges: false, // Track unsaved changes
         availableModels: [],
@@ -175,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.editModeSelect) {
                 this.editModeSelect.value = this.editMode;
             }
-            this.createCopyDropdown();
             this.displayCurrentEditorSong();
             this.setupResizeObserver();
             this.isChordsVisible = window.CONFIG.chordsModeEnabled;
@@ -325,24 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.lyricsDisplay?.addEventListener('click', (e) => this.handleLyricsClick(e));
             this.lyricsDisplay?.addEventListener('keydown', (e) => this.handleLyricsKeydown(e));
             this.scrollToTopBtn?.addEventListener('click', () => this.scrollToTop());
-            this.editorMenuBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.aiToolsMenu?.classList.remove('visible');
-                this.copyDropdown?.classList.remove('visible');
-                this.editorDropdownMenu?.classList.add('visible');
-            });
-            this.editorMenuBtn?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    this.aiToolsMenu?.classList.remove('visible');
-                    this.copyDropdown?.classList.remove('visible');
-                    this.editorDropdownMenu?.classList.add('visible');
-                }
-            });
-            this.editorDropdownCloseBtn?.addEventListener('click', () => {
-                this.editorDropdownMenu?.classList.remove('visible');
-            });
-            // Handle dropdown items
+            // Handle modal items
             document.getElementById('toggle-chords-btn')?.addEventListener('click', () => {
                 this.toggleChords();
             });
@@ -369,22 +345,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Enhanced copy functionality
-            this.copyLyricsBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.editorDropdownMenu?.classList.remove('visible');
-                this.aiToolsMenu?.classList.remove('visible');
-                this.toggleCopyDropdown();
-            });
-            this.copyLyricsBtn?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    this.editorDropdownMenu?.classList.remove('visible');
-                    this.aiToolsMenu?.classList.remove('visible');
-                    this.toggleCopyDropdown();
-                }
-            });
-
             this.undoBtn?.addEventListener('click', () => {
                 this.undo();
             });
@@ -401,28 +361,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.click();
                 document.body.removeChild(link);
             });
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', (e) => {
-                if (this.copyDropdown && !this.copyLyricsBtn.contains(e.target) && !this.copyDropdown.contains(e.target)) {
-                    this.copyDropdown.classList.remove('visible');
-                }
-                if (this.editorDropdownMenu?.classList.contains('visible') &&
-                    !this.editorMenuBtn.contains(e.target) &&
-                    !this.editorDropdownMenu.contains(e.target)) {
-                    this.editorDropdownMenu.classList.remove('visible');
-                }
-                if (this.aiToolsMenu?.classList.contains('visible') &&
-                    !this.aiToolsBtn.contains(e.target) &&
-                    !this.aiToolsMenu.contains(e.target)) {
-                    this.aiToolsMenu.classList.remove('visible');
-                }
-            });
-            window.addEventListener('resize', () => {
-                if (this.copyDropdown?.classList.contains('visible')) {
-                    this.positionCopyDropdown();
-                }
-            });
-
             this.measureModeToggle?.addEventListener('change', (e) => {
                 this.isMeasureMode = e.target.checked;
                 this.renderLyrics();
@@ -433,29 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.renderLyrics();
             });
 
-            // AI Tools dropdown
-            this.aiToolsBtn?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.editorDropdownMenu?.classList.remove('visible');
-                this.copyDropdown?.classList.remove('visible');
-                this.aiToolsMenu?.classList.add('visible');
-            });
-            this.aiToolsBtn?.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    this.editorDropdownMenu?.classList.remove('visible');
-                    this.copyDropdown?.classList.remove('visible');
-                    this.aiToolsMenu?.classList.add('visible');
-                }
-            });
-            this.aiToolsCloseBtn?.addEventListener('click', () => {
-                this.aiToolsMenu?.classList.remove('visible');
-            });
-            document.querySelectorAll('.ai-tools-menu .tool-option').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    this.callOpenRouter(btn.dataset.prompt);
-                });
-            });
             this.aiSettingsBtn?.addEventListener('click', () => {
                 this.openAISettings();
             });
@@ -500,54 +415,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     this.redo();
                 }
                 if (e.key === 'Escape') {
-                    this.editorDropdownMenu?.classList.remove('visible');
-                    this.aiToolsMenu?.classList.remove('visible');
-                    this.copyDropdown?.classList.remove('visible');
+                    document.getElementById('editor-modal')?.classList.remove('visible');
+                    document.getElementById('ai-tools-modal')?.classList.remove('visible');
+                    document.getElementById('copy-modal')?.classList.remove('visible');
                 }
             });
         },
 
-        createCopyDropdown() {
-            if (this.copyLyricsBtn) {
-                const dropdown = document.createElement('div');
-                dropdown.className = 'copy-dropdown-menu';
-                dropdown.innerHTML = `
-                    <button class="copy-option" data-copy-type="raw">
-                        <i class="fas fa-align-left"></i>
-                        Raw Lyrics
-                    </button>
-                    <button class="copy-option" data-copy-type="chords">
-                        <i class="fas fa-guitar"></i>
-                        Lyrics + Chords
-                    </button>
-                    <button class="copy-option" data-copy-type="formatted">
-                        <i class="fas fa-file-text"></i>
-                        Full Song (Markdown)
-                    </button>
-                    <button class="copy-option" data-copy-type="metadata">
-                        <i class="fas fa-info-circle"></i>
-                        Metadata Only
-                    </button>
-                    <button class="copy-option" data-copy-type="download">
-                        <i class="fas fa-file-download"></i>
-                        Download as .txt
-                    </button>
-                `;
-                
-                dropdown.addEventListener('click', (e) => this.handleCopySelection(e));
-                document.body.appendChild(dropdown);
-                this.copyDropdown = dropdown;
-                this.positionCopyDropdown();
-            }
-        },
-
-        positionCopyDropdown() {
-            if (this.copyDropdown && this.copyLyricsBtn) {
-                const rect = this.copyLyricsBtn.getBoundingClientRect();
-                this.copyDropdown.style.top = `${rect.bottom + 8}px`;
-                this.copyDropdown.style.left = `${rect.left + rect.width / 2}px`;
-            }
-        },
+        
 
         setupResizeObserver() {
             if (window.ResizeObserver) {
@@ -1255,15 +1130,6 @@ document.addEventListener('DOMContentLoaded', () => {
             this.lyricsEditorContainer?.classList.toggle('read-only', isReadOnly);
         },
 
-        toggleCopyDropdown() {
-            if (this.copyDropdown) {
-                if (!this.copyDropdown.classList.contains('visible')) {
-                    this.positionCopyDropdown();
-                }
-                this.copyDropdown.classList.toggle('visible');
-            }
-        },
-
         async handleCopySelection(e) {
             if (!e.target.dataset.copyType) return;
             
@@ -1279,7 +1145,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                this.copyDropdown.classList.remove('visible');
                 return;
             }
 
@@ -1301,10 +1166,45 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             await ClipboardManager.copyToClipboard(textToCopy);
-            this.copyDropdown.classList.remove('visible');
         }
     };
 
     app.init();
+
+    document.getElementById('copy-lyrics-btn')?.addEventListener('click', () => {
+        document.getElementById('copy-modal')?.classList.add('visible');
+    });
+    document.querySelectorAll('.modal-copy-btn')?.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const type = e.currentTarget.dataset.copyType;
+            await app.handleCopySelection({ target: { dataset: { copyType: type } } });
+            document.getElementById('copy-modal')?.classList.remove('visible');
+        });
+    });
+    document.querySelector('#copy-modal .close-modal-btn')?.addEventListener('click', () => {
+        document.getElementById('copy-modal')?.classList.remove('visible');
+    });
+
+    document.getElementById('editor-menu-btn')?.addEventListener('click', () => {
+        document.getElementById('editor-modal')?.classList.add('visible');
+    });
+    document.querySelector('#editor-modal .close-modal-btn')?.addEventListener('click', () => {
+        document.getElementById('editor-modal')?.classList.remove('visible');
+    });
+
+    document.getElementById('ai-tools-btn')?.addEventListener('click', () => {
+        document.getElementById('ai-tools-modal')?.classList.add('visible');
+    });
+    document.querySelector('#ai-tools-modal .close-modal-btn')?.addEventListener('click', () => {
+        document.getElementById('ai-tools-modal')?.classList.remove('visible');
+    });
+    document.querySelectorAll('#ai-tools-modal .tool-option')?.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const prompt = btn.dataset.prompt;
+            app.callOpenRouter(prompt);
+            document.getElementById('ai-tools-modal')?.classList.remove('visible');
+        });
+    });
+
     window.app = app;
 });
