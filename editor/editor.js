@@ -116,8 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
         copyLyricsBtn: document.getElementById('copy-lyrics-btn'),
         undoBtn: document.getElementById('undo-btn'),
         redoBtn: document.getElementById('redo-btn'),
+        editorMenuBtn: document.getElementById('editor-menu-btn'),
+        editorDropdownMenu: document.querySelector('.editor-dropdown-menu'),
         measureModeToggle: document.getElementById('measure-mode-toggle'),
-        tempoInput: document.getElementById('tempo-input'),
         rhymeModeToggle: document.getElementById('rhyme-mode-toggle'),
 
         // State (keeping existing and adding new)
@@ -273,56 +274,65 @@ document.addEventListener('DOMContentLoaded', () => {
             this.lyricsDisplay?.addEventListener('click', (e) => this.handleLyricsClick(e));
             this.lyricsDisplay?.addEventListener('keydown', (e) => this.handleLyricsKeydown(e));
             this.scrollToTopBtn?.addEventListener('click', () => this.scrollToTop());
+            this.editorMenuBtn?.addEventListener('click', () => {
+                this.editorDropdownMenu?.classList.toggle('visible');
+            });
             // Handle dropdown items
             document.getElementById('toggle-chords-btn')?.addEventListener('click', () => {
                 this.toggleChords();
-                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+                this.editorDropdownMenu?.classList.remove('visible');
             });
             document.getElementById('toggle-read-only-btn')?.addEventListener('click', () => {
                 this.toggleReadOnly();
-                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+                this.editorDropdownMenu?.classList.remove('visible');
             });
             document.getElementById('save-song-btn')?.addEventListener('click', () => {
                 this.saveCurrentSong(true);
-                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+                this.editorDropdownMenu?.classList.remove('visible');
             });
 
             // Enhanced copy functionality
             this.copyLyricsBtn?.addEventListener('click', () => {
                 this.toggleCopyDropdown();
-                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+                this.editorDropdownMenu?.classList.remove('visible');
             });
 
             this.undoBtn?.addEventListener('click', () => {
                 this.undo();
-                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+                this.editorDropdownMenu?.classList.remove('visible');
             });
             this.redoBtn?.addEventListener('click', () => {
                 this.redo();
-                document.querySelector('.editor-dropdown-menu').classList.remove('visible');
+                this.editorDropdownMenu?.classList.remove('visible');
             });
-            
+
             // Close dropdown when clicking outside
             document.addEventListener('click', (e) => {
                 if (this.copyDropdown && !this.copyLyricsBtn.contains(e.target) && !this.copyDropdown.contains(e.target)) {
                     this.copyDropdown.classList.remove('visible');
+                }
+                if (this.editorDropdownMenu && !this.editorMenuBtn.contains(e.target) && !this.editorDropdownMenu.contains(e.target)) {
+                    this.editorDropdownMenu.classList.remove('visible');
                 }
             });
 
             this.measureModeToggle?.addEventListener('change', (e) => {
                 this.isMeasureMode = e.target.checked;
                 this.renderLyrics();
-            });
-
-            this.tempoInput?.addEventListener('input', () => {
-                this.updateSongMetadata();
-                this.renderLyrics();
+                this.editorDropdownMenu?.classList.remove('visible');
             });
 
             this.rhymeModeToggle?.addEventListener('change', (e) => {
                 this.isRhymeMode = e.target.checked;
                 this.renderLyrics();
+                this.editorDropdownMenu?.classList.remove('visible');
             });
+
+            // Metadata input listeners
+            ['song-title-meta', 'song-key', 'song-tempo-meta', 'song-time-signature', 'song-tags', 'song-notes']
+                .forEach(id => {
+                    document.getElementById(id)?.addEventListener('input', () => this.updateSongMetadata());
+                });
 
             // Keyboard shortcuts
             document.addEventListener('keydown', (e) => {
@@ -398,11 +408,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateSongMetadata() {
             if (!this.currentSong) return;
-            
-            // Update tempo from the input
-            const tempoValue = parseInt(this.tempoInput?.value) || 120;
+
+            const titleEl = document.getElementById('song-title-meta');
+            const keyEl = document.getElementById('song-key');
+            const tempoEl = document.getElementById('song-tempo-meta');
+            const tsEl = document.getElementById('song-time-signature');
+            const tagsEl = document.getElementById('song-tags');
+            const notesEl = document.getElementById('song-notes');
+
+            const newTitle = titleEl?.value.trim() || '';
+            if (this.currentSong.title !== newTitle) {
+                this.currentSong.title = newTitle;
+                document.getElementById('song-title-card').textContent = newTitle;
+                this.hasUnsavedChanges = true;
+            }
+
+            const newKey = keyEl?.value || '';
+            if (this.currentSong.key !== newKey) {
+                this.currentSong.key = newKey;
+                this.hasUnsavedChanges = true;
+            }
+
+            const tempoValue = parseInt(tempoEl?.value) || 120;
             if (this.currentSong.tempo !== tempoValue) {
                 this.currentSong.tempo = tempoValue;
+                this.hasUnsavedChanges = true;
+            }
+
+            const tsValue = tsEl?.value || '4/4';
+            if (this.currentSong.timeSignature !== tsValue) {
+                this.currentSong.timeSignature = tsValue;
+                this.hasUnsavedChanges = true;
+            }
+
+            const notesValue = notesEl?.value || '';
+            if (this.currentSong.notes !== notesValue) {
+                this.currentSong.notes = notesValue;
+                this.hasUnsavedChanges = true;
+            }
+
+            const tagsValue = tagsEl?.value.split(',').map(t => t.trim()).filter(t => t);
+            if (JSON.stringify(this.currentSong.tags) !== JSON.stringify(tagsValue)) {
+                this.currentSong.tags = tagsValue;
                 this.hasUnsavedChanges = true;
             }
         },
@@ -429,6 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.currentSong.lyrics = this.normalizeSectionLabels(lyrics);
             this.currentSong.chords = chords;
             this.currentSong.lastEditedAt = new Date().toISOString();
+            document.getElementById('song-edited').textContent = new Date(this.currentSong.lastEditedAt).toLocaleString();
 
             const songIndex = this.songs.findIndex(s => s.id === this.currentSong.id);
             if (songIndex !== -1) {
@@ -460,10 +508,15 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('song-title-card').textContent = this.currentSong.title;
             this.fontSizeDisplay.textContent = `${this.fontSize}px`;
 
-            // Update tempo input
-            if (this.tempoInput) {
-                this.tempoInput.value = this.currentSong.tempo;
-            }
+            // Populate metadata panel
+            document.getElementById('song-title-meta').value = this.currentSong.title || '';
+            document.getElementById('song-key').value = this.currentSong.key || '';
+            document.getElementById('song-tempo-meta').value = this.currentSong.tempo || 120;
+            document.getElementById('song-time-signature').value = this.currentSong.timeSignature || '4/4';
+            document.getElementById('song-tags').value = this.currentSong.tags.join(', ');
+            document.getElementById('song-notes').value = this.currentSong.notes || '';
+            document.getElementById('song-created').textContent = new Date(this.currentSong.createdAt).toLocaleString();
+            document.getElementById('song-edited').textContent = new Date(this.currentSong.lastEditedAt).toLocaleString();
 
             this.currentSong.lyrics = this.normalizeSectionLabels(this.currentSong.lyrics || '');
 

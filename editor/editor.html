@@ -118,6 +118,22 @@
                         <button class="dropdown-item" id="copy-lyrics-btn">
                             <i class="fas fa-copy"></i> Copy Options
                         </button>
+                        <div class="dropdown-item">
+                            <i class="fas fa-ruler"></i>
+                            <span class="control-label">Measure</span>
+                            <label class="switch">
+                                <input type="checkbox" id="measure-mode-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="dropdown-item">
+                            <i class="fas fa-magic"></i>
+                            <span class="control-label">Rhyme</span>
+                            <label class="switch">
+                                <input type="checkbox" id="rhyme-mode-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                         <button class="dropdown-item" id="metadata-toggle-btn">
                             <i class="fas fa-info-circle"></i> Song Info & Metadata
                         </button>
@@ -153,24 +169,6 @@
                 <button id="increase-font-btn" class="icon-btn" title="Increase Font Size">
                     <i class="fas fa-plus"></i>
                 </button>
-            </div>
-            <div class="footer-controls">
-                <label for="measure-mode-toggle" class="control-label">Measure</label>
-                <label class="switch">
-                    <input type="checkbox" id="measure-mode-toggle">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="footer-controls">
-                <label for="tempo-input" class="control-label">BPM</label>
-                <input type="number" id="tempo-input" value="120" min="60" max="240">
-            </div>
-            <div class="footer-controls">
-                <label for="rhyme-mode-toggle" class="control-label">Rhyme</label>
-                <label class="switch">
-                    <input type="checkbox" id="rhyme-mode-toggle">
-                    <span class="slider round"></span>
-                </label>
             </div>
         </div>
         
