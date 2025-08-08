@@ -322,12 +322,20 @@
     transition: all 0.2s ease;
     padding: 0.5rem 0;
     backdrop-filter: none;
+    pointer-events: none;
 }
 
 .editor-dropdown-menu.visible {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Ensure AI tools menu aligns within viewport */
+.ai-tools-dropdown .editor-dropdown-menu {
+    left: auto;
+    right: 0;
 }
 
 .dropdown-item {
@@ -390,12 +398,14 @@
     visibility: hidden;
     transform: translateY(-10px);
     transition: all 0.2s ease;
+    pointer-events: none;
 }
 
 .copy-dropdown-menu.visible {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
+    pointer-events: auto;
 }
 
 /* Section-based editing */
