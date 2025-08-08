@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             document.querySelectorAll('.ai-tools-menu .tool-option').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    console.log(btn.dataset.prompt);
+                    this.callOpenRouter(btn.dataset.prompt);
                 });
             });
             this.aiSettingsBtn?.addEventListener('click', () => {
@@ -493,6 +493,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="copy-option" data-copy-type="metadata">
                         <i class="fas fa-info-circle"></i>
                         Metadata Only
+                    </button>
+                    <button class="copy-option" data-copy-type="download">
+                        <i class="fas fa-file-download"></i>
+                        Download as .txt
                     </button>
                 `;
                 
@@ -1231,7 +1235,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const copyType = e.target.dataset.copyType;
             let textToCopy = '';
-            
+
+            if (copyType === 'download') {
+                const content = ClipboardManager.formatSongForExport(this.currentSong, true);
+                const blob = new Blob([content], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${this.currentSong.title.replace(/\s+/g, '_')}.txt`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                this.copyDropdown.classList.remove('visible');
+                return;
+            }
+
             switch (copyType) {
                 case 'raw':
                     textToCopy = this.currentSong.lyrics || '';
@@ -1248,7 +1265,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 default:
                     textToCopy = this.currentSong.lyrics || '';
             }
-            
+
             await ClipboardManager.copyToClipboard(textToCopy);
             this.copyDropdown.classList.remove('visible');
         }
