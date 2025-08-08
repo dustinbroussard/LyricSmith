@@ -12,6 +12,15 @@
     transition: background-color var(--transition-speed);
 }
 
+#editor-mode {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
+}
+
 .editor-header {
     display: flex;
     justify-content: space-between;
@@ -209,8 +218,9 @@
 }
 #lyrics-editor-container {
     display: flex;
-    flex-grow: 1;
+    flex: 1 1 auto;
     overflow-y: auto;
+    min-height: 0;
 }
 #lyrics-display {
     flex-grow: 1;
@@ -218,6 +228,7 @@
     position: relative;
     caret-color: var(--accent-primary);
     outline: none;
+    min-height: max-content;
 }
 #lyrics-display.editable:empty::before {
     content: "Start typing your lyrics...";
