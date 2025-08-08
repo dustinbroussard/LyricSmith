@@ -204,6 +204,16 @@ mark {
     color: var(--text-secondary);
 }
 
+.sort-select {
+    font-size: 0.95rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--border-radius-base);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    margin-left: 0.5rem;
+}
+
 .page-content, .tab {
   overflow: visible !important;
 }
@@ -657,36 +667,6 @@ mark {
     resize: vertical;
     font-family: inherit;
     font-size: 1rem;
-}
-
-/* Add these styles to your existing CSS */
-
-/* Toast notifications */
-.toast {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 12px 20px;
-    border-radius: 6px;
-    color: white;
-    font-weight: 500;
-    z-index: 10000;
-    opacity: 0;
-    transform: translateX(100%);
-    transition: all 0.3s ease;
-}
-
-.toast.show {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.toast-success {
-    background-color: #10b981;
-}
-
-.toast-error {
-    background-color: #ef4444;
 }
 
 /* Empty state messages */
@@ -1259,6 +1239,7 @@ html, body {
     border: 1px solid var(--border-light);
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-speed);
+    cursor: pointer;
 }
 
 .song-item:hover {
@@ -1397,16 +1378,23 @@ html, body {
 /* ========================================
     Toast Notification Styles
     ======================================== */
-.toast {
+.toast-container {
     position: fixed;
     top: 20px;
     right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 10000;
+}
+
+.toast {
+    position: relative;
     padding: 0.75rem 1rem;
     border-radius: var(--border-radius-base);
     color: white;
     font-weight: 500;
     font-size: 0.9rem;
-    z-index: 10000;
     opacity: 0;
     transform: translateX(100%);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1469,15 +1457,18 @@ html, body {
     }
     
 
-    .toast {
+    .toast-container {
         top: auto;
         bottom: 20px;
         right: 20px;
         left: 20px;
-        max-width: none;
-        transform: translateY(100%);
     }
-    
+
+    .toast {
+        transform: translateY(100%);
+        max-width: none;
+    }
+
     .toast.show {
         transform: translateY(0);
     }

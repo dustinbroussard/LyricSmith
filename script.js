@@ -56,18 +56,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     static showToast(message, type = 'info') {
-      // Remove existing toasts
-      document.querySelectorAll('.toast').forEach(toast => toast.remove());
-      
+      let container = document.querySelector('.toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+      }
+
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
       toast.textContent = message;
-      document.body.appendChild(toast);
-      
+      container.appendChild(toast);
+
       // Trigger animation
       setTimeout(() => toast.classList.add('show'), 10);
-      
-      // Remove after 3 seconds
+
+      // Remove after 3 seconds with fade out
       setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
@@ -94,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
     songs: [],
     currentSongId: null,
     defaultSections: "[Intro]\n\n[Verse 1]\n\n[Pre-Chorus]\n\n[Chorus]\n\n[Verse 2]\n\n[Bridge]\n\n[Outro]",
+    sortOrder: localStorage.getItem('songSortOrder') || 'titleAsc',
 
     init() {
       // Load mammoth for DOCX processing
@@ -214,21 +219,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     highlightMatch(text, query) {
       if (!query) return text;
-      const regex = new RegExp(`(${query})`, 'ig');
-      return text.replace(regex, '<mark>$1</mark>');
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'ig');
+      return text.replace(regex, (match) => `<strong>${match}</strong>`);
     },
 
     renderSongs(searchQuery = "") {
       this.songList.innerHTML = '';
 
-      const filtered = this.songs
-        .filter(song => {
-          const titleMatch = song.title.toLowerCase().includes(searchQuery);
-          const tagMatch = song.tags?.some(tag => tag.toLowerCase().includes(searchQuery));
-          const keyMatch = song.key?.toLowerCase().includes(searchQuery);
-          return titleMatch || tagMatch || keyMatch;
-        })
-        .sort((a, b) => a.title.localeCompare(b.title));
+      let filtered = this.songs.filter(song => {
+        const titleMatch = song.title.toLowerCase().includes(searchQuery);
+        const tagMatch = song.tags?.some(tag => tag.toLowerCase().includes(searchQuery));
+        const keyMatch = song.key?.toLowerCase().includes(searchQuery);
+        return titleMatch || tagMatch || keyMatch;
+      });
+
+      filtered.sort((a, b) => {
+        switch (this.sortOrder) {
+          case 'titleDesc':
+            return b.title.localeCompare(a.title);
+          case 'recent':
+            return new Date(b.lastEditedAt) - new Date(a.lastEditedAt);
+          default:
+            return a.title.localeCompare(b.title);
+        }
+      });
 
       if (filtered.length === 0) {
         this.songList.innerHTML = `<p class="empty-state">No songs found.</p>`;
@@ -253,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="song-title">${this.highlightMatch(song.title, searchQuery)}</span>
             ${metadata.length > 0 ? `<div class="song-metadata">${metadata.join(' • ')}</div>` : ''}
             <div class="song-details">
-              ${song.tags?.length > 0 ? `<span class="song-tags">${song.tags.join(', ')}</span>` : ''}
+              ${song.tags?.length > 0 ? `<span class="song-tags">${song.tags.map(tag => this.highlightMatch(tag, searchQuery)).join(', ')}</span>` : ''}
               <span class="song-edited">Last edited: ${lastEdited}</span>
             </div>
           </div>
@@ -289,6 +304,12 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
 
+        item.addEventListener('click', (e) => {
+          if (!e.target.closest('.song-actions')) {
+            window.location.href = `editor/editor.html?songId=${song.id}`;
+          }
+        });
+
         this.songList.appendChild(item);
       }
     },
@@ -309,6 +330,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const toolbar = document.getElementById('tab-toolbar');
       toolbar.innerHTML = `
         <input type="text" id="song-search-input" class="search-input" placeholder="Search songs, tags, or keys...">
+        <select id="song-sort-select" class="sort-select">
+          <option value="titleAsc">Title A–Z</option>
+          <option value="titleDesc">Title Z–A</option>
+          <option value="recent">Recently Edited</option>
+        </select>
         <div class="toolbar-buttons-group">
           <button id="add-song-btn" class="btn" title="Add Song"><i class="fas fa-plus"></i></button>
           <button id="export-library-btn" class="btn" title="Export Library"><i class="fas fa-download"></i></button>
@@ -318,6 +344,14 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <input type="file" id="song-upload-input" multiple accept=".txt,.docx,.json" class="hidden-file">
       `;
+
+      document.getElementById('song-sort-select').value = this.sortOrder;
+      document.getElementById('song-sort-select')?.addEventListener('change', (e) => {
+        this.sortOrder = e.target.value;
+        localStorage.setItem('songSortOrder', this.sortOrder);
+        const query = document.getElementById('song-search-input')?.value.toLowerCase() || '';
+        this.renderSongs(query);
+      });
 
       document.getElementById('add-song-btn')?.addEventListener('click', () => this.createNewSong());
       document.getElementById('export-library-btn')?.addEventListener('click', () => this.exportLibrary());
