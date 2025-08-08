@@ -201,29 +201,6 @@
     flex-grow: 1;
     overflow-y: auto;
 }
-.gutter {
-    flex-shrink: 0;
-    width: 3.5em; /* A bit wider to fit a 3-digit number */
-    padding: 2rem 0.5rem 2rem 1.5rem;
-    background-color: var(--bg-secondary);
-    color: var(--text-muted);
-    font-size: 0.7em;
-    line-height: 1.6;
-    text-align: right;
-    user-select: none;
-    border-right: 1px solid var(--border-light);
-}
-.gutter-chord-line {
-    line-height: 1.2;
-    height: 1.2em;
-}
-.gutter-lyric-line {
-    line-height: 1.6;
-    margin-bottom: 0.5em;
-}
-.gutter-section-label {
-    margin-bottom: 0.5em;
-}
 #lyrics-display {
     flex-grow: 1;
     padding: 2rem;
@@ -264,8 +241,30 @@
     position: relative;
     margin-bottom: 0.5em;
     min-height: 1em;
+    display: flex;
+    align-items: baseline;
 }
 .lyrics-line:focus {
+    outline: none;
+}
+
+.syllable-count {
+    width: 2ch;
+    margin-right: 0.5ch;
+    text-align: right;
+    color: var(--text-muted);
+    white-space: pre;
+    user-select: none;
+    flex-shrink: 0;
+    font-size: 0.7em;
+}
+
+.lyric-text {
+    flex: 1;
+    min-height: 1em;
+}
+
+.lyric-text:focus {
     outline: none;
 }
 .lyrics-line.rhyme-match-1 { color: #FFAA00; }

@@ -104,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
         editorMode: document.getElementById('editor-mode'),
         lyricsEditorContainer: document.getElementById('lyrics-editor-container'),
         lyricsDisplay: document.getElementById('lyrics-display'),
-        syllableGutter: document.getElementById('syllable-gutter'),
         decreaseFontBtn: document.getElementById('decrease-font-btn'),
         increaseFontBtn: document.getElementById('increase-font-btn'),
         fontSizeDisplay: document.getElementById('font-size-display'),
@@ -129,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
         minFontSize: 12,
         maxFontSize: 72,
         fontSizeStep: 1,
-        syllableScale: 0.7,
         perSongFontSizes: JSON.parse(localStorage.getItem('perSongFontSizes') || '{}'),
         isReadOnly: false,
         isChordsVisible: true,
@@ -271,7 +269,6 @@ document.addEventListener('DOMContentLoaded', () => {
             this.increaseFontBtn?.addEventListener('click', () => this.adjustFontSize(this.fontSizeStep));
             this.toggleThemeBtn?.addEventListener('click', () => this.toggleTheme());
             this.exitEditorBtn?.addEventListener('click', () => this.exitEditorMode());
-            this.lyricsDisplay?.addEventListener('input', () => this.handleLyricsInput());
             this.lyricsDisplay?.addEventListener('click', (e) => this.handleLyricsClick(e));
             this.lyricsDisplay?.addEventListener('keydown', (e) => this.handleLyricsKeydown(e));
             this.scrollToTopBtn?.addEventListener('click', () => this.scrollToTop());
@@ -458,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCurrentSong(isExplicit = false) {
             if (!this.currentSong || (!window.CONFIG.autosaveEnabled && !isExplicit)) return;
 
-            const lyricNodes = Array.from(this.lyricsDisplay.querySelectorAll('.section-label, .lyrics-line'));
+            const lyricNodes = Array.from(this.lyricsDisplay.querySelectorAll('.section-label, .lyric-text'));
             const lyricLines = [];
             const chordLines = [];
             lyricNodes.forEach(node => {
@@ -466,7 +463,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     lyricLines.push(node.textContent);
                 } else {
                     lyricLines.push(node.textContent);
-                    const chord = node.previousElementSibling?.classList.contains('chord-line') ? node.previousElementSibling.textContent : '';
+                    const group = node.closest('.lyrics-line-group');
+                    const chord = group?.querySelector('.chord-line')?.textContent || '';
                     chordLines.push(chord);
                 }
             });
@@ -561,7 +559,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             this.lyricsDisplay.innerHTML = '';
-            this.syllableGutter.innerHTML = '';
 
             const rhymeGroups = this.isRhymeMode ? this.findRhymes(lyricLines) : {};
 
@@ -584,9 +581,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     content.className = 'section-content';
                     section.appendChild(content);
                     this.lyricsDisplay.appendChild(section);
-                    const gutterLine = document.createElement('div');
-                    gutterLine.className = 'gutter-section-label';
-                    this.syllableGutter.appendChild(gutterLine);
                     currentSectionContent = content;
                     continue;
                 }
@@ -624,12 +618,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             this.lyricsDisplay.style.fontSize = `${this.fontSize}px`;
-            this.syllableGutter.style.fontSize = `${this.fontSize * this.syllableScale}px`;
             this.updateReadOnlyState();
             this.updateChordsVisibility();
+            this.updateSyllableCount();
         },
 
-        addLyricLine(chords, lyrics, rhymeClass, syllableCount, container = this.lyricsDisplay) {
+        addLyricLine(chords, lyrics, rhymeClass, syllableCount, container = this.lyricsDisplay, insertBefore = null) {
             const lineGroup = document.createElement('div');
             lineGroup.className = 'lyrics-line-group';
 
@@ -639,80 +633,61 @@ document.addEventListener('DOMContentLoaded', () => {
             chordElement.setAttribute('contenteditable', 'true');
             chordElement.addEventListener('input', () => {
                 this.pushUndoState();
-                this.hasUnsavedChanges = true;
-                this.saveCurrentSong();
+                this.handleLyricsInput();
             });
             lineGroup.appendChild(chordElement);
 
             const lyricElement = document.createElement('div');
             lyricElement.className = 'lyrics-line';
-            lyricElement.textContent = lyrics;
-            lyricElement.setAttribute('contenteditable', 'true');
-            lyricElement.addEventListener('input', () => {
+
+            const syllableSpan = document.createElement('span');
+            syllableSpan.className = 'syllable-count';
+            syllableSpan.textContent = String(syllableCount).padStart(2, ' ');
+            lyricElement.appendChild(syllableSpan);
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'lyric-text';
+            textSpan.textContent = lyrics;
+            textSpan.setAttribute('contenteditable', 'true');
+            textSpan.addEventListener('input', () => {
                 this.pushUndoState();
-                this.hasUnsavedChanges = true;
-                this.saveCurrentSong();
+                this.handleLyricsInput();
                 this.updateSyllableCount();
                 this.updateRhymes();
             });
+            lyricElement.appendChild(textSpan);
 
             if (rhymeClass) {
                 lyricElement.classList.add(rhymeClass);
             }
             lineGroup.appendChild(lyricElement);
 
-            container.appendChild(lineGroup);
-            const chordPlaceholder = document.createElement('div');
-            chordPlaceholder.className = 'gutter-chord-line';
-            if (!this.isChordsVisible) {
-                chordPlaceholder.style.display = 'none';
+            if (insertBefore) {
+                container.insertBefore(lineGroup, insertBefore);
+            } else {
+                container.appendChild(lineGroup);
             }
-            this.syllableGutter.appendChild(chordPlaceholder);
 
-            const gutterLine = document.createElement('div');
-            gutterLine.className = 'gutter-lyric-line';
-            gutterLine.textContent = syllableCount;
-            this.syllableGutter.appendChild(gutterLine);
+            return lineGroup;
         },
 
         updateSyllableCount() {
-            this.syllableGutter.innerHTML = '';
-            const processLineGroup = (group) => {
-                const chordPlaceholder = document.createElement('div');
-                chordPlaceholder.className = 'gutter-chord-line';
-                if (!this.isChordsVisible) {
-                    chordPlaceholder.style.display = 'none';
-                }
-                this.syllableGutter.appendChild(chordPlaceholder);
-
-                const lyricEl = group.querySelector('.lyrics-line');
-                const text = lyricEl.textContent;
+            const lines = this.lyricsDisplay.querySelectorAll('.lyrics-line');
+            lines.forEach(line => {
+                const textSpan = line.querySelector('.lyric-text');
+                const countSpan = line.querySelector('.syllable-count');
+                if (!textSpan || !countSpan) return;
+                const text = textSpan.textContent;
                 const words = text.split(/\s+/).filter(w => w.length > 0);
                 const count = words.reduce((sum, word) => sum + this.syllableCount(word), 0);
-                const gutterLine = document.createElement('div');
-                gutterLine.className = 'gutter-lyric-line';
-                gutterLine.textContent = count;
-                this.syllableGutter.appendChild(gutterLine);
-            };
-
-            const children = Array.from(this.lyricsDisplay.children);
-            children.forEach(child => {
-                if (child.classList.contains('section')) {
-                    const placeholder = document.createElement('div');
-                    placeholder.className = 'gutter-section-label';
-                    this.syllableGutter.appendChild(placeholder);
-                    const inner = child.querySelector('.section-content');
-                    Array.from(inner.children).forEach(processLineGroup);
-                } else if (child.classList.contains('lyrics-line-group')) {
-                    processLineGroup(child);
-                }
+                countSpan.textContent = String(count).padStart(2, ' ');
             });
         },
 
         updateRhymes() {
             const allLyricElements = Array.from(this.lyricsDisplay.querySelectorAll('.lyrics-line'));
             const lyricElements = allLyricElements.filter(el => !el.classList.contains('section-label'));
-            const lines = lyricElements.map(el => el.textContent);
+            const lines = lyricElements.map(el => el.querySelector('.lyric-text')?.textContent || '');
             const rhymeGroups = this.isRhymeMode ? this.findRhymes(lines) : {};
             let idx = 0;
             allLyricElements.forEach(el => {
@@ -778,7 +753,6 @@ document.addEventListener('DOMContentLoaded', () => {
         handleLyricsInput() {
             this.hasUnsavedChanges = true;
             this.saveCurrentSong();
-            this.renderLyrics();
         },
 
         handleLyricsClick(e) {
@@ -788,10 +762,15 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         handleLyricsKeydown(e) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && e.target.classList.contains('lyric-text')) {
                 e.preventDefault();
-                document.execCommand('insertHTML', false, '<div><br></div>');
-                this.renderLyrics();
+                const currentGroup = e.target.closest('.lyrics-line-group');
+                const newGroup = this.addLyricLine('', '', null, 0, this.lyricsDisplay, currentGroup?.nextSibling);
+                const newText = newGroup.querySelector('.lyric-text');
+                if (newText) newText.focus();
+                this.handleLyricsInput();
+                this.updateSyllableCount();
+                this.updateRhymes();
             }
         },
 
@@ -800,7 +779,6 @@ document.addEventListener('DOMContentLoaded', () => {
             this.perSongFontSizes[this.currentSong.id] = this.fontSize;
             localStorage.setItem('perSongFontSizes', JSON.stringify(this.perSongFontSizes));
             this.lyricsDisplay.style.fontSize = `${this.fontSize}px`;
-            this.syllableGutter.style.fontSize = `${this.fontSize * this.syllableScale}px`;
             this.fontSizeDisplay.textContent = `${this.fontSize}px`;
         },
 
@@ -848,10 +826,6 @@ document.addEventListener('DOMContentLoaded', () => {
             chordLines.forEach(line => {
                 line.classList.toggle('hidden', !this.isChordsVisible);
             });
-            const chordGutterLines = this.syllableGutter.querySelectorAll('.gutter-chord-line');
-            chordGutterLines.forEach(line => {
-                line.style.display = this.isChordsVisible ? 'block' : 'none';
-            });
             const icon = this.toggleChordsBtn?.querySelector('i');
             if (icon) {
                 if (this.isChordsVisible) {
@@ -880,12 +854,11 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         updateReadOnlyState() {
-            const lines = this.lyricsDisplay.querySelectorAll('.lyrics-line-group > div');
+            const lines = this.lyricsDisplay.querySelectorAll('.lyric-text, .chord-line, .section-label');
             lines.forEach(line => {
                 line.setAttribute('contenteditable', !this.isReadOnly);
             });
             this.lyricsEditorContainer?.classList.toggle('read-only', this.isReadOnly);
-            this.lyricsDisplay?.setAttribute('contenteditable', !this.isReadOnly);
         },
 
         toggleCopyDropdown() {
