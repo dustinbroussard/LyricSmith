@@ -299,16 +299,18 @@
     top: 100%;
     left: 0;
     background: var(--bg-secondary);
+    background-color: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--border-radius-base);
     box-shadow: var(--shadow-lg);
-    z-index: 99999;
+    z-index: 100000;
     min-width: 180px;
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
     transition: all 0.2s ease;
     padding: 0.5rem 0;
+    backdrop-filter: none;
 }
 
 .editor-dropdown-menu.visible {
@@ -351,8 +353,8 @@
 
 @media (max-width: 600px) {
     .editor-dropdown-menu .dropdown-item {
-        padding: 1rem 1.5rem;
-        font-size: 1.1rem;
+        padding: 1.1rem 1.75rem;
+        font-size: 1.2rem;
     }
 }
 
@@ -681,11 +683,11 @@ toolbar {
 
 @media (max-width: 600px) {
     .ai-context-menu {
-        padding: 0.5rem;
+        padding: 0.75rem;
     }
     .ai-context-menu button {
-        padding: 0.6rem 0.75rem;
-        font-size: 1rem;
+        padding: 0.75rem 1rem;
+        font-size: 1.1rem;
     }
 }
 
