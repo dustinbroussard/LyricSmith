@@ -1283,6 +1283,11 @@ html, body {
     font-style: italic;
 }
 
+.song-tag {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
 .song-edited {
     color: var(--text-muted);
 }

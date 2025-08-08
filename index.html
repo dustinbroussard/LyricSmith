@@ -40,9 +40,18 @@
     </div>
 
     
-        </div>
     </div>
     </div>
+    </div>
+    <dialog id="export-dialog">
+        <form method="dialog">
+            <p><label><input type="checkbox" id="export-include-metadata" checked> Include metadata</label></p>
+            <menu>
+                <button value="cancel">Cancel</button>
+                <button id="confirm-export" value="default">Export</button>
+            </menu>
+        </form>
+    </dialog>
     <script>
         // Register service worker and check for updates
         if ('serviceWorker' in navigator) {
