@@ -5,8 +5,8 @@
     --header-height: 64px;
     --tab-button-height: 52px;
     --padding-base: 1.5rem;
-    --border-radius-base: 12px;
-    --transition-speed: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --border-radius-base: 1rem;
+    --transition-speed: 0.3s ease-in-out;
 }
 
 /* ========================================

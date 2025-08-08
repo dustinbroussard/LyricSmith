@@ -393,13 +393,17 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  display: none;
+  display: flex;
   z-index: 9999;
   justify-content: center;
   align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-speed);
 }
 .modal-overlay.visible {
-  display: flex;
+  opacity: 1;
+  pointer-events: auto;
 }
 .modal {
   background: var(--bg-secondary);
@@ -411,6 +415,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+  transform: scale(0.95);
+  transition: transform var(--transition-speed);
+}
+.modal-overlay.visible .modal {
+  transform: scale(1);
 }
 .modal button {
   font-size: 1rem;
@@ -423,6 +432,13 @@
   padding: 0.6rem 1rem;
   border-radius: var(--border-radius-base);
   text-align: left;
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+.modal-action-btn:hover,
+.modal-copy-btn:hover {
+  background: var(--accent-hover);
+  box-shadow: var(--shadow-md);
 }
 .modal-action-btn i,
 .modal-copy-btn i {
@@ -436,6 +452,10 @@
   cursor: pointer;
   margin-top: 1rem;
   align-self: center;
+  transition: color var(--transition-speed);
+}
+.close-modal-btn:hover {
+  color: var(--text-primary);
 }
 
 /* Section-based editing */
