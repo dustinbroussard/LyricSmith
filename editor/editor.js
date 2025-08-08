@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         defaultSections: "[Intro]\n\n[Verse 1]\n\n[Pre-Chorus]\n\n[Chorus]\n\n[Verse 2]\n\n[Bridge]\n\n[Outro]",
         resizeObserver: null,
         copyDropdown: null,
+        longPressTimer: null,
         hasUnsavedChanges: false, // Track unsaved changes
         availableModels: [],
         selectedModel: '',
@@ -394,9 +395,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             this.saveAISettingsBtn?.addEventListener('click', () => this.saveAISettings());
             this.modelSearchInput?.addEventListener('input', () => this.renderModelList(this.modelSearchInput.value));
-            this.lyricsDisplay?.addEventListener('mouseup', () => this.handleTextSelection());
-            this.lyricsDisplay?.addEventListener('keyup', () => this.handleTextSelection());
-            this.lyricsDisplay?.addEventListener('touchend', () => this.handleTextSelection());
+            // Long-press to show AI context menu
+            this.lyricsDisplay?.addEventListener('touchstart', (e) => this.startLongPress(e));
+            this.lyricsDisplay?.addEventListener('touchend', () => this.cancelLongPress());
+            this.lyricsDisplay?.addEventListener('touchmove', () => this.cancelLongPress());
+            this.lyricsDisplay?.addEventListener('mousedown', (e) => this.startLongPress(e));
+            this.lyricsDisplay?.addEventListener('mouseup', () => this.cancelLongPress());
             document.querySelectorAll('#ai-context-menu button').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const action = btn.dataset.action;
@@ -532,6 +536,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         },
 
+        startLongPress() {
+            this.longPressTimer = setTimeout(() => {
+                this.handleTextSelection();
+            }, 600);
+        },
+
+        cancelLongPress() {
+            clearTimeout(this.longPressTimer);
+        },
+
         handleTextSelection() {
             if (!this.aiContextMenu) return;
             const selection = window.getSelection();
@@ -544,9 +558,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const rect = range.getBoundingClientRect();
                 const topOffset = window.innerWidth < 600 ? 40 : 8;
-                this.aiContextMenu.style.top = `${rect.bottom + window.scrollY + topOffset}px`;
-                this.aiContextMenu.style.left = `${rect.left + window.scrollX}px`;
+                let top = rect.bottom + window.scrollY + topOffset;
+                let left = rect.left + window.scrollX;
                 this.aiContextMenu.style.display = 'flex';
+                const menuWidth = this.aiContextMenu.offsetWidth;
+                const menuHeight = this.aiContextMenu.offsetHeight;
+                if (left + menuWidth > window.scrollX + window.innerWidth) {
+                    left = window.scrollX + window.innerWidth - menuWidth - 8;
+                }
+                if (left < window.scrollX + 8) {
+                    left = window.scrollX + 8;
+                }
+                if (top + menuHeight > window.scrollY + window.innerHeight) {
+                    top = rect.top + window.scrollY - menuHeight - topOffset;
+                }
+                if (top < window.scrollY + 8) {
+                    top = window.scrollY + 8;
+                }
+                this.aiContextMenu.style.top = `${top}px`;
+                this.aiContextMenu.style.left = `${left}px`;
             } else {
                 this.aiContextMenu.style.display = 'none';
             }
