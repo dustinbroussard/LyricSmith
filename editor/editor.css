@@ -912,3 +912,7 @@ toolbar {
         width: 90%;
     }
 }
+
+#ryhme-mode-toggle {
+    margin-left: 5rem;
+}

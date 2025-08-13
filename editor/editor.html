@@ -107,9 +107,6 @@
                 <button id="ai-tools-btn" class="btn icon-btn" title="AI Tools">
                     <i class="fas fa-robot"></i>
                 </button>
-                <button id="theme-toggle-btn" class="btn icon-btn theme-toggle-btn" title="Toggle Theme">
-                    <i class="fas fa-adjust"></i>
-                </button>
                 <button id="exit-editor-btn" class="btn icon-btn" title="Exit Editor">
                     <i class="fas fa-times"></i>
                 </button>
@@ -174,7 +171,7 @@
         <h2>Editor Options</h2>
         <button id="toggle-chords-btn" class="modal-action-btn"><i class="fas fa-guitar"></i> Toggle Chords</button>
         <button id="toggle-read-only-btn" class="modal-action-btn"><i class="fas fa-lock"></i> Performance Mode</button>
-        <div class="modal-item">
+        <div class="modal-action-btn">
           <label for="edit-mode-select"><i class="fas fa-edit"></i> Edit Mode</label>
           <select id="edit-mode-select" class="modal-select">
             <option value="both">Both</option>
@@ -182,8 +179,8 @@
             <option value="chords">Chords</option>
           </select>
         </div>
-        <div class="modal-item">
-          <label><input type="checkbox" id="rhyme-mode-toggle"> <i class="fas fa-bullseye"></i> Rhyme Colors</label>
+        <div class="modal-action-btn">
+           <i class="fas fa-bullseye"></i> Rhyme Colors   <input type="checkbox" id="rhyme-mode-toggle">
         </div>
         <button id="save-song-btn" class="modal-action-btn"><i class="fas fa-save"></i> Save Song</button>
         <button id="copy-lyrics-btn" class="modal-action-btn"><i class="fas fa-copy"></i> Copy Options</button>
@@ -201,8 +198,8 @@
         <button class="tool-option modal-action-btn" data-prompt="Polish Lyrics"><i class="fas fa-brush"></i> Polish Lyrics</button>
         <button class="tool-option modal-action-btn" data-prompt="Rewrite in Different Style"><i class="fas fa-pen"></i> Rewrite in Style</button>
         <button class="tool-option modal-action-btn" data-prompt="Continue Song"><i class="fas fa-arrow-down"></i> Continue Song</button>
-        <button id="ai-format-btn" class="modal-action-btn"><i class="fas fa-broom"></i> Clean Format (AI)</button>
-        <button id="regenre-btn" class="modal-action-btn"><i class="fas fa-random"></i> Re-Genre (AI)</button>
+        <button id="ai-format-btn" class="modal-action-btn"><i class="fas fa-broom"></i> Clean Format</button>
+        <button id="regenre-btn" class="modal-action-btn"><i class="fas fa-random"></i> Re-Genre</button>
         <button id="ai-settings-btn" class="modal-action-btn"><i class="fas fa-cog"></i> Settings</button>
         <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
       </div>
