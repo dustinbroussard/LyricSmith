@@ -220,8 +220,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     highlightMatch(text, query) {
       if (!query) return text;
-      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(escaped, 'ig');
+      const terms = query
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      if (!terms.length) return text;
+      const regex = new RegExp(`(${terms.join('|')})`, 'ig');
       return text.replace(regex, match => `<strong>${match}</strong>`);
     },
 
@@ -230,14 +234,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let filtered = this.songs;
       if (searchQuery && searchQuery.trim()) {
-        const fuse = new Fuse(this.songs, {
-          keys: ['title', 'tags', 'key'],
-          threshold: 0.35,
-          ignoreLocation: true,
-          minMatchCharLength: 2
+        const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+        filtered = this.songs.filter(song => {
+          const title = song.title.toLowerCase();
+          const tags = (song.tags || []).map(t => t.toLowerCase());
+          const key = song.key?.toLowerCase() || '';
+          return terms.every(term =>
+            title.includes(term) ||
+            tags.some(tag => tag.includes(term)) ||
+            key.includes(term)
+          );
         });
-        const results = fuse.search(searchQuery.trim());
-        filtered = results.map(r => r.item);
       }
 
       filtered.sort((a, b) => {
@@ -279,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
           <div class="song-actions">
+            <i class="fas fa-grip-lines drag-handle" title="Drag to reorder" aria-label="Drag to reorder"></i>
             <button class="song-copy-btn icon-btn" title="Quick Copy" aria-label="Quick copy ${song.title}" data-song-id="${song.id}">
               <i class="fas fa-copy"></i>
             </button>
@@ -316,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tag = tagEl.dataset.tag;
             const input = document.getElementById('song-search-input');
             if (input) input.value = tag;
-            this.renderSongs(tag.toLowerCase());
+            this.renderSongs(tag);
           });
         });
 
@@ -333,8 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initDragSort() {
       if (!this.songList) return;
       Sortable.create(this.songList, {
-        handle: '.song-info',
+        handle: '.drag-handle',
         animation: 150,
+        ghostClass: 'drag-ghost',
         onEnd: () => {
           const order = Array.from(this.songList.children).map(child => child.dataset.id);
           const map = new Map(this.songs.map(s => [s.id, s]));
@@ -359,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderToolbar() {
       const toolbar = document.getElementById('tab-toolbar');
       toolbar.innerHTML = `
-        <input type="text" id="song-search-input" class="search-input" placeholder="Search songs, tags, or keys...">
+        <input type="text" id="song-search-input" class="search-input" placeholder="Search by title, tag, or key...">
         <select id="song-sort-select" class="sort-select">
           <option value="titleAsc">Title A–Z</option>
           <option value="titleDesc">Title Z–A</option>
@@ -379,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('song-sort-select')?.addEventListener('change', (e) => {
         this.sortOrder = e.target.value;
         localStorage.setItem('songSortOrder', this.sortOrder);
-        const query = document.getElementById('song-search-input')?.value.toLowerCase() || '';
+        const query = document.getElementById('song-search-input')?.value || '';
         this.renderSongs(query);
       });
 
@@ -402,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       document.getElementById('delete-all-songs-btn')?.addEventListener('click', () => this.confirmDeleteAll());
       document.getElementById('song-search-input')?.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
+        const query = e.target.value;
         this.renderSongs(query);
       });
 
