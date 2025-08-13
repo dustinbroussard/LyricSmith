@@ -889,22 +889,62 @@ toolbar {
     align-items: center;
 }
 
+.ai-settings-panel .settings-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.ai-settings-panel input,
+.ai-settings-panel textarea {
+    width: 100%;
+    padding: 0.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: var(--border-radius-base);
+}
+
+.ai-settings-panel input::placeholder,
+.ai-settings-panel textarea::placeholder {
+    color: var(--text-muted);
+}
+
 .ai-settings-panel .model-list {
     max-height: 200px;
     overflow-y: auto;
     border: 1px solid var(--border);
     border-radius: var(--border-radius-base);
     margin-top: 0.5rem;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 .ai-settings-panel .model-item {
     padding: 0.5rem 0.75rem;
     cursor: pointer;
+    border-bottom: 1px solid var(--border);
 }
 
 .ai-settings-panel .model-item:hover,
 .ai-settings-panel .model-item.selected {
     background: var(--bg-hover);
+}
+
+#ai-tools-modal .ai-notes-input {
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-base);
+    color: var(--text-primary);
+}
+
+#ai-tools-modal .ai-notes-input::placeholder {
+    color: var(--text-muted);
 }
 
 @media (max-width: 600px) {

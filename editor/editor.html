@@ -194,10 +194,12 @@
     <div id="ai-tools-modal" class="modal-overlay">
       <div class="modal">
         <h2>AI Tools</h2>
+        <textarea id="ai-additional-notes" class="ai-notes-input" placeholder="Additional notes..." rows="2"></textarea>
         <button class="tool-option modal-action-btn" data-prompt="Generate First Draft"><i class="fas fa-magic"></i> Generate First Draft</button>
         <button class="tool-option modal-action-btn" data-prompt="Polish Lyrics"><i class="fas fa-brush"></i> Polish Lyrics</button>
         <button class="tool-option modal-action-btn" data-prompt="Rewrite in Different Style"><i class="fas fa-pen"></i> Rewrite in Style</button>
         <button class="tool-option modal-action-btn" data-prompt="Continue Song"><i class="fas fa-arrow-down"></i> Continue Song</button>
+        <button class="tool-option modal-action-btn" data-prompt="Suggest Chords"><i class="fas fa-guitar"></i> Suggest Chords</button>
         <button id="ai-format-btn" class="modal-action-btn"><i class="fas fa-broom"></i> Clean Format</button>
         <button id="regenre-btn" class="modal-action-btn"><i class="fas fa-random"></i> Re-Genre</button>
         <button id="ai-settings-btn" class="modal-action-btn"><i class="fas fa-cog"></i> Settings</button>
@@ -314,7 +316,7 @@
             <input type="text" id="model-search" placeholder="Search models...">
             <div id="model-list" class="model-list"></div>
         </div>
-        <button id="save-ai-settings" class="dropdown-item" style="width:100%">Save</button>
+        <button id="save-ai-settings" class="modal-action-btn" style="width:100%"><i class="fas fa-save"></i> Save</button>
     </div>
 
     <script src="../config.js"></script>

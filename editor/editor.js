@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         modelSearchInput: document.getElementById('model-search'),
         modelList: document.getElementById('model-list'),
         saveAISettingsBtn: document.getElementById('save-ai-settings'),
+        additionalNotesInput: document.getElementById('ai-additional-notes'),
         measureModeToggle: document.getElementById('measure-mode-toggle'),
         rhymeModeToggle: document.getElementById('rhyme-mode-toggle'),
         sectionMenu: document.getElementById('section-menu'),
@@ -706,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 rhyme: `Find rhymes for: ${selectedText}`,
                 reword: `Suggest alternative wording for: ${selectedText}`,
                 rewrite: `Rewrite this line in a different tone: ${selectedText}`,
-                continue: `Continue the lyrics after: ${selectedText}`
+                continue: `Continue the lyrics after: ${selectedText}. Include chord suggestions and return chords and lyrics on alternating lines.`
             };
             const prompt = prompts[action];
             if (!window.CONFIG.openrouterApiKey) {
@@ -718,17 +719,19 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         async callOpenRouter(prompt, append = false) {
-            const response = await callOpenRouterAPI(prompt);
+            const notes = this.additionalNotesInput?.value.trim();
+            const fullPrompt = notes ? `${prompt}\nAdditional notes: ${notes}` : prompt;
+            const response = await callOpenRouterAPI(fullPrompt);
             if (!response) return;
 
             // Handle context menu actions based on prompt
-            if (prompt.startsWith('Find rhymes for:')) {
+            if (fullPrompt.startsWith('Find rhymes for:')) {
                 ClipboardManager.showToast(response, 'info');
                 return;
             }
 
             const selection = window.getSelection();
-            if (prompt.startsWith('Suggest alternative wording') || prompt.startsWith('Rewrite this line')) {
+            if (fullPrompt.startsWith('Suggest alternative wording') || fullPrompt.startsWith('Rewrite this line')) {
                 if (selection && !selection.isCollapsed) {
                     const range = selection.getRangeAt(0);
                     range.deleteContents();
@@ -739,7 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (prompt.startsWith('Continue the lyrics after:')) {
+            if (fullPrompt.startsWith('Continue the lyrics after:')) {
                 if (selection && !selection.isCollapsed) {
                     const range = selection.getRangeAt(0);
                     range.collapse(false);
@@ -759,7 +762,9 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const song = this.currentSong;
                 const formatted = ClipboardManager.formatLyricsWithChords(song.lyrics || '', song.chords || '');
-                const prompt = `Clean up the formatting for this song and return chords and lyrics on alternating lines.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTime Signature: ${song.timeSignature}\n\n${formatted}`;
+                let prompt = `Clean up the formatting for this song and return chords and lyrics on alternating lines.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTime Signature: ${song.timeSignature}\n\n${formatted}`;
+                const notes = this.additionalNotesInput?.value.trim();
+                if (notes) prompt += `\nAdditional notes: ${notes}`;
                 const response = await callOpenRouterAPI(prompt);
                 if (response) {
                     const lines = response.trim().split(/\r?\n/);
@@ -787,7 +792,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const song = this.currentSong;
                 const formatted = ClipboardManager.formatLyricsWithChords(song.lyrics || '', song.chords || '');
                 const tags = song.tags?.length ? song.tags.join(', ') : '';
-                const prompt = `Rewrite the following song in the ${newGenre} genre while preserving meaning and structure. Return chords and lyrics on alternating lines.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTags: ${tags}\n\n${formatted}`;
+                let prompt = `Rewrite the following song in the ${newGenre} genre while preserving meaning and structure. Return chords and lyrics on alternating lines.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTags: ${tags}\n\n${formatted}`;
+                const notes = this.additionalNotesInput?.value.trim();
+                if (notes) prompt += `\nAdditional notes: ${notes}`;
                 const response = await callOpenRouterAPI(prompt);
                 if (response) {
                     const lines = response.trim().split(/\r?\n/);
@@ -1460,19 +1467,22 @@ document.addEventListener('DOMContentLoaded', () => {
             let append = false;
             switch (action) {
                 case 'Generate First Draft':
-                    promptText = `Write a complete first draft of song lyrics in ${style}.`;
+                    promptText = `Write a complete first draft of song lyrics in ${style} with chord suggestions. Return chords and lyrics on alternating lines.`;
                     break;
                 case 'Polish Lyrics':
-                    promptText = `Polish the following lyrics for flow, rhyme, and clarity: ${lyrics}`;
+                    promptText = `Polish the following lyrics for flow, rhyme, and clarity and suggest suitable chords. Return chords and lyrics on alternating lines.\n${lyrics}`;
                     break;
                 case 'Rewrite in Different Style':
                     const styleInput = prompt('Rewrite in which style?');
                     if (!styleInput) return;
-                    promptText = `Rewrite these lyrics in the style of ${styleInput}: ${lyrics}`;
+                    promptText = `Rewrite these lyrics in the style of ${styleInput} with chord suggestions. Return chords and lyrics on alternating lines.\n${lyrics}`;
                     break;
                 case 'Continue Song':
-                    promptText = `Continue the song after these lyrics: ${lyrics}`;
+                    promptText = `Continue the song after these lyrics, adding chord suggestions. Return chords and lyrics on alternating lines.\n${lyrics}`;
                     append = true;
+                    break;
+                case 'Suggest Chords':
+                    promptText = `Suggest chord progressions for the following lyrics. Return chords and lyrics on alternating lines.\n${lyrics}`;
                     break;
                 default:
                     promptText = action;
