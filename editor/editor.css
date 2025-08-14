@@ -18,7 +18,7 @@
     flex: 1 1 auto;
     min-height: 100vh;
     height: 100vh;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .editor-header {
@@ -250,9 +250,9 @@
     font-size: 0.8em;
     line-height: 1.2;
     color: var(--text-secondary);
-    height: 1.2em; /* To maintain spacing when empty */
-    overflow: hidden;
-    white-space: pre;
+    min-height: 1.2em; /* To maintain spacing when empty */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
     cursor: text;
     user-select: text;
 }
@@ -284,6 +284,8 @@
 .lyric-text {
     flex: 1;
     min-height: 1em;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .lyric-text:focus {
@@ -593,6 +595,8 @@
     box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
     backdrop-filter: blur(4px);
     flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
 }
 .footer-controls {
     display: flex;
