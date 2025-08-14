@@ -430,33 +430,33 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        const processFile = async (file) => {
+        const processFile = (file) => {
           return new Promise((resolve) => {
             const reader = new FileReader();
             reader.onload = async (e) => {
               let content = e.target.result;
-              
+
               if (file.name.endsWith('.docx')) {
                 try {
-                  const result = await mammoth.extractRawText({arrayBuffer: e.target.result});
+                  const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
                   content = result.value;
                 } catch (err) {
                   console.error('Error processing DOCX:', err);
                   return resolve(null);
                 }
               }
-              
+
               // Extract title from filename (without extension)
               const title = this.normalizeTitle(file.name);
               const lyrics = content.trim();
-              
+
               if (title && lyrics) {
                 resolve(this.createSong(title, lyrics));
               } else {
                 resolve(null);
               }
             };
-            
+
             if (file.name.endsWith('.docx')) {
               reader.readAsArrayBuffer(file);
             } else {
@@ -465,15 +465,12 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         };
 
-        // Process files sequentially to avoid overwhelming the UI
-        let importCount = 0;
-        for (const file of files) {
-          const song = await processFile(file);
-          if (song) {
-            this.songs.push(song);
-            importCount++;
-          }
-        }
+        ClipboardManager.showToast(`Processing ${files.length} file(s)...`, 'info');
+
+        const songs = await Promise.all(files.map(processFile));
+        const validSongs = songs.filter(Boolean);
+        this.songs.push(...validSongs);
+        const importCount = validSongs.length;
 
         this.saveSongs();
         this.renderSongs();
