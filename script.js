@@ -26,7 +26,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // === PWA INSTALL / UNINSTALL ===
   let deferredPrompt;
-  let pwaInstalled = window.matchMedia('(display-mode: standalone)').matches || localStorage.getItem('pwaInstalled') === 'true';
+  let pwaInstalled =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true ||
+    localStorage.getItem('pwaInstalled') === 'true';
+  const INSTALL_PROMPT_INTERVAL = 0; // days between prompts; 0 = every session
+
+  function shouldShowPrompt() {
+    if (INSTALL_PROMPT_INTERVAL <= 0) return true;
+    const last = parseInt(localStorage.getItem('lastInstallPrompt'), 10);
+    return !last || Date.now() - last > INSTALL_PROMPT_INTERVAL * 86400000;
+  }
+
+  function recordPromptTime() {
+    localStorage.setItem('lastInstallPrompt', Date.now().toString());
+  }
 
   async function clearServiceWorkers() {
     const regs = await navigator.serviceWorker.getRegistrations();
@@ -65,16 +79,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function showInstallBanner() {
+    if (!deferredPrompt || pwaInstalled || sessionStorage.getItem('installDismissed') === 'true') return;
+    if (!shouldShowPrompt()) return;
+    const banner = document.getElementById('install-banner');
+    banner.classList.remove('hidden');
+    recordPromptTime();
+  }
+
+  function hideInstallBanner() {
+    const banner = document.getElementById('install-banner');
+    banner.classList.add('hidden');
+    sessionStorage.setItem('installDismissed', 'true');
+  }
+
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     updateInstallButton();
+    showInstallBanner();
+  });
+
+  document.getElementById('install-accept')?.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    hideInstallBanner();
+    if (choice.outcome === 'accepted') {
+      pwaInstalled = true;
+      localStorage.setItem('pwaInstalled', 'true');
+      updateInstallButton();
+    }
+  });
+
+  document.getElementById('install-dismiss')?.addEventListener('click', () => {
+    hideInstallBanner();
   });
 
   window.addEventListener('appinstalled', () => {
     pwaInstalled = true;
     localStorage.setItem('pwaInstalled', 'true');
     deferredPrompt = null;
+    hideInstallBanner();
     updateInstallButton();
   });
 

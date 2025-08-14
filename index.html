@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>LyricSmith</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.webmanifest">
     <meta name="theme-color" content="#00bcd4">
     <link rel="icon" href="/assets/icons/icon-192x192.png">
     <!-- Use a single up-to-date Font Awesome version -->
@@ -35,6 +35,13 @@
         </div>
       </section>
     </main>
+  </div>
+  <div id="install-banner" class="install-banner hidden">
+    <span class="install-message">Install LyricSmith?</span>
+    <div class="install-actions">
+      <button id="install-accept" class="btn">Install</button>
+      <button id="install-dismiss" class="btn">Not now</button>
+    </div>
   </div>
     <script>
         // Register service worker and check for updates
