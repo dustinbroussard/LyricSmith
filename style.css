@@ -304,15 +304,6 @@ mark {
   opacity: 1;
 }
 
-.btn.icon-btn {
-  padding: 0.5rem;
-  width: 2.5rem;
-  height: 2.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .theme-icon-btn {
   position: absolute;
   top: 1.1rem;
@@ -493,28 +484,19 @@ mark {
 /* Toolbar layout */
 .toolbar {
     display: flex;
-    gap: var(--padding-base);
+    flex-direction: column;
+    gap: 0.5rem;
     margin-bottom: var(--padding-base);
-    align-items: center;
+    align-items: stretch;
 }
 
 /* Group wrapper for toolbar buttons */
 .toolbar-buttons-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    flex-wrap: nowrap;
-}
-
-.toolbar-buttons-group > .btn,
-.toolbar-buttons-group > label.btn {
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 0;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
     justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .toolbar-buttons-group > .sort-select {
@@ -525,12 +507,9 @@ mark {
 }
 
 .search-input {
-    flex-grow: 1;
+    width: 100%;
     padding: 0.5rem;
-    max-width: 50rem;
-    min-width: 40rem;
-    margin-right: 1rem;
-    margin-left: 1rem;
+    margin: 0;
     background-color: var(--bg-hover); /* Inputs use tertiary background */
     color: var(--text-primary);
     border: 1px solid var(--border); /* Input borders use main border */
@@ -551,11 +530,21 @@ mark {
     cursor: pointer;
     transition: background-color var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed);
     box-shadow: var(--shadow-sm); /* Adding a subtle shadow to buttons */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn:hover {
     background-color: var(--accent-hover);
     box-shadow: var(--shadow-md);
+}
+
+.btn.icon-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border-radius: 50%;
 }
 
 .btn:active {
@@ -652,11 +641,15 @@ mark {
     flex-grow: 1;
     overflow-y: auto;
     font-size: 1rem; /* Base size, slider still works */
-    padding: 2rem;
+    padding: 1rem;
     text-align: center;
-    line-height: 1.6;
+    line-height: 1.33;
     color: var(--text-primary); /* Lyrics use primary text color */
     transition: color var(--transition-speed);
+    word-break: break-word;
+    white-space: pre-wrap;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .nav-arrow {
@@ -706,7 +699,7 @@ mark {
 
 #song-lyrics-input {
     min-height: 6rem;
-    max-height: 28vh;
+    max-height: 60vh;
     resize: vertical;
     font-family: inherit;
     font-size: 1rem;
@@ -815,19 +808,6 @@ mark {
     min-height: 24px;
 }
 
-.lyrics-container {
-    line-height: 1.05 !important;  /* Super tight but still readable */
-    /* font-size: 1.5rem; */              /* Base size, slider still works */
-    padding: 0.8em 0.5em 1.2em 0.5em !important;
-    text-align: center;
-    max-width: 900px;
-    margin: 0 auto;
-    white-space: pre-line;
-}
-
-
-
-
 /* Optional: Only show auto-scroll button in editor mode */
 #editor-mode[style*="display: flex"] .auto-scroll-btn {
     display: flex !important;
@@ -836,16 +816,6 @@ mark {
 #editor-mode[style*="display: none"] .auto-scroll-btn {
     display: none !important;
 }
-
-.lyrics-container, #lyrics-content {
-    line-height: 1.33 !important;    /* Pick 1.28-1.38 as best for you */
-    letter-spacing: 0.01em;
-    word-break: break-word;
-    white-space: pre-line;           /* Preserves stanza breaks, trims crazy spacing */
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
 
 .song-progress {
   font-size: 1.02em;
@@ -1026,20 +996,6 @@ html, body {
 
 
 
-
-.icon-btn {
-  background: none;
-  border: none;
-  color: var(--accent-secondary, #aaa);
-  font-size: 1.2em;
-  cursor: pointer;
-  opacity: 0.85;
-  transition: color 0.22s, opacity 0.15s;
-}
-.icon-btn:hover, .icon-btn:focus {
-  color: var(--accent-primary, #fff);
-  opacity: 1;
-}
 
 /* === MOBILE FIX PATCH v2 === */
 @media (max-width: 480px) {
