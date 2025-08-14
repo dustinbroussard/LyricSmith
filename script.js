@@ -15,34 +15,67 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('theme') || 'dark';
   document.documentElement.dataset.theme = savedTheme;
 
-  const themeToggleBtn = document.getElementById('theme-toggle-btn');
-  themeToggleBtn?.addEventListener('click', () => {
-    const newTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = newTheme;
-    localStorage.setItem('theme', newTheme);
-  });
+  function attachThemeToggle() {
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    themeToggleBtn?.addEventListener('click', () => {
+      const newTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = newTheme;
+      localStorage.setItem('theme', newTheme);
+    });
+  }
 
-  // === PWA INSTALL PROMPT ===
-  const installBtn = document.getElementById('install-btn');
+  // === PWA INSTALL / UNINSTALL ===
   let deferredPrompt;
+  let pwaInstalled = window.matchMedia('(display-mode: standalone)').matches || localStorage.getItem('pwaInstalled') === 'true';
+
+  async function clearServiceWorkers() {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    for (const reg of regs) await reg.unregister();
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(key => caches.delete(key)));
+    }
+  }
+
+  function updateInstallButton() {
+    const installBtn = document.getElementById('install-btn');
+    if (!installBtn) return;
+    if (pwaInstalled) {
+      installBtn.innerHTML = '<i class="fas fa-trash"></i>';
+      installBtn.title = 'Uninstall app';
+      installBtn.setAttribute('aria-label', 'Uninstall app');
+      installBtn.style.display = 'inline-flex';
+      installBtn.onclick = async () => {
+        await clearServiceWorkers();
+        localStorage.removeItem('pwaInstalled');
+        pwaInstalled = false;
+        updateInstallButton();
+      };
+    } else {
+      installBtn.innerHTML = '<i class="fas fa-download"></i>';
+      installBtn.title = 'Install app';
+      installBtn.setAttribute('aria-label', 'Install app');
+      installBtn.style.display = deferredPrompt ? 'inline-flex' : 'none';
+      installBtn.onclick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      };
+    }
+  }
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    installBtn.style.display = 'inline-flex';
-  });
-
-  installBtn?.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    installBtn.style.display = 'none';
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
+    updateInstallButton();
   });
 
   window.addEventListener('appinstalled', () => {
-    installBtn.style.display = 'none';
+    pwaInstalled = true;
+    localStorage.setItem('pwaInstalled', 'true');
     deferredPrompt = null;
+    updateInstallButton();
   });
 
   // === CLIPBOARD MANAGER ===
@@ -403,9 +436,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <button id="import-clipboard-btn" class="btn" title="Paste Song"><i class="fas fa-paste"></i></button>
           <button id="delete-all-songs-btn" class="btn danger" title="Delete All Songs"><i class="fas fa-trash"></i></button>
           <label for="song-upload-input" class="btn" title="Upload Files"><i class="fas fa-upload"></i></label>
+          <button id="install-btn" class="btn icon-btn install-btn" title="Install app" aria-label="Install app"><i class="fas fa-download"></i></button>
+          <button id="theme-toggle-btn" class="btn icon-btn theme-toggle-btn" title="Toggle Light/Dark" aria-label="Toggle light or dark theme"><i class="fas fa-adjust"></i></button>
         </div>
         <input type="file" id="song-upload-input" multiple accept=".txt,.docx,.json" class="hidden-file">
       `;
+      attachThemeToggle();
+      updateInstallButton();
 
       document.getElementById('song-sort-select').value = this.sortOrder;
       document.getElementById('song-sort-select')?.addEventListener('change', (e) => {
