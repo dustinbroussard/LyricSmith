@@ -490,21 +490,38 @@ mark {
 /* ========================================
     Toolbar and Buttons
     ======================================== */
+/* Toolbar layout */
 .toolbar {
     display: flex;
-    gap: var(--padding-base); /* Using base padding for gap */
-    margin-bottom: var(--padding-base); /* Using base padding for margin */
+    gap: var(--padding-base);
+    margin-bottom: var(--padding-base);
     align-items: center;
 }
 
 /* Group wrapper for toolbar buttons */
 .toolbar-buttons-group {
     display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-left: 1rem;
-    margin-right: 1rem;
     align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+}
+
+.toolbar-buttons-group > .btn,
+.toolbar-buttons-group > label.btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolbar-buttons-group > .sort-select {
+    height: 2.5rem;
+    padding: 0 0.5rem;
+    border-radius: var(--border-radius-base);
+    min-width: 6rem;
 }
 
 .search-input {
@@ -709,44 +726,6 @@ mark {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
-}
-
-/* Better toolbar spacing */
-.toolbar {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
-}
-
-
-
-/* Responsive editor */
-@media (max-width: 600px) {
-    .toolbar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.75rem;
-        padding: 0.5rem;
-    }
-
-    .toolbar-buttons-group {
-        width: 100%;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        margin-top: 0;
-        margin-left: 1rem;
-        margin-right: 1rem;
-        gap: 0.5rem;
-    }
-
-    .toolbar-buttons-group > .btn,
-    .toolbar-buttons-group > label.btn,
-    .toolbar-buttons-group > .sort-select {
-        flex: 1 1 0;
-        text-align: center;
-    }
 }
 
 /* Loading states */
@@ -1114,44 +1093,6 @@ html, body {
     width: 100rem;
   }
     
-  .toolbar-buttons-group{
-    width: 30%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    margin-top: 0.5rem;
-  }
-  
-  .toolbar {
-    max-width: 75rem;
-  }
-  
-  .toolbar {
-   display: contents;
-   align-items: center;  
-  }
-  
-  .search-input {
-    flex-grow: 1;
-    padding: 0.5rem;
-    max-width: 33rem;
-    min-width: 22rem;
-    margin-right: 1rem;
-    margin-left: 1rem;
- }
- 
- .page-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
- }
- 
-.toolbar-buttons-group {
-        width: 60%;
-        margin-top: 1.5rem;
-    }
- 
   .edit-song-btn {
     font-size: 0.75rem !important;
     padding: 0.32rem 0.5rem !important;
@@ -1188,20 +1129,6 @@ html, body {
     box-shadow: var(--shadow-sm);
     transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
   }
-  .sort-select {
-    font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
-    margin-top: 1rem;
-    border-radius: var(--border-radius-base);
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    max-width: 9rem !important;
-    margin-left: 0;
-  }
-  .search-input {
-    font-size: 0.8rem !important;
-    padding: 0.35rem !important;
   }
   
 
@@ -1590,27 +1517,3 @@ html, body {
   .app-logo-img { max-height: 80px; }
 }
 
-/* Ensure toolbar buttons are uniform and horizontal across all screens */
-.toolbar,
-.toolbar-buttons-group,
-.editor-control-group {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    align-items: center;
-}
-
-.toolbar-buttons-group > .btn,
-.toolbar-buttons-group > label.btn,
-.editor-control-group > .btn {
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.toolbar-buttons-group > .sort-select {
-    height: 2.5rem;
-}

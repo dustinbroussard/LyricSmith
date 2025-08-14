@@ -74,6 +74,10 @@
     margin-right: 0.5rem;
 }
 
+.editor-control-group.center-controls {
+    margin: 0 auto;
+}
+
 
 .song-title-card {
     position: fixed;
@@ -582,32 +586,6 @@
     color: var(--accent-secondary);
 }
   
-.editor-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 0.75rem 1.5rem;
-    background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border);
-    border-radius: 1rem 1rem 0 0;
-    margin: 0.5rem;
-    width: calc(100% - 1rem);
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
-    backdrop-filter: blur(4px);
-    flex-shrink: 0;
-    position: sticky;
-    bottom: 0;
-}
-.footer-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    color: var(--text-secondary);
-}
-.footer-controls .control-label {
-    font-size: 0.9em;
-}
 .font-size-display {
     font-weight: bold;
     background: var(--bg-tertiary);
@@ -727,30 +705,6 @@
     position: relative;
     caret-color: var(--accent-primary);
     outline: none;
-  }
-  .editor-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2em;
-    padding: 0.5em 1em;
-    background-color: var(--bg-secondary);
-    border-top: 1px solid var(--border);
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-  }
-
-  .footer-controls {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    color: var(--text-secondary); 
-  }
-  
-  .footer-controls .control-label {
-    font-size: 0.9em;
   }
   
   
