@@ -119,7 +119,7 @@ async function callOpenRouterAPI(prompt) {
                     messages: [
                         {
                             role: 'system',
-                            content: 'You are a helpful songwriting assistant. When chords are provided, return chords and lyrics on alternating lines without additional commentary.'
+                            content: 'You are a helpful songwriting assistant. When chords are provided, return chords and lyrics on alternating lines without additional commentary. Label song sections in square brackets (e.g., [Verse 1], [Chorus]).'
                         },
                         { role: 'user', content: prompt }
                     ]
@@ -733,7 +733,7 @@ function enforceAlternating(lines) {
                 rhyme: `Find rhymes for: ${selectedText}`,
                 reword: `Suggest alternative wording for: ${selectedText}`,
                 rewrite: `Rewrite this line in a different tone: ${selectedText}`,
-                continue: `Continue the lyrics after: ${selectedText}. Include chord suggestions and return chords and lyrics on alternating lines.`
+                continue: `Continue the lyrics after: ${selectedText}. Include chord suggestions and return chords and lyrics on alternating lines, labeling sections in square brackets.`
             };
             const prompt = prompts[action];
             if (!window.CONFIG.openrouterApiKey) {
@@ -788,7 +788,7 @@ function enforceAlternating(lines) {
             try {
                 const song = this.currentSong;
                 const formatted = ClipboardManager.formatLyricsWithChords(song.lyrics || '', song.chords || '');
-                let prompt = `Clean up the formatting for this song and return chords and lyrics on alternating lines.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTime Signature: ${song.timeSignature}\n\n${formatted}`;
+                let prompt = `Clean up the formatting for this song and return chords and lyrics on alternating lines with section labels in square brackets.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTime Signature: ${song.timeSignature}\n\n${formatted}`;
                 const notes = this.additionalNotesInput?.value.trim();
                 if (notes) prompt += `\nAdditional notes: ${notes}`;
                 const response = await callOpenRouterAPI(prompt);
@@ -806,7 +806,7 @@ function enforceAlternating(lines) {
                 const song = this.currentSong;
                 const formatted = ClipboardManager.formatLyricsWithChords(song.lyrics || '', song.chords || '');
                 const tags = song.tags?.length ? song.tags.join(', ') : '';
-                let prompt = `Rewrite the following song in the ${newGenre} genre while preserving meaning and structure. Return chords and lyrics on alternating lines.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTags: ${tags}\n\n${formatted}`;
+                let prompt = `Rewrite the following song in the ${newGenre} genre while preserving meaning and structure. Return chords and lyrics on alternating lines with section labels in square brackets.\nTitle: ${song.title}\nKey: ${song.key}\nTempo: ${song.tempo}\nTags: ${tags}\n\n${formatted}`;
                 const notes = this.additionalNotesInput?.value.trim();
                 if (notes) prompt += `\nAdditional notes: ${notes}`;
                 const response = await callOpenRouterAPI(prompt);
@@ -1465,22 +1465,22 @@ function enforceAlternating(lines) {
             let append = false;
             switch (action) {
                 case 'Generate First Draft':
-                    promptText = `Write a complete first draft of song lyrics in ${style} with chord suggestions. Return chords and lyrics on alternating lines.`;
+                    promptText = `Write a complete first draft of song lyrics in ${style} with chord suggestions. Return chords and lyrics on alternating lines with section labels in square brackets.`;
                     break;
                 case 'Polish Lyrics':
-                    promptText = `Polish the following lyrics for flow, rhyme, and clarity and suggest suitable chords. Return chords and lyrics on alternating lines.\n${lyrics}`;
+                    promptText = `Polish the following lyrics for flow, rhyme, and clarity and suggest suitable chords. Return chords and lyrics on alternating lines with section labels in square brackets.\n${lyrics}`;
                     break;
                 case 'Rewrite in Different Style':
                     const styleInput = prompt('Rewrite in which style?');
                     if (!styleInput) return;
-                    promptText = `Rewrite these lyrics in the style of ${styleInput} with chord suggestions. Return chords and lyrics on alternating lines.\n${lyrics}`;
+                    promptText = `Rewrite these lyrics in the style of ${styleInput} with chord suggestions. Return chords and lyrics on alternating lines with section labels in square brackets.\n${lyrics}`;
                     break;
                 case 'Continue Song':
-                    promptText = `Continue the song after these lyrics, adding chord suggestions. Return chords and lyrics on alternating lines.\n${lyrics}`;
+                    promptText = `Continue the song after these lyrics, adding chord suggestions. Return chords and lyrics on alternating lines with section labels in square brackets.\n${lyrics}`;
                     append = true;
                     break;
                 case 'Suggest Chords':
-                    promptText = `Suggest chord progressions for the following lyrics. Return chords and lyrics on alternating lines.\n${lyrics}`;
+                    promptText = `Suggest chord progressions for the following lyrics. Return chords and lyrics on alternating lines with section labels in square brackets.\n${lyrics}`;
                     break;
                 default:
                     promptText = action;
