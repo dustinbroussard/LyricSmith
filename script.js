@@ -425,19 +425,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const toolbar = document.getElementById('tab-toolbar');
       toolbar.innerHTML = `
         <input type="text" id="song-search-input" class="search-input" placeholder="Search by title, tag, or key...">
-        <select id="song-sort-select" class="sort-select">
-          <option value="titleAsc">Title A–Z</option>
-          <option value="titleDesc">Title Z–A</option>
-          <option value="recent">Recently Edited</option>
-        </select>
         <div class="toolbar-buttons-group">
+          <select id="song-sort-select" class="sort-select">
+            <option value="titleAsc">Title A–Z</option>
+            <option value="titleDesc">Title Z–A</option>
+            <option value="recent">Recently Edited</option>
+          </select>
           <button id="add-song-btn" class="btn" title="Add Song"><i class="fas fa-plus"></i></button>
           <button id="export-library-btn" class="btn" title="Export Library"><i class="fas fa-download"></i></button>
           <button id="import-clipboard-btn" class="btn" title="Paste Song"><i class="fas fa-paste"></i></button>
           <button id="delete-all-songs-btn" class="btn danger" title="Delete All Songs"><i class="fas fa-trash"></i></button>
           <label for="song-upload-input" class="btn" title="Upload Files"><i class="fas fa-upload"></i></label>
-          <button id="install-btn" class="btn icon-btn install-btn" title="Install app" aria-label="Install app"><i class="fas fa-download"></i></button>
-          <button id="theme-toggle-btn" class="btn icon-btn theme-toggle-btn" title="Toggle Light/Dark" aria-label="Toggle light or dark theme"><i class="fas fa-adjust"></i></button>
+          <button id="install-btn" class="btn install-btn" title="Install app" aria-label="Install app"><i class="fas fa-download"></i></button>
+          <button id="theme-toggle-btn" class="btn theme-toggle-btn" title="Toggle Light/Dark" aria-label="Toggle light or dark theme"><i class="fas fa-adjust"></i></button>
         </div>
         <input type="file" id="song-upload-input" multiple accept=".txt,.docx,.json" class="hidden-file">
       `;
