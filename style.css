@@ -1056,7 +1056,7 @@ html, body {
   }
 
   .song-title,
-  .song-item span, span {
+  .song-item span {
     max-width: 70vw !important;
     white-space: nowrap !important;
     overflow: hidden !important;
