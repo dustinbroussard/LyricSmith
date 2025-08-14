@@ -175,19 +175,9 @@ mark {
     max-height: 40px;
 }
 
-.theme-toggle-btn {
-    margin-left: auto;
-}
 
-.header-actions {
+.header-top .theme-toggle-btn {
     margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.header-actions .theme-toggle-btn {
-    margin-left: 0;
 }
 
 .install-btn {
@@ -1607,7 +1597,7 @@ html, body {
   }
 
   /* park the theme toggle in the corner */
-  .theme-toggle-btn {
+  .header-top .theme-toggle-btn {
     position: absolute;
     top: 0rem;
     right: 0.7rem;
