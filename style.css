@@ -224,7 +224,7 @@ mark {
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
     color: var(--text-secondary);
-    margin-left: 0.5rem;
+    margin-left: 0;
 }
 
 .page-content, .tab {
@@ -742,7 +742,8 @@ mark {
     }
 
     .toolbar-buttons-group > .btn,
-    .toolbar-buttons-group > label.btn {
+    .toolbar-buttons-group > label.btn,
+    .toolbar-buttons-group > .sort-select {
         flex: 1 1 0;
         text-align: center;
     }
@@ -1044,30 +1045,7 @@ html, body {
   padding: 0;
 }
 
-.theme-toggle-btn {
-  background: none;
-  border: none;
-  color: var(--accent-secondary, #888);
-  font-size: 1.45rem;
-  cursor: pointer;
-  opacity: 0.82;
-  z-index: 100;
-  transition: color 0.22s, opacity 0.14s;
-}
-.theme-toggle-btn:hover, .theme-toggle-btn:focus {
-  color: var(--accent-primary, #fff);
-  opacity: 1;
-}
 
-.theme-toggle-btn {
-  background: none;
-  border: none;
-  font-size: 1.45rem;
-  cursor: pointer;
-  padding: 0.2em;
-  border-radius: 50%;
-  transition: background 0.22s, color 0.14s, opacity 0.14s;
-}
 
 
 .icon-btn {
@@ -1219,7 +1197,7 @@ html, body {
     border: 1px solid var(--border);
     color: var(--text-secondary);
     max-width: 9rem !important;
-    margin-left: 0.5rem;
+    margin-left: 0;
   }
   .search-input {
     font-size: 0.8rem !important;
@@ -1573,9 +1551,9 @@ html, body {
   width: auto;
 }
 
-/* Theme toggle: inline-right by default */
-.theme-toggle-btn { 
-  margin-left: auto; 
+/* Theme toggle: inline-right in header */
+.header-top .theme-toggle-btn {
+  margin-left: auto;
 }
 
 /* ===== Mobile (logo centered + big, theme in top-right corner) ===== */
