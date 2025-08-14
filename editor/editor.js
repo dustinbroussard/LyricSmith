@@ -637,9 +637,15 @@ function enforceAlternating(lines) {
                 });
         },
 
-        startLongPress() {
+        startLongPress(e) {
+            const target = e.target;
             this.longPressTimer = setTimeout(() => {
-                this.handleTextSelection();
+                if (target.classList?.contains('lyric-text') && target.textContent.trim() === '') {
+                    target.focus();
+                    this.addSectionModal?.classList.add('visible');
+                } else {
+                    this.handleTextSelection();
+                }
             }, 600);
         },
 
@@ -1084,6 +1090,7 @@ function enforceAlternating(lines) {
             this.updateReadOnlyState();
             this.updateChordsVisibility();
             this.updateSyllableCount();
+            this.autoNumberVerses();
         },
 
         insertSectionAtCursor(label) {
@@ -1106,14 +1113,23 @@ function enforceAlternating(lines) {
                 node = node.parentElement;
             }
             const currentSection = node?.closest?.('.section');
+            let lineGroup = null;
             if (currentSection) {
                 this.lyricsDisplay.insertBefore(section, currentSection.nextSibling);
             } else {
-                const lineGroup = node?.closest?.('.lyrics-line-group');
+                lineGroup = node?.closest?.('.lyrics-line-group');
                 if (lineGroup) {
                     this.lyricsDisplay.insertBefore(section, lineGroup);
                 } else {
                     this.lyricsDisplay.appendChild(section);
+                }
+            }
+
+            if (lineGroup) {
+                const lyric = lineGroup.querySelector('.lyric-text')?.textContent.trim();
+                const chord = lineGroup.querySelector('.chord-line')?.textContent.trim();
+                if (lyric === '' && chord === '') {
+                    lineGroup.remove();
                 }
             }
 
@@ -1211,6 +1227,63 @@ function enforceAlternating(lines) {
             });
         },
 
+        autoNumberVerses() {
+            let count = 0;
+            this.lyricsDisplay.querySelectorAll('.section-label').forEach(label => {
+                const text = label.textContent.trim();
+                if (/^\[verse(\s*\d*)?\]$/i.test(text)) {
+                    count++;
+                    label.textContent = `[Verse ${count}]`;
+                }
+            });
+        },
+
+        convertBracketSections() {
+            const texts = Array.from(this.lyricsDisplay.querySelectorAll('.lyric-text'));
+            texts.forEach(textEl => {
+                const text = textEl.textContent.trim();
+                if (!/^\[.*\]$/.test(text)) return;
+
+                const lineGroup = textEl.closest('.lyrics-line-group');
+                if (!lineGroup) return;
+
+                const parentSection = lineGroup.closest('.section');
+                const section = document.createElement('div');
+                section.className = 'section';
+
+                const header = document.createElement('div');
+                header.className = 'lyrics-line section-label';
+                header.textContent = text;
+                header.setAttribute('contenteditable', !this.isReadOnly);
+                header.addEventListener('click', () => section.classList.toggle('collapsed'));
+                header.addEventListener('input', () => this.handleLyricsInput());
+                section.appendChild(header);
+
+                const content = document.createElement('div');
+                content.className = 'section-content';
+                section.appendChild(content);
+
+                let next = lineGroup.nextSibling;
+                const container = lineGroup.parentElement;
+                while (next && next.classList && next.classList.contains('lyrics-line-group')) {
+                    const nextText = next.querySelector('.lyric-text')?.textContent.trim();
+                    if (nextText && /^\[.*\]$/.test(nextText)) break;
+                    const temp = next;
+                    next = next.nextSibling;
+                    content.appendChild(temp);
+                }
+
+                if (parentSection) {
+                    this.lyricsDisplay.insertBefore(section, parentSection.nextSibling);
+                } else {
+                    this.lyricsDisplay.insertBefore(section, lineGroup);
+                }
+
+                lineGroup.remove();
+            });
+            this.initSectionDrag();
+        },
+
         findRhymes(lines) {
             const rhymeWords = lines.map(line => {
                 if (/^\[.*\]$/.test(line.trim())) return '';
@@ -1261,6 +1334,8 @@ function enforceAlternating(lines) {
         handleLyricsInput() {
             this.hasUnsavedChanges = true;
             this.trimDomEmptyLines();
+            this.convertBracketSections();
+            this.autoNumberVerses();
             this.saveCurrentSong();
         },
 
