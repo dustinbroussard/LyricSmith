@@ -36,11 +36,37 @@ const normalizeSectionLabels = (text = '') => {
     }).join('\n');
 };
 
+const cleanAIOutput = (text) => {
+    return text
+        .replace(/\r\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/[ \t]+$/gm, '')
+        .replace(/^\s+|\s+$/g, '')
+        .replace(/^(Verse|Chorus|Bridge|Outro)[^\n]*$/gmi, '[$1]')
+        .replace(/^#+\s*/gm, '')
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/^(Capo|Key|Tempo|Time Signature).*$/gmi, '')
+        .trim();
+};
+
+const enforceAlternating = (lines) => {
+    const chords = [];
+    const lyrics = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (i % 2 === 0) {
+            chords.push(lines[i] || '');
+        } else {
+            lyrics.push(lines[i] || '');
+        }
+    }
+    return { chords, lyrics };
+};
+
 const createSong = (title, lyrics = '', chords = '') => ({
     id: Date.now().toString(),
     title,
-    lyrics: lyrics.trim() ? normalizeSectionLabels(lyrics) : defaultSections,
-    chords,
+    lyrics: lyrics.trim() ? normalizeSectionLabels(cleanAIOutput(lyrics)) : defaultSections,
+    chords: cleanAIOutput(chords),
     // New metadata fields
     key: '',
     tempo: 120,

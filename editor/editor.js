@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function callOpenRouterAPI(prompt) {
+async function callOpenRouterAPI(prompt) {
         try {
             if (!window.CONFIG.openrouterApiKey) {
                 throw new Error('Missing OpenRouter API key');
@@ -132,7 +132,33 @@ document.addEventListener('DOMContentLoaded', () => {
             ClipboardManager.showToast('AI request failed', 'error');
             return '';
         }
+}
+
+function cleanAIOutput(text) {
+    return text
+        .replace(/\r\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/[ \t]+$/gm, '')
+        .replace(/^\s+|\s+$/g, '')
+        .replace(/^(Verse|Chorus|Bridge|Outro)[^\n]*$/gmi, '[$1]')
+        .replace(/^#+\s*/gm, '')
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/^(Capo|Key|Tempo|Time Signature).*$/gmi, '')
+        .trim();
+}
+
+function enforceAlternating(lines) {
+    const chords = [];
+    const lyrics = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (i % 2 === 0) {
+            chords.push(lines[i] || '');
+        } else {
+            lyrics.push(lines[i] || '');
+        }
     }
+    return { chords, lyrics };
+}
 
     const app = {
         // DOM Elements (keeping existing ones and adding new)
@@ -767,19 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (notes) prompt += `\nAdditional notes: ${notes}`;
                 const response = await callOpenRouterAPI(prompt);
                 if (response) {
-                    const lines = response.trim().split(/\r?\n/);
-                    const newLyrics = [];
-                    const newChords = [];
-                    for (let i = 0; i < lines.length; i += 2) {
-                        newChords.push(lines[i] || '');
-                        if (lines[i + 1] !== undefined) {
-                            newLyrics.push(lines[i + 1]);
-                        }
-                    }
-                    song.lyrics = newLyrics.join('\n');
-                    song.chords = newChords.join('\n');
-                    this.renderLyrics();
-                    ClipboardManager.showToast('AI formatting applied!', 'success');
+                    this.applyAIResult(response, false, 'AI formatting applied!');
                 }
             } catch (err) {
                 console.error('AI format error', err);
@@ -797,48 +811,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (notes) prompt += `\nAdditional notes: ${notes}`;
                 const response = await callOpenRouterAPI(prompt);
                 if (response) {
-                    const lines = response.trim().split(/\r?\n/);
-                    const newLyrics = [];
-                    const newChords = [];
-                    for (let i = 0; i < lines.length; i += 2) {
-                        newChords.push(lines[i] || '');
-                        if (lines[i + 1] !== undefined) {
-                            newLyrics.push(lines[i + 1]);
-                        }
-                    }
-                    song.lyrics = newLyrics.join('\n');
-                    song.chords = newChords.join('\n');
-                    this.renderLyrics();
-                    ClipboardManager.showToast(`Re-genred as ${newGenre}`, 'success');
+                    this.applyAIResult(response, false, `Re-genred as ${newGenre}`);
                 }
             } catch (err) {
                 console.error('Re-genre error', err);
             }
         },
 
-        applyAIResult(responseText, append = false) {
+        applyAIResult(responseText, append = false, toastMessage = 'AI update applied') {
             if (!this.currentSong) return;
-            const lines = responseText.trim().split(/\r?\n/);
-            const newLyrics = [];
-            const newChords = [];
-            for (let i = 0; i < lines.length; i += 2) {
-                newChords.push(lines[i] || '');
-                if (lines[i + 1] !== undefined) {
-                    newLyrics.push(lines[i + 1]);
-                }
-            }
+            const cleaned = cleanAIOutput(responseText);
+            const lines = cleaned.split(/\n/);
+            const { chords, lyrics } = enforceAlternating(lines);
+            const lyricsText = this.normalizeSectionLabels(lyrics.join('\n'));
+            const chordsText = chords.join('\n');
 
             if (append) {
-                this.currentSong.lyrics = [this.currentSong.lyrics, newLyrics.join('\n')].filter(Boolean).join('\n');
-                this.currentSong.chords = [this.currentSong.chords, newChords.join('\n')].filter(Boolean).join('\n');
+                this.currentSong.lyrics = [this.currentSong.lyrics, lyricsText].filter(Boolean).join('\n');
+                this.currentSong.chords = [this.currentSong.chords, chordsText].filter(Boolean).join('\n');
             } else {
-                this.currentSong.lyrics = newLyrics.join('\n');
-                this.currentSong.chords = newChords.join('\n');
+                this.currentSong.lyrics = lyricsText;
+                this.currentSong.chords = chordsText;
             }
 
             this.renderLyrics();
             this.saveCurrentSong(true);
-            ClipboardManager.showToast('AI update applied', 'success');
+            ClipboardManager.showToast(toastMessage, 'success');
         },
 
         loadEditorState() {
