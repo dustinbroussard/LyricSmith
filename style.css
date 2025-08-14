@@ -179,6 +179,21 @@ mark {
     margin-left: auto;
 }
 
+.header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-actions .theme-toggle-btn {
+    margin-left: 0;
+}
+
+.install-btn {
+    display: none;
+}
+
 .theme-toggle-wrapper {
     min-width: 120px;
     display: flex;
