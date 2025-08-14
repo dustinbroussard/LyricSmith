@@ -23,107 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('theme', newTheme);
     });
   }
-
-  // === PWA INSTALL / UNINSTALL ===
-  let deferredPrompt;
-  let pwaInstalled =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true ||
-    localStorage.getItem('pwaInstalled') === 'true';
-  const INSTALL_PROMPT_INTERVAL = 0; // days between prompts; 0 = every session
-
-  function shouldShowPrompt() {
-    if (INSTALL_PROMPT_INTERVAL <= 0) return true;
-    const last = parseInt(localStorage.getItem('lastInstallPrompt'), 10);
-    return !last || Date.now() - last > INSTALL_PROMPT_INTERVAL * 86400000;
-  }
-
-  function recordPromptTime() {
-    localStorage.setItem('lastInstallPrompt', Date.now().toString());
-  }
-
-  async function clearServiceWorkers() {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    for (const reg of regs) await reg.unregister();
-    if (window.caches) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(key => caches.delete(key)));
-    }
-  }
-
-  function updateInstallButton() {
-    const installBtn = document.getElementById('install-btn');
-    if (!installBtn) return;
-    if (pwaInstalled) {
-      installBtn.innerHTML = '<i class="fas fa-trash"></i>';
-      installBtn.title = 'Uninstall app';
-      installBtn.setAttribute('aria-label', 'Uninstall app');
-      installBtn.style.display = 'inline-flex';
-      installBtn.onclick = async () => {
-        await clearServiceWorkers();
-        localStorage.removeItem('pwaInstalled');
-        pwaInstalled = false;
-        updateInstallButton();
-      };
-    } else {
-      installBtn.innerHTML = '<i class="fas fa-download"></i>';
-      installBtn.title = 'Install app';
-      installBtn.setAttribute('aria-label', 'Install app');
-      installBtn.style.display = deferredPrompt ? 'inline-flex' : 'none';
-      installBtn.onclick = async () => {
-        if (!deferredPrompt) return;
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-      };
-    }
-  }
-
-  function showInstallBanner() {
-    if (!deferredPrompt || pwaInstalled || sessionStorage.getItem('installDismissed') === 'true') return;
-    if (!shouldShowPrompt()) return;
-    const banner = document.getElementById('install-banner');
-    banner.classList.remove('hidden');
-    recordPromptTime();
-  }
-
-  function hideInstallBanner() {
-    const banner = document.getElementById('install-banner');
-    banner.classList.add('hidden');
-    sessionStorage.setItem('installDismissed', 'true');
-  }
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    updateInstallButton();
-    showInstallBanner();
-  });
-
-  document.getElementById('install-accept')?.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    hideInstallBanner();
-    if (choice.outcome === 'accepted') {
-      pwaInstalled = true;
-      localStorage.setItem('pwaInstalled', 'true');
-      updateInstallButton();
-    }
-  });
-
-  document.getElementById('install-dismiss')?.addEventListener('click', () => {
-    hideInstallBanner();
-  });
-
-  window.addEventListener('appinstalled', () => {
-    pwaInstalled = true;
-    localStorage.setItem('pwaInstalled', 'true');
-    deferredPrompt = null;
-    hideInstallBanner();
-    updateInstallButton();
-  });
+  attachThemeToggle();
 
   // === CLIPBOARD MANAGER ===
   class ClipboardManager {
@@ -393,10 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="song-copy-btn icon-btn" title="Quick Copy" aria-label="Quick copy ${song.title}" data-song-id="${song.id}">
               <i class="fas fa-copy"></i>
             </button>
-            <a class="song-edit-btn edit-song-btn" href="editor/editor.html?songId=${song.id}" title="Edit" aria-label="Edit ${song.title}">
+            <a class="song-edit-btn icon-btn edit-song-btn" href="editor/editor.html?songId=${song.id}" title="Edit" aria-label="Edit ${song.title}">
               <i class="fas fa-pen"></i>
             </a>
-            <button class="song-delete-btn danger delete-song-btn" title="Delete" aria-label="Delete ${song.title}" data-song-id="${song.id}">
+            <button class="song-delete-btn icon-btn delete-song-btn" title="Delete" aria-label="Delete ${song.title}" data-song-id="${song.id}">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -483,13 +383,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <button id="import-clipboard-btn" class="btn icon-btn" title="Paste Song"><i class="fas fa-paste"></i></button>
           <button id="delete-all-songs-btn" class="btn icon-btn danger" title="Delete All Songs"><i class="fas fa-trash"></i></button>
           <label for="song-upload-input" class="btn icon-btn" title="Upload Files"><i class="fas fa-upload"></i></label>
-          <button id="install-btn" class="btn icon-btn install-btn" title="Install app" aria-label="Install app"><i class="fas fa-download"></i></button>
-          <button id="theme-toggle-btn" class="btn icon-btn theme-toggle-btn" title="Toggle Light/Dark" aria-label="Toggle light or dark theme"><i class="fas fa-adjust"></i></button>
         </div>
         <input type="file" id="song-upload-input" multiple accept=".txt,.docx,.json" class="hidden-file">
       `;
-      attachThemeToggle();
-      updateInstallButton();
 
       document.getElementById('song-sort-select').value = this.sortOrder;
       document.getElementById('song-sort-select')?.addEventListener('change', (e) => {

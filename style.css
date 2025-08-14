@@ -176,38 +176,6 @@ mark {
 }
 
 
-.header-top .theme-toggle-btn {
-    margin-left: auto;
-}
-
-.install-btn {
-    display: none;
-}
-
-.install-banner {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    padding: 0.8rem 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 -2px 6px rgba(0,0,0,0.2);
-    z-index: 1000;
-}
-
-.install-banner.hidden {
-    display: none;
-}
-
-.install-banner .install-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
 .theme-toggle-wrapper {
     min-width: 120px;
     display: flex;
@@ -330,12 +298,12 @@ mark {
 
 .theme-icon-btn {
   position: absolute;
-  top: 1.1rem;
-  right: 1.1rem;
+  top: 0.5rem;
+  right: 0.5rem;
   background: none;
   border: none;
   color: var(--accent-secondary, #888);
-  font-size: 1.rem;
+  font-size: 1rem;
   cursor: pointer;
   opacity: 0.82;
   z-index: 100;
@@ -512,6 +480,7 @@ mark {
     gap: 0.5rem;
     margin-bottom: var(--padding-base);
     align-items: stretch;
+    padding: 0 0.5rem;
 }
 
 /* Group wrapper for toolbar buttons */
@@ -532,7 +501,7 @@ mark {
 
 .search-input {
     width: 100%;
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
     margin: 0;
     background-color: var(--bg-hover); /* Inputs use tertiary background */
     color: var(--text-primary);
@@ -1120,33 +1089,6 @@ html, body {
 }
 
 
-.song-delete-btn {
-    background-color: var(--accent-primary); /* Buttons use accent primary */
-    color: var(--text-primary); /* Text on buttons should contrast, using bg-primary for dark themes */
-    border: none;
-    margin-left: 0.3rem;
-    min-width: 1rem !important;
-    max-width: 2.3rem !important;
-    padding: 0.5rem 0.9rem !important;
-    font-size: 0.7rem !important;
-    border-radius: var(--border-radius-base); /* Using base border radius */
-    cursor: pointer;
-    transition: background-color var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed);
-    box-shadow: var(--shadow-sm); /* Adding a subtle shadow to buttons */
-}
-
-.song-edit-btn {
-    background-color: var(--accent-primary); /* Buttons use accent primary */
-    color: var(--bg-primary); /* Text on buttons should contrast, using bg-primary for dark themes */
-    border: none;
-    min-width: 1rem !important;
-    padding: 0.5rem 0.7rem !important;
-    font-size: 0.7rem !important;
-    border-radius: var(--border-radius-base); /* Using base border radius */
-    cursor: pointer;
-    transition: background-color var(--transition-speed), color var(--transition-speed), box-shadow var(--transition-speed);
-    box-shadow: var(--shadow-sm); /* Adding a subtle shadow to buttons */
-}
 
 /* ========================================
     Enhanced Song List Styles
@@ -1210,6 +1152,7 @@ html, body {
     color: var(--text-muted);
 }
 
+
 .song-actions {
     display: flex;
     gap: 0.25rem;
@@ -1217,7 +1160,7 @@ html, body {
     flex-shrink: 0;
 }
 
-.song-copy-btn {
+.song-actions .icon-btn {
     background: var(--bg-secondary);
     color: var(--accent-secondary);
     border: 1px solid var(--border);
@@ -1232,7 +1175,7 @@ html, body {
     position: relative;
 }
 
-.song-copy-btn:hover {
+.song-actions .icon-btn:hover {
     background: var(--accent-primary);
     color: var(--bg-primary);
     transform: scale(1.05);
@@ -1361,10 +1304,8 @@ html, body {
         justify-content: flex-end;
         gap: 0.5rem;
     }
-    
-    .song-copy-btn,
-    .song-edit-btn,
-    .song-delete-btn {
+
+    .song-actions .icon-btn {
         width: 2.25rem;
         height: 2.25rem;
         font-size: 0.9rem;
@@ -1422,10 +1363,8 @@ html, body {
     .song-actions {
         gap: 0.3rem;
     }
-    
-    .song-copy-btn,
-    .song-edit-btn,
-    .song-delete-btn {
+
+    .song-actions .icon-btn {
         width: 2rem;
         height: 2rem;
         font-size: 0.8rem;
@@ -1458,39 +1397,6 @@ html, body {
   width: auto;
 }
 
-/* Theme toggle: inline-right in header */
-.header-top .theme-toggle-btn {
-  margin-left: auto;
-}
-
-/* ===== Mobile (logo centered + big, theme in top-right corner) ===== */
-@media (max-width: 700px) {
-  .header-top {
-    justify-content: center;
-    padding: 0.5rem 0.8rem;
-    width: 100% !important;   /* nuke older 50%/70% rules */
-  }
-
-  .app-logo { 
-    flex: 1 1 100%;
-    justify-content: center; 
-  }
-
-  .app-logo-img {
-    max-height: none;                 /* switch from height cap… */
-    max-width: min(540px, 84vw);      /* …to wide, centered image */
-  }
-
-  /* park the theme toggle in the corner */
-  .header-top .theme-toggle-btn {
-    position: absolute;
-    top: 0rem;
-    right: 0.7rem;
-    margin: 0;                        /* ignore the flex auto-margin */
-    padding: 0.35rem;
-    font-size: 1.2rem;                /* tap-friendly, not huge */
-  }
-}
 
 /* ===== Tablet tune-up ===== */
 @media (min-width: 700px) and (max-width: 1024px) {
