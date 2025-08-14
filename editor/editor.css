@@ -57,6 +57,7 @@
 .editor-control-group {
     display: flex;
     align-items: center;
+    flex-wrap: nowrap;
     gap: 1.25rem;
     padding: 0.5rem;
     border-radius: 0.75rem;
@@ -652,10 +653,11 @@
 
 /* MOBILE POLISH PATCH */
 @media (max-width: 600px) {
-toolbar {
-    flex-wrap: wrap;
+  toolbar {
+    flex-wrap: nowrap;
     justify-content: space-between;
     gap: 0.4em;
+    overflow-x: auto;
   }
 
   .setlist-editor {
@@ -666,7 +668,8 @@ toolbar {
   .editor-header {
     padding: 0.3em 0.5em;
     font-size: 0.8em;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     gap: 0.5em;
   }
 
@@ -678,6 +681,7 @@ toolbar {
 
   .editor-control-group {
     gap: 0.7em;
+    flex-wrap: nowrap;
   }
 
   #lyrics-display {
