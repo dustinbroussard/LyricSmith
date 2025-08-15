@@ -98,7 +98,7 @@
 }
 
 /* Responsive tweaks */
-@media (max-width: 600px) {
+  @media (max-width: 600px) {
     #app-header {
         flex-wrap: wrap;
         gap: 0.5rem;
@@ -110,9 +110,10 @@
 }
 
 
+
 .song-title-card {
     position: fixed;
-    top: 5rem;
+    top: calc(var(--header-height) + 0.5rem);
     left: 50%;
     font-size: 1.4rem;
     font-weight: 500;
@@ -521,11 +522,18 @@
 /* Section-based editing */
 .section-label {
     font-weight: bold;
-    cursor: grab;
     margin-top: 1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.section-label:active {
+.section-drag-handle {
+    cursor: grab;
+    color: var(--text-secondary);
+}
+
+.section-drag-handle:active {
     cursor: grabbing;
 }
 
@@ -637,7 +645,7 @@
     gap: 1rem;
   }
   .song-title-card {
-    top: 4em;
+    top: calc(var(--header-height) + 0.5rem);
     font-size: 1em;
     padding: 0.3em 0.8em;
   }

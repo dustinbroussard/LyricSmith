@@ -17,6 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // Maintain song title card position beneath the header
+    const appHeader = document.getElementById('app-header');
+    function updateTitleCardOffset() {
+        if (!appHeader) return;
+        document.documentElement.style.setProperty('--header-height', `${appHeader.offsetHeight}px`);
+    }
+    window.addEventListener('resize', updateTitleCardOffset);
+    updateTitleCardOffset();
+
 // Clipboard Manager Class
     class ClipboardManager {
         static async copyToClipboard(text, showToast = true) {
@@ -787,10 +796,28 @@ function enforceAlternating(lines) {
             }
             this.sectionSortable = Sortable.create(this.lyricsDisplay, {
                 animation: 150,
-                handle: '.section-label',
+                handle: '.section-drag-handle',
                 draggable: '.section',
                 onEnd: () => this.handleLyricsInput()
             });
+        },
+
+        createSectionHeader(text, section) {
+            const header = document.createElement('div');
+            header.className = 'lyrics-line section-label';
+            header.setAttribute('contenteditable', !this.isReadOnly);
+            const dragHandle = document.createElement('span');
+            dragHandle.className = 'section-drag-handle';
+            dragHandle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+            dragHandle.contentEditable = 'false';
+            const textSpan = document.createElement('span');
+            textSpan.className = 'section-label-text';
+            textSpan.textContent = text;
+            header.appendChild(dragHandle);
+            header.appendChild(textSpan);
+            header.addEventListener('click', () => section.classList.toggle('collapsed'));
+            header.addEventListener('input', () => this.handleLyricsInput());
+            return header;
         },
 
         handleAIAction(action, selectedText) {
@@ -1114,12 +1141,7 @@ saveCurrentSong(isExplicit = false) {
                 if (/^\[.*\]$/.test(lyricLine.trim())) {
                     const section = document.createElement('div');
                     section.className = 'section';
-                    const header = document.createElement('div');
-                    header.className = 'lyrics-line section-label';
-                    header.textContent = lyricLine.trim();
-                    header.setAttribute('contenteditable', 'true');
-                    header.addEventListener('click', () => section.classList.toggle('collapsed'));
-                    header.addEventListener('input', () => this.handleLyricsInput());
+                    const header = this.createSectionHeader(lyricLine.trim(), section);
                     section.appendChild(header);
                     const content = document.createElement('div');
                     content.className = 'section-content';
@@ -1173,12 +1195,7 @@ saveCurrentSong(isExplicit = false) {
         insertSectionAtCursor(label) {
             const section = document.createElement('div');
             section.className = 'section';
-            const header = document.createElement('div');
-            header.className = 'lyrics-line section-label';
-            header.textContent = label;
-            header.setAttribute('contenteditable', !this.isReadOnly);
-            header.addEventListener('click', () => section.classList.toggle('collapsed'));
-            header.addEventListener('input', () => this.handleLyricsInput());
+            const header = this.createSectionHeader(label, section);
             section.appendChild(header);
             const content = document.createElement('div');
             content.className = 'section-content';
@@ -1307,10 +1324,11 @@ saveCurrentSong(isExplicit = false) {
         autoNumberVerses() {
             let count = 0;
             this.lyricsDisplay.querySelectorAll('.section-label').forEach(label => {
-                const text = label.textContent.trim();
-                if (/^\[verse(\s*\d*)?\]$/i.test(text)) {
+                const textEl = label.querySelector('.section-label-text');
+                const text = textEl?.textContent.trim();
+                if (text && /^\[verse(\s*\d*)?\]$/i.test(text)) {
                     count++;
-                    label.textContent = `[Verse ${count}]`;
+                    textEl.textContent = `[Verse ${count}]`;
                 }
             });
         },
@@ -1328,12 +1346,7 @@ saveCurrentSong(isExplicit = false) {
                 const section = document.createElement('div');
                 section.className = 'section';
 
-                const header = document.createElement('div');
-                header.className = 'lyrics-line section-label';
-                header.textContent = text;
-                header.setAttribute('contenteditable', !this.isReadOnly);
-                header.addEventListener('click', () => section.classList.toggle('collapsed'));
-                header.addEventListener('input', () => this.handleLyricsInput());
+                const header = this.createSectionHeader(text, section);
                 section.appendChild(header);
 
                 const content = document.createElement('div');
