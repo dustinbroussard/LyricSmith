@@ -193,8 +193,8 @@ function enforceAlternating(lines) {
         editorMode: document.getElementById('editor-mode'),
         lyricsEditorContainer: document.getElementById('lyrics-editor-container'),
         lyricsDisplay: document.getElementById('lyrics-display'),
-        decreaseFontBtn: document.getElementById('decrease-font-btn'),
-        increaseFontBtn: document.getElementById('increase-font-btn'),
+        decreaseFontBtn: document.getElementById('font-decrease'),
+        increaseFontBtn: document.getElementById('font-increase'),
         fontSizeDisplay: document.getElementById('font-size-display'),
         toggleThemeBtn: document.getElementById('theme-toggle-btn'),
         exitEditorBtn: document.getElementById('exit-editor-btn'),
@@ -260,29 +260,7 @@ function enforceAlternating(lines) {
             this.loadData();
             this.loadAISettings();
             this.setupEventListeners();
-            this.debouncedSaveCurrentSong = debounce(() => this.
-showSaveStatus(state = 'saved') {
-    const el = document.getElementById('save-status');
-    if (!el) return;
-    el.classList.add('visible');
-    if (state === 'unsaved') { el.textContent = 'Unsaved changes'; el.classList.add('unsaved'); }
-    if (state === 'saving')  { el.textContent = 'Saving…'; el.classList.add('unsaved'); }
-    if (state === 'saved')   { el.textContent = 'All changes saved'; el.classList.remove('unsaved'); }
-    if (state === 'error')   { el.textContent = 'Save failed'; el.classList.add('unsaved'); }
-    clearTimeout(this._saveStatusTimer);
-    this._saveStatusTimer = setTimeout(() => { el.classList.remove('visible'); }, 2000);
-},
-safeLocalStorageSet(key, value) {
-    try {
-        localStorage.setItem(key, value);
-        return true;
-    } catch (e) {
-        console.warn('localStorage write failed', e);
-        ClipboardManager?.showToast?.('Storage full or blocked', 'error');
-        return false;
-    }
-},
-saveCurrentSong(false), 500);
+            this.debouncedSaveCurrentSong = debounce(() => this.saveCurrentSong(false), 500);
             this.loadEditorState();
             if (this.editModeSelect) {
                 this.editModeSelect.value = this.editMode;
@@ -291,13 +269,40 @@ saveCurrentSong(false), 500);
                 this.rhymeModeToggle.checked = this.isRhymeMode;
             }
             this.displayCurrentEditorSong();
-            window.addEventListener('beforeunload', (e) => { if (this.hasUnsavedChanges) { e.preventDefault(); e.returnValue = ''; }});
+            window.addEventListener('beforeunload', (e) => {
+                if (this.hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
 
             this.setupResizeObserver();
             this.isChordsVisible = window.CONFIG.chordsModeEnabled;
             this.updateChordsVisibility();
         },
 
+        showSaveStatus(state = 'saved') {
+            const el = document.getElementById('save-status');
+            if (!el) return;
+            el.classList.add('visible');
+            if (state === 'unsaved') { el.textContent = 'Unsaved changes'; el.classList.add('unsaved'); }
+            if (state === 'saving')  { el.textContent = 'Saving…'; el.classList.add('unsaved'); }
+            if (state === 'saved')   { el.textContent = 'All changes saved'; el.classList.remove('unsaved'); }
+            if (state === 'error')   { el.textContent = 'Save failed'; el.classList.add('unsaved'); }
+            clearTimeout(this._saveStatusTimer);
+            this._saveStatusTimer = setTimeout(() => { el.classList.remove('visible'); }, 2000);
+        },
+
+        safeLocalStorageSet(key, value) {
+            try {
+                localStorage.setItem(key, value);
+                return true;
+            } catch (e) {
+                console.warn('localStorage write failed', e);
+                ClipboardManager?.showToast?.('Storage full or blocked', 'error');
+                return false;
+            }
+        },
         loadData() {
             this.songs = JSON.parse(localStorage.getItem('songs')) || [];
             const theme = localStorage.getItem('theme') || 'dark';
@@ -979,16 +984,17 @@ saveCurrentSong(isExplicit = false) {
                 }
             });
 
-            const lyrics = this.trimExtraEmptyLines(lyricLines.join('
-'));
-            const chords = this.trimExtraEmptyLines(chordLines.join('
-'));
+            const lyrics = this.trimExtraEmptyLines(lyricLines.join('\n'));
+            const chords = this.trimExtraEmptyLines(chordLines.join('\n'));
 
             this.currentSong.lyrics = this.normalizeSectionLabels(lyrics);
             this.currentSong.chords = chords;
             this.currentSong.lastEditedAt = new Date().toISOString();
+            const editedText = new Date(this.currentSong.lastEditedAt).toLocaleString();
             const editedEl = document.getElementById('song-edited');
-            if (editedEl) editedEl.textContent = new Date(this.currentSong.lastEditedAt).toLocaleString();
+            const editedMetaEl = document.getElementById('song-edited-meta');
+            if (editedEl) editedEl.textContent = editedText;
+            if (editedMetaEl) editedMetaEl.textContent = editedText;
 
             const songIndex = this.songs.findIndex(s => s.id === this.currentSong.id);
             if (songIndex !== -1) {
@@ -1006,27 +1012,6 @@ saveCurrentSong(isExplicit = false) {
             this.showSaveStatus('error');
         }
     },
-;
-
-            const lyrics = this.trimExtraEmptyLines(lyricLines.join('\n'));
-            const chords = this.trimExtraEmptyLines(chordLines.join('\n'));
-
-            this.currentSong.lyrics = this.normalizeSectionLabels(lyrics);
-            this.currentSong.chords = chords;
-            this.currentSong.lastEditedAt = new Date().toISOString();
-            document.getElementById('song-edited').textContent = new Date(this.currentSong.lastEditedAt).toLocaleString();
-
-            const songIndex = this.songs.findIndex(s => s.id === this.currentSong.id);
-            if (songIndex !== -1) {
-                this.songs[songIndex] = this.currentSong;
-                localStorage.setItem('songs', JSON.stringify(this.songs));
-                this.hasUnsavedChanges = false;
-                
-                if (isExplicit) {
-                    ClipboardManager.showToast('Song saved!', 'success');
-                }
-            }
-        },
 
         displayCurrentEditorSong() {
             if (this.currentEditorSongIndex === -1) return;
@@ -1044,7 +1029,7 @@ saveCurrentSong(isExplicit = false) {
             this.fontSize = this.perSongFontSizes[this.currentSong.id] || 16;
 
             document.getElementById('song-title-card').textContent = this.currentSong.title;
-            this.fontSizeDisplay.textContent = `${this.fontSize}px`;
+            this.fontSizeDisplay.textContent = `${Math.round((this.fontSize / 16) * 100)}%`;
 
             const mm = localStorage.getItem(`measureMode_${this.currentSong.id}`);
             this.isMeasureMode = mm === '1';
@@ -1058,7 +1043,11 @@ saveCurrentSong(isExplicit = false) {
             document.getElementById('song-tags').value = this.currentSong.tags.join(', ');
             document.getElementById('song-notes').value = this.currentSong.notes || '';
             document.getElementById('song-created').textContent = new Date(this.currentSong.createdAt).toLocaleString();
-            document.getElementById('song-edited').textContent = new Date(this.currentSong.lastEditedAt).toLocaleString();
+            const editedText = new Date(this.currentSong.lastEditedAt).toLocaleString();
+            const headerEdited = document.getElementById('song-edited');
+            const metaEdited = document.getElementById('song-edited-meta');
+            if (headerEdited) headerEdited.textContent = editedText;
+            if (metaEdited) metaEdited.textContent = editedText;
 
             this.currentSong.lyrics = this.normalizeSectionLabels(this.currentSong.lyrics || '');
 
@@ -1451,7 +1440,7 @@ saveCurrentSong(isExplicit = false) {
             this.perSongFontSizes[this.currentSong.id] = this.fontSize;
             localStorage.setItem('perSongFontSizes', JSON.stringify(this.perSongFontSizes));
             this.lyricsDisplay.style.fontSize = `${this.fontSize}px`;
-            this.fontSizeDisplay.textContent = `${this.fontSize}px`;
+            this.fontSizeDisplay.textContent = `${Math.round((this.fontSize / 16) * 100)}%`;
         },
 
         navigateSong(direction) {
