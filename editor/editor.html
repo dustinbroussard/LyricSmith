@@ -55,30 +55,6 @@
             color: var(--accent-primary);
         }
         
-        .save-status {
-            position: fixed;
-            top: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-            padding: 0.5rem 1rem;
-            border-radius: var(--border-radius-base);
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 998;
-        }
-        
-        .save-status.visible {
-            opacity: 1;
-        }
-        
-        .save-status.unsaved {
-            background: var(--warning);
-            color: var(--bg-primary);
-        }
-        
         @media (max-width: 800px) {
             .metadata-panel {
                 width: 100%;
@@ -90,29 +66,32 @@
 <body>
 
     <div id="editor-mode" class="editor-mode-overlay">
-        <!-- Save Status Indicator -->
-        <div id="save-status" class="save-status">
-            All changes saved
-        </div>
-
-        <div class="editor-header">
-            <div class="editor-control-group left-controls">
+        <header id="app-header">
+            <div class="header-left">
+                <h1 id="app-title">LyricSmith</h1>
+                <div id="save-status"></div>
+                <span id="song-edited"></span>
+            </div>
+            <div class="header-right">
                 <button id="editor-menu-btn" class="btn icon-btn" title="Editor Menu">
                     <i class="fas fa-ellipsis-h"></i>
                 </button>
                 <button id="add-section-btn" class="btn icon-btn" title="Add Section">
                     <i class="fas fa-plus"></i>
                 </button>
-            </div>
-            <div class="editor-control-group right-controls">
                 <button id="ai-tools-btn" class="btn icon-btn" title="AI Tools">
                     <i class="fas fa-robot"></i>
                 </button>
                 <button id="exit-editor-btn" class="btn icon-btn" title="Exit Editor">
                     <i class="fas fa-times"></i>
                 </button>
+                <div id="font-controls">
+                    <button id="font-decrease" title="Decrease Font Size">A−</button>
+                    <span id="font-size-display">100%</span>
+                    <button id="font-increase" title="Increase Font Size">A+</button>
+                </div>
             </div>
-        </div>
+        </header>
 
         <div id="song-title-card" class="song-title-card"></div>
 
@@ -121,16 +100,6 @@
 
             <!-- Enhanced Copy Button with Dropdown -->
 
-        </div>
-
-        <div id="font-size-card" class="font-size-card">
-            <button id="decrease-font-btn" class="btn icon-btn" title="Decrease Font Size">
-                <i class="fas fa-minus"></i>
-            </button>
-            <span id="font-size-display" class="font-size-display"></span>
-            <button id="increase-font-btn" class="btn icon-btn" title="Increase Font Size">
-                <i class="fas fa-plus"></i>
-            </button>
         </div>
 
         <div id="ai-context-menu" class="ai-context-menu">
@@ -287,7 +256,7 @@
             
             <div class="metadata-row">
                 <label>Last Edited:</label>
-                <span id="song-edited" class="metadata-info"></span>
+                <span id="song-edited-meta" class="metadata-info"></span>
             </div>
             
             <div class="metadata-row">
