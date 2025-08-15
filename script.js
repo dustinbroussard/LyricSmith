@@ -208,6 +208,48 @@ document.addEventListener('DOMContentLoaded', () => {
       }).join('\n');
     },
 
+    cleanAIOutput(text) {
+      return text
+        .replace(/\r\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/[ \t]+$/gm, '')
+        .replace(/^\s+|\s+$/g, '')
+        .replace(/^(Verse|Chorus|Bridge|Outro)[^\n]*$/gmi, '[$1]')
+        .replace(/^#+\s*/gm, '')
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/^(Capo|Key|Tempo|Time Signature).*$/gmi, '')
+        .trim();
+    },
+
+    enforceAlternating(lines) {
+      const chords = [];
+      const lyrics = [];
+      for (let i = 0; i < lines.length; i++) {
+        if (i % 2 === 0) {
+          chords.push(lines[i] || '');
+        } else {
+          lyrics.push(lines[i] || '');
+        }
+      }
+      return { chords, lyrics };
+    },
+
+    parseSongContent(content) {
+      const cleaned = this.cleanAIOutput(content || '');
+      const lines = cleaned.split(/\r?\n/);
+      let lyricsText = cleaned;
+      let chordsText = '';
+      if (lines.length > 1) {
+        const { chords, lyrics } = this.enforceAlternating(lines);
+        if (chords.some(line => line.trim() !== '')) {
+          chordsText = chords.join('\n');
+          lyricsText = lyrics.join('\n');
+        }
+      }
+      lyricsText = this.normalizeSectionLabels(lyricsText);
+      return { lyrics: lyricsText, chords: chordsText };
+    },
+
     formatTimeAgo(dateString) {
       const date = new Date(dateString);
       const now = new Date();
@@ -405,7 +447,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (text.trim()) {
           const title = prompt("Title for pasted song?", "New Song");
           if (title) {
-            const newSong = this.createSong(title, text);
+            const { lyrics, chords } = this.parseSongContent(text);
+            const newSong = this.createSong(title, lyrics, chords);
             this.songs.push(newSong);
             this.saveSongs();
             this.renderSongs();
@@ -448,10 +491,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
               // Extract title from filename (without extension)
               const title = this.normalizeTitle(file.name);
-              const lyrics = content.trim();
+              const { lyrics, chords } = this.parseSongContent(content);
 
               if (title && lyrics) {
-                resolve(this.createSong(title, lyrics));
+                resolve(this.createSong(title, lyrics, chords));
               } else {
                 resolve(null);
               }
