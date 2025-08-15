@@ -553,7 +553,8 @@ function enforceAlternating(lines) {
             this.lyricsDisplay?.addEventListener('mouseup', () => this.cancelLongPress());
             this.lyricsDisplay?.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                if (e.target.classList.contains('section-label')) {
+                const label = e.target.closest('.section-label');
+                if (label && !e.target.classList.contains('drag-handle')) {
                     this.openSectionMenu(e);
                 } else {
                     this.handleTextSelection();
@@ -761,7 +762,7 @@ function enforceAlternating(lines) {
             if (!this.sectionMenuTarget) return;
             const section = this.sectionMenuTarget;
             if (action === 'rename') {
-                const label = section.querySelector('.section-label');
+                const label = section.querySelector('.section-label-text');
                 label?.focus();
                 document.execCommand?.('selectAll', false, null);
             } else if (action === 'delete-label') {
@@ -787,7 +788,7 @@ function enforceAlternating(lines) {
             }
             this.sectionSortable = Sortable.create(this.lyricsDisplay, {
                 animation: 150,
-                handle: '.section-label',
+                handle: '.drag-handle',
                 draggable: '.section',
                 onEnd: () => this.handleLyricsInput()
             });
@@ -930,7 +931,7 @@ function enforceAlternating(lines) {
             const newTitle = titleEl?.value.trim() || '';
             if (this.currentSong.title !== newTitle) {
                 this.currentSong.title = newTitle;
-                document.getElementById('song-title-card').textContent = newTitle;
+                document.getElementById('app-title').textContent = newTitle;
                 this.hasUnsavedChanges = true;
             }
 
@@ -970,11 +971,11 @@ saveCurrentSong(isExplicit = false) {
         if (!this.currentSong || (!window.CONFIG.autosaveEnabled && !isExplicit)) return;
         this.showSaveStatus('saving');
         try {
-            const lyricNodes = Array.from(this.lyricsDisplay.querySelectorAll('.section-label, .lyric-text'));
+            const lyricNodes = Array.from(this.lyricsDisplay.querySelectorAll('.section-label-text, .lyric-text'));
             const lyricLines = [];
             const chordLines = [];
             lyricNodes.forEach(node => {
-                if (node.classList.contains('section-label')) {
+                if (node.classList.contains('section-label-text')) {
                     lyricLines.push(node.textContent);
                 } else {
                     lyricLines.push(node.textContent);
@@ -1028,7 +1029,7 @@ saveCurrentSong(isExplicit = false) {
 
             this.fontSize = this.perSongFontSizes[this.currentSong.id] || 16;
 
-            document.getElementById('song-title-card').textContent = this.currentSong.title;
+            document.getElementById('app-title').textContent = this.currentSong.title;
             this.fontSizeDisplay.textContent = `${Math.round((this.fontSize / 16) * 100)}%`;
 
             const mm = localStorage.getItem(`measureMode_${this.currentSong.id}`);
@@ -1116,10 +1117,20 @@ saveCurrentSong(isExplicit = false) {
                     section.className = 'section';
                     const header = document.createElement('div');
                     header.className = 'lyrics-line section-label';
-                    header.textContent = lyricLine.trim();
-                    header.setAttribute('contenteditable', 'true');
-                    header.addEventListener('click', () => section.classList.toggle('collapsed'));
-                    header.addEventListener('input', () => this.handleLyricsInput());
+                    const handle = document.createElement('i');
+                    handle.className = 'fas fa-grip-lines drag-handle';
+                    header.appendChild(handle);
+                    const labelSpan = document.createElement('span');
+                    labelSpan.className = 'section-label-text';
+                    labelSpan.textContent = lyricLine.trim();
+                    labelSpan.setAttribute('contenteditable', 'true');
+                    labelSpan.addEventListener('input', () => this.handleLyricsInput());
+                    header.appendChild(labelSpan);
+                    header.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('drag-handle')) {
+                            section.classList.toggle('collapsed');
+                        }
+                    });
                     section.appendChild(header);
                     const content = document.createElement('div');
                     content.className = 'section-content';
@@ -1175,10 +1186,20 @@ saveCurrentSong(isExplicit = false) {
             section.className = 'section';
             const header = document.createElement('div');
             header.className = 'lyrics-line section-label';
-            header.textContent = label;
-            header.setAttribute('contenteditable', !this.isReadOnly);
-            header.addEventListener('click', () => section.classList.toggle('collapsed'));
-            header.addEventListener('input', () => this.handleLyricsInput());
+            const handle = document.createElement('i');
+            handle.className = 'fas fa-grip-lines drag-handle';
+            header.appendChild(handle);
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'section-label-text';
+            labelSpan.textContent = label;
+            labelSpan.setAttribute('contenteditable', !this.isReadOnly);
+            labelSpan.addEventListener('input', () => this.handleLyricsInput());
+            header.appendChild(labelSpan);
+            header.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('drag-handle')) {
+                    section.classList.toggle('collapsed');
+                }
+            });
             section.appendChild(header);
             const content = document.createElement('div');
             content.className = 'section-content';
@@ -1307,10 +1328,11 @@ saveCurrentSong(isExplicit = false) {
         autoNumberVerses() {
             let count = 0;
             this.lyricsDisplay.querySelectorAll('.section-label').forEach(label => {
-                const text = label.textContent.trim();
+                const span = label.querySelector('.section-label-text');
+                const text = span?.textContent.trim() || '';
                 if (/^\[verse(\s*\d*)?\]$/i.test(text)) {
                     count++;
-                    label.textContent = `[Verse ${count}]`;
+                    span.textContent = `[Verse ${count}]`;
                 }
             });
         },
@@ -1330,10 +1352,20 @@ saveCurrentSong(isExplicit = false) {
 
                 const header = document.createElement('div');
                 header.className = 'lyrics-line section-label';
-                header.textContent = text;
-                header.setAttribute('contenteditable', !this.isReadOnly);
-                header.addEventListener('click', () => section.classList.toggle('collapsed'));
-                header.addEventListener('input', () => this.handleLyricsInput());
+                const handle = document.createElement('i');
+                handle.className = 'fas fa-grip-lines drag-handle';
+                header.appendChild(handle);
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'section-label-text';
+                labelSpan.textContent = text;
+                labelSpan.setAttribute('contenteditable', !this.isReadOnly);
+                labelSpan.addEventListener('input', () => this.handleLyricsInput());
+                header.appendChild(labelSpan);
+                header.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('drag-handle')) {
+                        section.classList.toggle('collapsed');
+                    }
+                });
                 section.appendChild(header);
 
                 const content = document.createElement('div');
@@ -1529,7 +1561,7 @@ saveCurrentSong(isExplicit = false) {
                 line.classList.toggle('editable', editable);
                 line.classList.toggle('non-editable', !editable);
             });
-            this.lyricsDisplay.querySelectorAll('.section-label').forEach(label => {
+            this.lyricsDisplay.querySelectorAll('.section-label-text').forEach(label => {
                 const editable = !isReadOnly;
                 label.setAttribute('contenteditable', editable);
                 label.classList.toggle('editable', editable);
