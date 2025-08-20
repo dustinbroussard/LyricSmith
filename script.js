@@ -13,8 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   );
   // === THEME TOGGLE ===
   const savedTheme = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const defaultTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+  const defaultTheme = savedTheme || 'dark';
   document.documentElement.dataset.theme = defaultTheme;
   updateThemeButton(defaultTheme);
 
@@ -32,9 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
     themeToggleBtn?.addEventListener('click', () => {
       const newTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.classList.add('theme-transition');
       document.documentElement.dataset.theme = newTheme;
       localStorage.setItem('theme', newTheme);
       updateThemeButton(newTheme);
+      setTimeout(() => {
+        document.documentElement.classList.remove('theme-transition');
+      }, 300);
     });
   }
   attachThemeToggle();

@@ -14,92 +14,106 @@
 /* ========================================
     Theme Definitions
     ======================================== */
-/* ========================================
-   TEAL DARK THEME
-   ======================================== */
+
+/* Core design tokens */
+:root {
+    --color-primary:  #6366f1; /* deep purple */
+    --color-accent:   #f59e0b; /* warm gold */
+    --color-highlight:#3b82f6; /* electric blue */
+
+    --glass-bg:        rgba(20,24,40,0.35);
+    --glass-bg-strong: rgba(20,24,40,0.55);
+    --frost-bg:        rgba(255,255,255,0.45);
+    --blur-amount:     14px;
+
+    --gradient-brand:  linear-gradient(135deg, var(--color-primary), var(--color-highlight));
+    --gradient-accent: linear-gradient(135deg, var(--color-accent), var(--color-highlight));
+    --gradient-border: linear-gradient(140deg, rgba(99,102,241,.9), rgba(59,130,246,.9) 40%, rgba(245,158,11,.95));
+
+    --radius-lg:       1rem;
+    --shadow-sm:       0 2px 8px rgba(0,0,0,.18);
+    --shadow-md:       0 8px 24px rgba(0,0,0,.22);
+    --shadow-glow:     0 0 0 1px rgba(99,102,241,.35), 0 8px 28px rgba(99,102,241,.18);
+
+    --ease:            cubic-bezier(.22,1,.36,1);
+    --fast:            160ms var(--ease);
+    --med:             260ms var(--ease);
+}
+
+/* Dark theme (default) */
 :root,
 [data-theme="dark"],
 [data-theme="amoled-dark"] {
-    /* Background Colors */
-    --bg-primary: #121212;
-    --bg-secondary: #1e1e1e;
-    --bg-tertiary: #2a2a2a;
-    --bg-hover: #333333;
-    --bg-active: #3d3d3d;
+    /* Background */
+    --bg-primary:   #0b0c13;
+    --bg-secondary: #0f1220;
+    --bg-tertiary:  #101427;
+    --bg-hover:     rgba(255,255,255,0.04);
+    --bg-active:    rgba(255,255,255,0.06);
 
-    /* Text Colors */
-    --text-primary: #e0e0e0;
-    --text-secondary: #b3b3b3;
-    --text-muted: #888888;
+    /* Text */
+    --text-primary:   #eaf0ff;
+    --text-secondary: #b6c2ff;
+    --text-muted:     #7e88b6;
 
-    /* Accent Colors */
-    --accent-primary: #00bcd4;
-    --accent-secondary: #26c6da;
-    --accent-hover: #00acc1;
-    --accent-active: #0097a7;
-    --accent-glow: rgba(0, 188, 212, 0.3);
+    /* Accent */
+    --accent-primary:   var(--color-primary);
+    --accent-secondary: var(--color-highlight);
+    --accent-hover:     #7c83ff;
+    --accent-active:    #5360f7;
+    --accent-glow:      rgba(99,102,241,0.35);
 
     /* Borders */
-    --border: #3d3d3d;
-    --border-light: #4a4a4a;
+    --border:       rgba(140,150,255,.30);
+    --border-light: rgba(140,150,255,.18);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
-    --shadow-md: 0 4px 8px rgba(0,0,0,0.25);
-    --shadow-lg: 0 10px 15px rgba(0,0,0,0.3);
+    --glass-surface: var(--glass-bg);
 
-    /* Status Colors */
-    --success: #4caf50;
-    --warning: #ff9800;
-    --danger: #f44336;
-    --info: #2196f3;
+    /* Status */
+    --success: #10b981;
+    --warning: var(--color-accent);
+    --danger:  var(--color-accent);
+    --info:    var(--color-highlight);
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #1e1e1e 0%, #121212 100%);
-    --gradient-accent: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
+    --gradient-primary: var(--gradient-brand);
+    --gradient-accent:  var(--gradient-accent);
 }
 
-/* ========================================
-   TEAL LIGHT THEME
-   ======================================== */
+/* Light theme */
 [data-theme="light"] {
-    /* Background Colors */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f5f5f5;
-    --bg-tertiary: #e9ecef;
-    --bg-hover: #e2e6ea;
-    --bg-active: #dae0e5;
+    --bg-primary:   #f7f8ff;
+    --bg-secondary: rgba(255,255,255,.72);
+    --bg-tertiary:  rgba(255,255,255,.66);
+    --bg-hover:     rgba(99,102,241,.08);
+    --bg-active:    rgba(59,130,246,.12);
 
-    /* Text Colors */
-    --text-primary: #212529;
-    --text-secondary: #495057;
-    --text-muted: #6c757d;
+    --text-primary:   #0e1030;
+    --text-secondary: #2b3166;
+    --text-muted:     #6270a3;
 
-    /* Accent Colors */
-    --accent-primary: #00bcd4;
-    --accent-secondary: #0097a7;
-    --accent-hover: #00acc1;
-    --accent-active: #00838f;
-    --accent-glow: rgba(0, 188, 212, 0.25);
+    --accent-primary:   var(--color-primary);
+    --accent-secondary: var(--color-highlight);
+    --accent-hover:     #4e82ff;
+    --accent-active:    #2a67f6;
+    --accent-glow:      rgba(59,130,246,0.35);
 
-    /* Borders */
-    --border: #ced4da;
-    --border-light: #dee2e6;
+    --border:       rgba(40,50,120,.22);
+    --border-light: rgba(40,50,120,.14);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-    --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
+    --glass-surface: var(--frost-bg);
 
-    /* Status Colors */
-    --success: #2e7d32;
-    --warning: #ed6c02;
-    --danger: #d32f2f;
-    --info: #0288d1;
+    --success: #10b981;
+    --warning: var(--color-accent);
+    --danger:  var(--color-accent);
+    --info:    var(--color-highlight);
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
-    --gradient-accent: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+    --gradient-primary: var(--gradient-brand);
+    --gradient-accent:  var(--gradient-accent);
+}
+
+html.theme-transition {
+    transition: background-color var(--med), color var(--med);
 }
 
 
@@ -903,7 +917,7 @@ select:focus {
 
 #font-size-slider.font-slider {
     width: 350px !important;    /* Make it nice and long */
-    accent-color: var(--accent-primary, #00bcd4);
+    accent-color: var(--accent-primary, #6366f1);
     height: 20px;
     margin: 0 1.5em;
     background: var(--bg-tertiary, #222);
@@ -1542,4 +1556,170 @@ html, body {
 @media (min-width: 700px) and (max-width: 1024px) {
   .app-logo-img { max-height: 80px; }
 }
+
+/* ========================================
+   Glassmorphism Utilities & Components
+   ======================================== */
+
+.glass {
+  background: var(--glass-surface);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.gradient-border {
+  background:
+    linear-gradient(var(--bg-secondary), var(--bg-secondary)) padding-box,
+    var(--gradient-border) border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+}
+
+.hover-raise { transition: transform var(--fast), box-shadow var(--fast); }
+.hover-raise:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59,130,246,.55), 0 0 0 5px rgba(59,130,246,.20);
+  transition: box-shadow var(--fast);
+}
+
+/* Component surfaces */
+.app-header,
+.toolbar,
+.metadata-editor,
+.modal,
+.editor-header,
+.editor-footer {
+  background: var(--glass-surface);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(var(--bg-secondary), var(--bg-secondary)),
+    var(--gradient-border);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
+
+.song-item {
+  background: var(--bg-tertiary);
+  background-image:
+    linear-gradient(var(--bg-tertiary), var(--bg-tertiary)),
+    var(--gradient-border);
+  background-clip: padding-box, border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  transition: transform var(--fast), box-shadow var(--fast), background var(--fast);
+}
+
+.song-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
+}
+
+/* Buttons */
+.btn {
+  background: var(--gradient-brand);
+  color: #fff;
+  border: none;
+  border-radius: calc(var(--radius-lg) - 4px);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--fast), box-shadow var(--fast), filter var(--fast);
+}
+
+.btn:hover {
+  filter: saturate(1.08) brightness(1.03);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn.danger {
+  background: var(--gradient-accent);
+  color: #fff;
+}
+.btn.danger:hover {
+  filter: saturate(1.08) brightness(1.03);
+}
+
+.icon-btn {
+  background: linear-gradient(var(--bg-secondary), var(--bg-secondary));
+  border: 1px solid transparent;
+  background-image:
+    linear-gradient(var(--bg-secondary), var(--bg-secondary)),
+    var(--gradient-border);
+  background-clip: padding-box, border-box;
+  border-radius: 12px;
+  transition: transform var(--fast), box-shadow var(--fast), color var(--fast);
+}
+
+.icon-btn:hover {
+  color: #fff;
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+}
+
+/* Inputs */
+.search-input,
+.metadata-row input,
+.metadata-row select,
+.metadata-row textarea {
+  background: linear-gradient(var(--bg-tertiary), var(--bg-tertiary));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color var(--fast), box-shadow var(--fast), background var(--fast);
+}
+
+.search-input:focus,
+.metadata-row input:focus,
+.metadata-row select:focus,
+.metadata-row textarea:focus {
+  border-color: var(--color-highlight);
+  box-shadow: 0 0 0 2px rgba(59,130,246,.25);
+}
+
+/* Gradient text & animations */
+.gradient-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@keyframes subtle-pulse { 0%{opacity:.9} 50%{opacity:1} 100%{opacity:.9} }
+.neon-pulse { text-shadow: 0 0 18px rgba(99,102,241,.45); animation: subtle-pulse 2.2s infinite; }
+
+.app-header h1,
+.app-header h2,
+.editor-header h2,
+.song-title-card h2 {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: subtle-pulse 2.2s infinite;
+}
+
+/* Modal transitions */
+.modal-overlay { transition: opacity var(--med); }
+.modal { transition: transform var(--med), opacity var(--med); }
+
+/* Toasts */
+.toast {
+  box-shadow: var(--shadow-md);
+  border-radius: 14px;
+}
+
+.toast-info { background: var(--gradient-brand); }
+.toast-success { background: linear-gradient(135deg, #10b981, #059669); }
+.toast-error { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
