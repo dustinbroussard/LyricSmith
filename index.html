@@ -25,7 +25,7 @@
     <header class="app-header">
       <div class="header-top">
         <div class="app-logo">
-          <img src="assets/images/mylogo.png" alt="LyricSmith" class="app-logo-img">
+          <img src="assets/images/logo.png" alt="LyricSmith" class="app-logo-img">
         </div>
         <button id="theme-toggle-btn" class="theme-icon-btn" title="Toggle Light/Dark" aria-label="Toggle light or dark theme"><i class="fas fa-adjust"></i></button>
       </div>
@@ -35,6 +35,135 @@
       <section id="songs" class="tab active">
         <div class="page-content songs-page">
           <div id="song-list" class="song-list"></div>
+        </div>
+      </section>
+      <section id="tab-musedice" class="tab">
+        <div class="musedice shell">
+          <div class="panel left glass grad-border">
+            <h2 class="gradient-text">MuseDice</h2>
+            <p class="sub">Roll structured song ideas with weighted constraints.</p>
+
+            <div class="grid two">
+              <div>
+                <label>Vibe</label>
+                <select id="md-vibe" class="select">
+                  <option>Dusty Soul</option><option>Psychedelic Rock</option><option>Alt-R&B</option>
+                  <option>Folk Noir</option><option>Lo‑fi Gospel</option>
+                </select>
+              </div>
+              <div>
+                <label>Tempo (BPM)</label>
+                <input id="md-bpm" type="number" class="input" min="60" max="200" value="92"/>
+              </div>
+              <div>
+                <label>Key</label>
+                <select id="md-key" class="select">
+                  <option>C</option><option>G</option><option>D</option><option>A</option><option>E</option>
+                  <option>F</option><option>Bb</option><option>Eb</option>
+                </select>
+              </div>
+              <div>
+                <label>Time</label>
+                <select id="md-time" class="select">
+                  <option>4/4</option><option>6/8</option><option>12/8</option><option>3/4</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="chip-row">
+              <button class="chip" data-chip="moody">Moody</button>
+              <button class="chip" data-chip="anthemic">Anthemic</button>
+              <button class="chip" data-chip="groove">Groove‑forward</button>
+              <button class="chip" data-chip="minimal">Minimal</button>
+              <button class="chip" data-chip="cinematic">Cinematic</button>
+            </div>
+
+            <div class="controls">
+              <button id="md-roll" class="btn-primary"><i class="fas fa-dice"></i> Roll</button>
+              <button id="md-lock-seed" class="btn-ghost"><i class="fas fa-lock"></i> Seed</button>
+              <button id="md-copy" class="btn-ghost"><i class="fas fa-copy"></i> Copy</button>
+              <span id="md-seed" class="seed">seed: —</span>
+            </div>
+          </div>
+
+          <div class="panel right glass grad-border">
+            <div class="tabs tiny">
+              <button class="tab-btn active" data-pane="md-brief">Brief</button>
+              <button class="tab-btn" data-pane="md-chords">Chords</button>
+              <button class="tab-btn" data-pane="md-lyrics">Lyric Starters</button>
+            </div>
+            <div id="md-brief"  class="pane active"><textarea id="md-brief-out"  class="textarea" rows="12" placeholder="Creative brief..."></textarea></div>
+            <div id="md-chords" class="pane"><textarea id="md-chords-out" class="textarea" rows="12" placeholder="Chord skeleton..."></textarea></div>
+            <div id="md-lyrics" class="pane"><textarea id="md-lyrics-out" class="textarea" rows="12" placeholder="Hooks, images, title seeds..."></textarea></div>
+          </div>
+        </div>
+      </section>
+      <section id="tab-suno" class="tab">
+        <div class="suno shell">
+          <div class="panel left glass grad-border">
+            <h2 class="gradient-text">Suno Prompt Studio</h2>
+            <p class="sub">Craft structured prompts with tone, scene, and mix notes.</p>
+
+            <label>Title</label>
+            <input id="s-title" class="input" placeholder="Song title (optional)"/>
+
+            <label>Concept</label>
+            <textarea id="s-concept" class="textarea" rows="4" placeholder="What is the song about? imagery, story, mood..."></textarea>
+
+            <div class="grid two">
+              <div>
+                <label>Genre</label>
+                <select id="s-genre" class="select">
+                  <option>Alt‑R&B</option><option>Indie Pop</option><option>Neo‑Soul</option>
+                  <option>Blues‑rock</option><option>Synthwave</option>
+                </select>
+              </div>
+              <div>
+                <label>Feel</label>
+                <select id="s-feel" class="select">
+                  <option>Slow burn</option><option>Groove‑forward</option>
+                  <option>Anthemic</option><option>Dreamy</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="chip-row">
+              <button class="chip" data-style="warm tape">Warm tape</button>
+              <button class="chip" data-style="wide stereo">Wide stereo</button>
+              <button class="chip" data-style="vocal up">Vocal up</button>
+              <button class="chip" data-style="lo‑fi edges">Lo‑fi edges</button>
+              <button class="chip" data-style="cinematic build">Cinematic build</button>
+            </div>
+
+            <div class="grid two">
+              <div>
+                <label>Key (optional)</label>
+                <select id="s-key" class="select"><option></option><option>C</option><option>G</option><option>D</option><option>A</option></select>
+              </div>
+              <div>
+                <label>Tempo (BPM, optional)</label>
+                <input id="s-bpm" class="input" type="number" min="60" max="200" placeholder="92"/>
+              </div>
+            </div>
+
+            <div class="controls">
+              <button id="s-generate" class="btn-primary"><i class="fas fa-wand-magic"></i> Build A/B</button>
+              <button id="s-copy-a" class="btn-ghost"><i class="fas fa-copy"></i> Copy A</button>
+              <button id="s-copy-b" class="btn-ghost"><i class="fas fa-copy"></i> Copy B</button>
+              <span id="s-count" class="seed">0 chars</span>
+            </div>
+          </div>
+
+          <div class="panel right glass grad-border">
+            <div class="tabs tiny">
+              <button class="tab-btn active" data-pane="s-a">Prompt A</button>
+              <button class="tab-btn" data-pane="s-b">Prompt B</button>
+              <button class="tab-btn" data-pane="s-notes">Mix Notes</button>
+            </div>
+            <div id="s-a" class="pane active"><textarea id="s-out-a" class="textarea" rows="12"></textarea></div>
+            <div id="s-b" class="pane"><textarea id="s-out-b" class="textarea" rows="12"></textarea></div>
+            <div id="s-notes" class="pane"><textarea id="s-notes-out" class="textarea" rows="12" placeholder="Reference tracks, arrangement, instrumentation notes…"></textarea></div>
+          </div>
         </div>
       </section>
     </main>
