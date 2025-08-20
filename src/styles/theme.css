@@ -1,0 +1,31 @@
+:root {
+  --color-bg:        #ffffff;
+  --color-surface:   #f9fafb;
+  --color-text:      #1f2937;
+  --color-text-muted:#6b7280;
+  --color-primary:   #6366f1; /* purple */
+  --color-accent:    #f59e0b; /* gold */
+  --color-success:   #10b981; /* green */
+  --color-border:    #e5e7eb;
+  --color-focus:     #f59e0b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark; }
+}
+
+.dark {
+  --color-bg:        #0a0a0a;  /* ink */
+  --color-surface:   #111216;
+  --color-text:      #fef9c3;  /* cream */
+  --color-text-muted:#cbd5e1;
+  --color-primary:   #6366f1;
+  --color-accent:    #f59e0b;
+  --color-success:   #10b981;
+  --color-border:    #26272b;
+  --color-focus:     #f59e0b;
+}
+
+/* Brand helpers */
+.brand-gradient { background-image: linear-gradient(135deg, #6366f1, #f59e0b 55%, #10b981); }
+.neon-ring { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 60%, transparent); }
