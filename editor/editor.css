@@ -870,3 +870,23 @@
 #ryhme-mode-toggle {
     margin-left: 5rem;
 }
+
+/* Glassmorphism surfaces for editor */
+.editor-header,
+.editor-footer,
+.song-title-card {
+    background: var(--glass-surface);
+    backdrop-filter: blur(var(--blur-amount));
+    -webkit-backdrop-filter: blur(var(--blur-amount));
+    border: 1px solid transparent;
+    background-image:
+        linear-gradient(var(--bg-secondary), var(--bg-secondary)),
+        var(--gradient-border);
+    background-clip: padding-box, border-box;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Ensure readable chords and lyrics */
+.chord-line { color: var(--text-secondary); }
+.lyrics-line { color: var(--text-primary); }
