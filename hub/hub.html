@@ -1,1 +1,539 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LyricSmith — Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="/assets/icons/icon-192x192.png" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Neonderthaw&display=swap" rel="stylesheet" />
+  <style>
+    /* Hub-specific layout polish (leans on your theme tokens from style.css) */
+    .hub-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .hub-header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .hub-header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .hub-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .hub-brand img {
+      height: 40px;
+      width: auto;
+      border-radius: 8px;
+      filter: drop-shadow(0 0 6px var(--accent-glow));
+    }
+    .hub-brand .title {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .hub-main {
+      flex: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.25rem;
+      display: grid;
+      gap: 1.25rem;
+    }
+    .hub-intro {
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+    @media (max-width: 1000px) {
+      .hub-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      .hub-grid { grid-template-columns: 1fr; }
+    }
+
+    .hub-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-light);
+      border-radius: var(--border-radius-base);
+      box-shadow: var(--shadow-sm);
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: transform .15s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .hub-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+      background: var(--bg-hover);
+      border-color: var(--accent-primary);
+    }
+    .hub-card i {
+      font-size: 1.4rem;
+      color: var(--accent-secondary);
+    }
+    .hub-card h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      color: var(--text-primary);
+    }
+    .hub-card p {
+      margin: 0;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      font-size: 0.95rem;
+    }
+    .hub-card .go {
+      margin-top: 0.25rem;
+      align-self: flex-start;
+      background: var(--accent-primary);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 999px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.9rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .hub-card .go:hover {
+      background: var(--accent-hover);
+      box-shadow: var(--shadow-md);
+    }
+
+    .hub-footer {
+      border-top: 1px solid var(--border);
+      background: var(--bg-secondary);
+      padding: 0.8rem 1rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    /* Settings modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.6);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity var(--transition-speed);
+      z-index: 9999;
+    }
+    .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--border-radius-base);
+      box-shadow: var(--shadow-lg);
+      width: min(640px, 92vw);
+      padding: 1rem;
+      display: grid;
+      gap: 0.9rem;
+    }
+    .modal h2 { margin: 0 0 0.25rem 0; }
+    .modal .row {
+      display: grid;
+      gap: .5rem;
+    }
+    .modal label { font-size: .95rem; color: var(--text-secondary); }
+    .modal input[type="text"],
+    .modal textarea {
+      width: 100%;
+      border-radius: var(--border-radius-base);
+      border: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      padding: .6rem .7rem;
+    }
+    .modal textarea { min-height: 120px; resize: vertical; }
+
+    .modal .btn-row {
+      display: flex; flex-wrap: wrap; gap: .5rem;
+      justify-content: space-between;
+      margin-top: .25rem;
+    }
+    .btn {
+      background: var(--accent-primary);
+      color: var(--bg-primary);
+      border: none; border-radius: var(--border-radius-base);
+      padding: .55rem .9rem; cursor: pointer; box-shadow: var(--shadow-sm);
+    }
+    .btn:hover { background: var(--accent-hover); box-shadow: var(--shadow-md); }
+    .btn.ghost {
+      background: transparent; color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn.danger { background: var(--danger); color: #fff; }
+    .hint { color: var(--text-muted); font-size: .9rem; }
+
+    /* Tiny toast */
+    .toast-container {
+      position: fixed; bottom: 1rem; right: 1rem; z-index: 10000;
+      display: grid; gap: .5rem;
+    }
+    .toast {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      color: var(--text-primary);
+      padding: .6rem .8rem;
+      border-radius: .6rem;
+      box-shadow: var(--shadow-md);
+      opacity: 0; transform: translateY(4px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+
+<body>
+  <div class="hub-wrap">
+    <header class="hub-header">
+      <div class="hub-header-inner">
+        <div class="hub-brand">
+          <img src="assets/images/mylogo.png" alt="LyricSmith Logo" />
+          <div class="title">LyricSmith Hub</div>
+        </div>
+        <div>
+          <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Light/Dark">
+            <i class="fas fa-adjust"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="hub-main">
+      <div class="hub-intro">
+        Quick-launch the tool you need. All AI settings live in one place now (Settings card).
+      </div>
+
+      <section class="hub-grid">
+        <!-- 1. MuseDice -->
+        <a class="hub-card" href="muse.html">
+          <i class="fas fa-dice"></i>
+          <h3>MuseDice</h3>
+          <p>Roll creative seeds: moods, metaphors, images, and lines to spark songs.</p>
+          <button class="go">Open</button>
+        </a>
+
+        <!-- 2. Suno Prompt Engine -->
+        <a class="hub-card" href="suno_prompt_engine_vanilla_html_open_router.html">
+          <i class="fas fa-music"></i>
+          <h3>Suno Prompt Engine</h3>
+          <p>Turn your lyrics into Suno-ready prompts with structured guidance.</p>
+          <button class="go">Open</button>
+        </a>
+
+        <!-- 3. Create New Song -->
+        <button id="create-song-card" class="hub-card" type="button">
+          <i class="fas fa-pen-nib"></i>
+          <h3>Create New Song</h3>
+          <p>Blank slate in the editor with section scaffolding ready to go.</p>
+          <span class="go">Start</span>
+        </button>
+
+        <!-- 4. Settings -->
+        <button id="open-settings" class="hub-card" type="button">
+          <i class="fas fa-cog"></i>
+          <h3>Settings</h3>
+          <p>Set your OpenRouter key & model, custom system prompt, and manage export/import.</p>
+          <span class="go">Configure</span>
+        </button>
+      </section>
+    </main>
+
+    <footer class="hub-footer">
+      LyricSmith • local‑first • zero bloat • you got this.
+    </footer>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
+      <h2><i class="fas fa-sliders-h"></i> Settings</h2>
+
+      <div class="row">
+        <label for="apiKey">OpenRouter API Key</label>
+        <input id="apiKey" type="text" placeholder="sk-or-..." autocomplete="off" />
+        <div class="hint">Stored locally only. Used by Editor AI, MuseDice, and Suno Prompt Engine.</div>
+      </div>
+
+      <div class="row">
+        <label for="defaultModel">Default Model (e.g. openrouter/auto, anthropic/claude-3.5, meta/llama-3.1)</label>
+        <input id="defaultModel" type="text" placeholder="openrouter/auto" />
+      </div>
+
+      <div class="row">
+        <label for="systemPrompt">Custom System Prompt (optional, shared across AI tools)</label>
+        <textarea id="systemPrompt" placeholder="You are a helpful songwriting assistant..."></textarea>
+      </div>
+
+      <div class="btn-row">
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+          <button id="saveSettings" class="btn"><i class="fas fa-save"></i> Save</button>
+          <button id="closeSettings" class="btn ghost"><i class="fas fa-times"></i> Close</button>
+        </div>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+          <input id="importFile" type="file" accept=".json" style="display:none;" />
+          <button id="exportAll" class="btn"><i class="fas fa-download"></i> Export All</button>
+          <button id="importAll" class="btn"><i class="fas fa-upload"></i> Import</button>
+          <button id="clearAll" class="btn danger"><i class="fas fa-trash"></i> Clear All</button>
+        </div>
+      </div>
+
+      <div class="hint">
+        Export includes songs & settings. Import merges songs by ID and restores settings.
+      </div>
+    </div>
+  </div>
+
+  <!-- Tiny toast -->
+  <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <script>
+    // ===== Theme =====
+    (function initTheme(){
+      const saved = localStorage.getItem('theme') || 'dark';
+      document.documentElement.dataset.theme = saved;
+      const btn = document.getElementById('theme-toggle-btn');
+      btn?.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem('theme', next);
+      });
+    })();
+
+    // ===== Service Worker (same pattern as index.html) =====
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'activated') {
+              toast('Update available! Refresh to apply.');
+            }
+          });
+        });
+      });
+    }
+
+    // ===== Toast helper =====
+    function toast(msg) {
+      let container = document.querySelector('.toast-container');
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = msg;
+      container.appendChild(t);
+      requestAnimationFrame(() => t.classList.add('show'));
+      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 2600);
+    }
+
+    // ===== Minimal song helpers (mirror your app schema) =====
+    const defaultSections = "[Intro]\\n\\n[Verse 1]\\n\\n[Pre-Chorus]\\n\\n[Chorus]\\n\\n[Verse 2]\\n\\n[Bridge]\\n\\n[Outro]";
+
+    function normalizeSectionLabels(text = '') {
+      const keys = ['intro','verse','prechorus','chorus','bridge','outro','hook','refrain','coda','solo','interlude','ending','breakdown','tag'];
+      return text.split(/\\r?\\n/).map(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return line;
+        const m = trimmed.match(/^[\\*\\s\\-_=~`]*[\\(\\[\\{]?\\s*([^\\]\\)\\}]+?)\\s*[\\)\\]\\}]?[\\*\\s\\-_=~`]*:?$/);
+        if (m) {
+          const label = m[1].trim();
+          const normalized = label.toLowerCase().replace(/[^a-z]/g,'');
+          if (keys.some(k => normalized.startsWith(k))) {
+            const formatted = label.replace(/\\s+/g,' ').replace(/(^|\\s)\\S/g, c => c.toUpperCase());
+            return '[' + formatted + ']';
+          }
+        }
+        return line;
+      }).join('\\n');
+    }
+
+    function createSong(title, lyrics = '', chords = '') {
+      const normalizedLyrics = lyrics.trim() ? normalizeSectionLabels(lyrics) : defaultSections;
+      return {
+        id: Date.now().toString(),
+        title,
+        lyrics: normalizedLyrics,
+        chords,
+        key: '',
+        tempo: 120,
+        timeSignature: '4/4',
+        notes: '',
+        createdAt: new Date().toISOString(),
+        lastEditedAt: new Date().toISOString(),
+        tags: []
+      };
+    }
+
+    // ===== Create New Song → jump to editor =====
+    document.getElementById('create-song-card')?.addEventListener('click', () => {
+      const songs = JSON.parse(localStorage.getItem('songs') || '[]');
+      const song = createSong('New Song', '');
+      songs.push(song);
+      localStorage.setItem('songs', JSON.stringify(songs));
+      window.location.href = `editor/editor.html?songId=${song.id}`;
+    });
+
+    // ===== Settings Modal =====
+    const modal = document.getElementById('settings-modal');
+    const openBtn = document.getElementById('open-settings');
+    const closeBtn = document.getElementById('closeSettings');
+    const saveBtn = document.getElementById('saveSettings');
+    const exportBtn = document.getElementById('exportAll');
+    const importBtn = document.getElementById('importAll');
+    const clearBtn = document.getElementById('clearAll');
+    const importFile = document.getElementById('importFile');
+
+    const apiKeyEl = document.getElementById('apiKey');
+    const modelEl = document.getElementById('defaultModel');
+    const sysPromptEl = document.getElementById('systemPrompt');
+
+    function openModal() {
+      // load settings
+      apiKeyEl.value = localStorage.getItem('openrouterApiKey') || '';
+      modelEl.value = localStorage.getItem('openrouterModel') || (window.CONFIG?.defaultModel || '');
+      sysPromptEl.value = localStorage.getItem('systemPrompt') || '';
+      modal.classList.add('visible');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+    function closeModal() {
+      modal.classList.remove('visible');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    openBtn?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Save settings (sync to both localStorage and window.CONFIG so Editor picks it up)
+    saveBtn?.addEventListener('click', () => {
+      const key = apiKeyEl.value.trim();
+      const model = modelEl.value.trim() || 'openrouter/auto';
+      const sys = sysPromptEl.value;
+
+      localStorage.setItem('openrouterApiKey', key);
+      localStorage.setItem('openrouterModel', model);
+      localStorage.setItem('systemPrompt', sys);
+
+      window.CONFIG = window.CONFIG || {};
+      window.CONFIG.openrouterApiKey = key;
+      window.CONFIG.defaultModel = model;
+
+      toast('Settings saved');
+    });
+
+    // Export All (songs + settings)
+    exportBtn?.addEventListener('click', () => {
+      const payload = {
+        version: '1.1',
+        exportDate: new Date().toISOString(),
+        songs: JSON.parse(localStorage.getItem('songs') || '[]'),
+        settings: {
+          theme: localStorage.getItem('theme') || 'dark',
+          openrouterApiKey: localStorage.getItem('openrouterApiKey') || '',
+          openrouterModel: localStorage.getItem('openrouterModel') || '',
+          systemPrompt: localStorage.getItem('systemPrompt') || ''
+        }
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `lyricsmith-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast('Exported library & settings');
+    });
+
+    // Import All (merge songs by id, restore settings)
+    importBtn?.addEventListener('click', () => importFile.click());
+    importFile?.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        if (Array.isArray(data?.songs)) {
+          const existing = JSON.parse(localStorage.getItem('songs') || '[]');
+          const byId = new Map(existing.map(s => [s.id, s]));
+          let merged = 0;
+          data.songs.forEach(s => {
+            if (!byId.has(s.id)) {
+              byId.set(s.id, s);
+              merged++;
+            } else {
+              const current = byId.get(s.id);
+              // prefer the newer lastEditedAt
+              const curTime = new Date(current.lastEditedAt || 0).getTime();
+              const newTime = new Date(s.lastEditedAt || 0).getTime();
+              if (newTime > curTime) byId.set(s.id, s);
+            }
+          });
+          localStorage.setItem('songs', JSON.stringify(Array.from(byId.values())));
+          toast(`Imported ${merged} new song(s)`);
+        }
+
+        if (data?.settings) {
+          const s = data.settings;
+          if ('openrouterApiKey' in s) localStorage.setItem('openrouterApiKey', s.openrouterApiKey || '');
+          if ('openrouterModel' in s) localStorage.setItem('openrouterModel', s.openrouterModel || '');
+          if ('systemPrompt' in s) localStorage.setItem('systemPrompt', s.systemPrompt || '');
+          if ('theme' in s) localStorage.setItem('theme', s.theme || 'dark');
+
+          window.CONFIG = window.CONFIG || {};
+          window.CONFIG.openrouterApiKey = localStorage.getItem('openrouterApiKey') || '';
+          window.CONFIG.defaultModel = localStorage.getItem('openrouterModel') || '';
+
+          toast('Settings restored');
+        }
+
+        e.target.value = '';
+      } catch (err) {
+        console.error(err);
+        toast('Import failed');
+      }
+    });
+
+    // Clear All (keeps theme so you don’t get blinded)
+    clearBtn?.addEventListener('click', () => {
+      if (!confirm('Clear ALL LyricSmith data (songs & settings)? This cannot be undone.')) return;
+      const theme = localStorage.getItem('theme') || 'dark';
+      localStorage.clear();
+      localStorage.setItem('theme', theme);
+      toast('All data cleared');
+    });
+  </script>
+</body>
+</html>
