@@ -25,6 +25,51 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   attachThemeToggle();
 
+  // === TEXT → {lyrics, chords} SPLITTER ===
+  function splitLyricsAndChordsFromText(rawText = '') {
+    const prefix = (window.CONFIG && window.CONFIG.chordLinePrefix) || '~';
+    const hasMarker = rawText
+      .split(/\r?\n/)
+      .some(line => line.trim().startsWith(prefix));
+    // Fast path: no chord markers at all → purely lyrics
+    if (!hasMarker && window.CONFIG?.assumeNoChords !== false) {
+      return { lyrics: app.normalizeSectionLabels(rawText || ''), chords: '' };
+    }
+
+    const lines = (rawText || '').replace(/\r\n?/g, '\n').split('\n');
+    const lyricsLines = [];
+    const chordLines = [];
+    let pendingChord = null;
+    const isSection = (s) =>
+      /^\s*[\(\[\{].*[\)\]\}]\s*$/.test(s.trim()) || /^\s*\[.*\]\s*$/.test(s.trim());
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i] ?? '';
+      const trimmed = line.trim();
+      if (trimmed.startsWith(prefix)) {
+        // chord line → keep last one wins
+        const chord = trimmed.slice(prefix.length).replace(/^\s/, '');
+        pendingChord = chord;
+        continue;
+      }
+      // Treat the line as lyrics (including section labels and blank lines)
+      lyricsLines.push(line);
+      if (trimmed === '' || isSection(trimmed)) {
+        // Never attach chords to empty lines or section labels
+        chordLines.push('');
+        pendingChord = null;
+      } else {
+        chordLines.push(pendingChord || '');
+        pendingChord = null;
+      }
+    }
+
+    return {
+      lyrics: app.normalizeSectionLabels(lyricsLines.join('\n')),
+      chords: chordLines.join('\n')
+    };
+  }
+
   // === CLIPBOARD MANAGER ===
   class ClipboardManager {
     static async copyToClipboard(text, showToast = true) {
@@ -447,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (text.trim()) {
           const title = prompt("Title for pasted song?", "New Song");
           if (title) {
-            const { lyrics, chords } = this.parseSongContent(text);
+            const { lyrics, chords } = splitLyricsAndChordsFromText(text);
             const newSong = this.createSong(title, lyrics, chords);
             this.songs.push(newSong);
             this.saveSongs();
@@ -491,10 +536,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
               // Extract title from filename (without extension)
               const title = this.normalizeTitle(file.name);
-              const { lyrics, chords } = this.parseSongContent(content);
+              const parsed = splitLyricsAndChordsFromText(String(content || '').trim());
 
-              if (title && lyrics) {
-                resolve(this.createSong(title, lyrics, chords));
+              if (title && (parsed.lyrics?.trim()?.length || parsed.chords?.trim()?.length)) {
+                resolve(this.createSong(title, parsed.lyrics, parsed.chords));
               } else {
                 resolve(null);
               }
