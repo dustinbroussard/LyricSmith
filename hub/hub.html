@@ -7,9 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="stylesheet" href="../style.css" />
   <link rel="manifest" href="../manifest.webmanifest" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#00bcd4" />
   <link rel="icon" href="../assets/icons/icon-192x192.png" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Neonderthaw&display=swap" rel="stylesheet" />
@@ -86,23 +86,17 @@
     }
 
     .hub-card {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border-light);
-      border-radius: var(--border-radius-base);
-      box-shadow: var(--shadow-sm);
       padding: 1.1rem;
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      transition: transform .15s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
       cursor: pointer;
       position: relative;
       overflow: hidden;
+      transition: transform .15s ease, border-color .2s ease;
     }
     .hub-card:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-      background: var(--bg-hover);
       border-color: var(--accent-primary);
     }
     .hub-card i {
@@ -123,16 +117,8 @@
     .hub-card .go {
       margin-top: 0.25rem;
       align-self: flex-start;
-      background: var(--accent-primary);
-      color: var(--bg-primary);
-      border: none;
-      border-radius: 999px;
-      padding: 0.4rem 0.75rem;
-      font-size: 0.9rem;
-      box-shadow: var(--shadow-sm);
     }
     .hub-card .go:hover {
-      background: var(--accent-hover);
       box-shadow: var(--shadow-md);
     }
 
@@ -155,11 +141,6 @@
     }
     .modal-overlay.visible { opacity: 1; pointer-events: auto; }
     .modal {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-      border-radius: var(--border-radius-base);
-      box-shadow: var(--shadow-lg);
       width: min(640px, 92vw);
       padding: 1rem;
       display: grid;
@@ -174,11 +155,6 @@
     .modal input[type="text"],
     .modal textarea {
       width: 100%;
-      border-radius: var(--border-radius-base);
-      border: 1px solid var(--border);
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-      padding: .6rem .7rem;
     }
     .modal textarea { min-height: 120px; resize: vertical; }
 
@@ -187,16 +163,13 @@
       justify-content: space-between;
       margin-top: .25rem;
     }
-    .btn {
-      background: var(--accent-primary);
-      color: var(--bg-primary);
-      border: none; border-radius: var(--border-radius-base);
-      padding: .55rem .9rem; cursor: pointer; box-shadow: var(--shadow-sm);
-    }
-    .btn:hover { background: var(--accent-hover); box-shadow: var(--shadow-md); }
     .btn.ghost {
-      background: transparent; color: var(--text-secondary);
+      background: transparent;
+      color: var(--text-secondary);
       border: 1px solid var(--border);
+    }
+    .btn.ghost:hover {
+      background: var(--bg-hover);
     }
     .btn.danger { background: var(--danger); color: #fff; }
     .hint { color: var(--text-muted); font-size: .9rem; }
@@ -246,35 +219,35 @@
 
       <section class="hub-grid">
         <!-- 1. MuseDice -->
-        <a class="hub-card" href="musedice.html">
+        <a class="hub-card card" href="musedice.html">
           <i class="fas fa-dice"></i>
           <h3>MuseDice</h3>
           <p>Roll creative seeds: moods, metaphors, images, and lines to spark songs.</p>
-          <button class="go">Open</button>
+          <button class="btn go">Open</button>
         </a>
 
         <!-- 2. Suno Prompt Engine -->
-        <a class="hub-card" href="sunopromptengine.html">
+        <a class="hub-card card" href="sunopromptengine.html">
           <i class="fas fa-music"></i>
           <h3>Suno Prompt Engine</h3>
           <p>Turn your lyrics into Suno-ready prompts with structured guidance.</p>
-          <button class="go">Open</button>
+          <button class="btn go">Open</button>
         </a>
 
         <!-- 3. Create New Song -->
-        <button id="create-song-card" class="hub-card" type="button">
+        <button id="create-song-card" class="hub-card card" type="button">
           <i class="fas fa-pen-nib"></i>
           <h3>Create New Song</h3>
           <p>Blank slate in the editor with section scaffolding ready to go.</p>
-          <span class="go">Start</span>
+          <span class="btn go">Start</span>
         </button>
 
         <!-- 4. Settings -->
-        <button id="open-settings" class="hub-card" type="button">
+        <button id="open-settings" class="hub-card card" type="button">
           <i class="fas fa-cog"></i>
           <h3>Settings</h3>
           <p>Set your OpenRouter key & model, custom system prompt, and manage export/import.</p>
-          <span class="go">Configure</span>
+          <span class="btn go">Configure</span>
         </button>
       </section>
     </main>
