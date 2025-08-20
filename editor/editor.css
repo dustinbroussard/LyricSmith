@@ -63,7 +63,7 @@
 
 #song-edited {
     font-size: 0.75rem;
-    color: #aaa;
+    color: var(--text-muted);
 }
 
 /* Font controls in header */
@@ -88,14 +88,14 @@
 }
 
 #font-controls button:hover {
-    background: #444;
+    background: var(--bg-hover);
 }
 
 #font-size-display {
     min-width: 2.5rem;
     text-align: center;
     font-size: 0.9rem;
-    color: #ccc;
+    color: var(--text-secondary);
 }
 
 /* Responsive tweaks */

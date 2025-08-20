@@ -695,3 +695,120 @@ document.addEventListener('DOMContentLoaded', () => {
   app.init();
   window.app = app;
 });
+
+(function(){
+  const el = id=>document.getElementById(id);
+  const $ = s=>document.querySelector(s);
+  const panes = (btn)=>{document.querySelectorAll('.tabs.tiny .tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+    document.getElementById(btn.dataset.pane).classList.add('active');};
+
+  document.querySelectorAll('.tabs.tiny .tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>panes(btn));
+  });
+
+  let locked=false, seed=null;
+  const rand = (n)=>Math.floor(Math.random()*n);
+  const pick = (arr)=>arr[rand(arr.length)];
+  const adjectives = ['dusty','neon','gritty','euphoric','haunted','sunlit'];
+  const grooves = ['half‑time swing','four‑on‑the‑floor','broken beat','12/8 shuffle'];
+  const progressions = ['| Am | F | C | G |','| Dm7 | G7 | Cmaj7 | Cmaj7 |','| Em | C | G | D |','| F | Am | Dm | Bb |'];
+
+  function roll(){
+    if(!locked){ seed = crypto.getRandomValues(new Uint32Array(1))[0]; }
+    $('#md-seed').textContent = 'seed: '+seed;
+    const vibe = el('md-vibe').value;
+    const bpm  = el('md-bpm').value;
+    const key  = el('md-key').value;
+    const tSig = el('md-time').value;
+    const chips = [...document.querySelectorAll('.chip.active')].map(c=>c.dataset.chip);
+
+    const brief = `Vibe: ${vibe} • Key: ${key} • ${tSig} • ${bpm} BPM
+Feel: ${pick(adjectives)}, ${pick(adjectives)}, ${pick(grooves)}
+Constraints: ${chips.join(', ') || '—'}
+Arrangement: intro • v1 • pre • chorus • v2 • bridge • chorus (bigger)
+Sound palette: warm electric bass, tight kit, ${chips.includes('cinematic')?'strings pad, ':' '}glassy keys, gritty guitar`;
+
+    const chords = `${key} center. Try:
+${pick(progressions)}
+Alt:
+${pick(progressions)}
+Turnaround: ${pick(['ii–V–I','♭VII → I','IV → V'])}`;
+
+    const hooks = [
+      'title: “Neon Workshop”',
+      'lyric image: “soldering the moon to the city skyline”',
+      'hook rhythm: off-beat pickup into bar 1',
+      'melodic seed: 1–♭3–4–5 pentatonic fall'
+    ].join('\n');
+
+    el('md-brief-out').value = brief;
+    el('md-chords-out').value = chords;
+    el('md-lyrics-out').value = hooks;
+  }
+
+  document.querySelectorAll('.chip').forEach(ch=>{
+    ch.addEventListener('click',()=>ch.classList.toggle('active'));
+  });
+  el('md-roll')?.addEventListener('click', roll);
+  el('md-lock-seed')?.addEventListener('click', ()=>{
+    locked=!locked; el('md-lock-seed').innerHTML = locked
+      ? '<i class="fas fa-lock"></i> Seed'
+      : '<i class="fas fa-unlock"></i> Seed';
+  });
+  el('md-copy')?.addEventListener('click', async ()=>{
+    const out = `# MuseDice Brief\n\n${el('md-brief-out').value}\n\n## Chords\n${el('md-chords-out').value}\n\n## Lyric Starters\n${el('md-lyrics-out').value}`;
+    await navigator.clipboard.writeText(out);
+  });
+
+  roll();
+})();
+
+(function(){
+  const id = s=>document.getElementById(s);
+  const chips = ()=>[...document.querySelectorAll('.chip[data-style].active')].map(c=>c.dataset.style);
+  const panes = (btn)=>{document.querySelectorAll('.suno .tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.suno .pane').forEach(p=>p.classList.remove('active'));
+    document.getElementById(btn.dataset.pane).classList.add('active');};
+  document.querySelectorAll('.suno .tab-btn').forEach(b=>b.addEventListener('click',()=>panes(b)));
+  document.querySelectorAll('.suno .chip[data-style]').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('active')));
+
+  const count = ()=>{ const total = (id('s-out-a').value+id('s-out-b').value).length; id('s-count').textContent = total+' chars'; };
+
+  function build(section){
+    const title=id('s-title').value.trim();
+    const concept=id('s-concept').value.trim();
+    const genre=id('s-genre').value;
+    const feel=id('s-feel').value;
+    const key=id('s-key').value.trim();
+    const bpm=id('s-bpm').value.trim();
+    const fx=chips();
+
+    const base = [
+      title ? `Title: ${title}.` : '',
+      `Style: ${genre}, ${feel}.`,
+      key?`Key: ${key}.`:'', bpm?`Tempo: ${bpm} BPM.`:'',
+      `Vocals: expressive, intimate; keep lyrics intelligible.`,
+      `Production: ${fx.join(', ') || 'clean, modern'}.`,
+      `Mood: vivid imagery, working-class grit, poetic narrative.`,
+      `Structure: intro, verse, pre, chorus, verse, bridge, chorus (outro).`
+    ].filter(Boolean).join(' ');
+
+    const A = `${base} Write evocative, concrete lines; avoid clichés. Balanced mix; punchy drums; warm low-end; glossy top.`;
+    const B = `${base} Darker palette; more space; transient snap on drums; saturated bass; chorused guitars; wide stereo bed.`;
+
+    if(section==='A'){ id('s-out-a').value=A; }
+    else if(section==='B'){ id('s-out-b').value=B; }
+    else { id('s-out-a').value=A; id('s-out-b').value=B; }
+
+    count();
+  }
+
+  id('s-generate')?.addEventListener('click',()=>build());
+  id('s-copy-a')?.addEventListener('click',()=>navigator.clipboard.writeText(id('s-out-a').value));
+  id('s-copy-b')?.addEventListener('click',()=>navigator.clipboard.writeText(id('s-out-b').value));
+  ['s-title','s-concept','s-genre','s-feel','s-key','s-bpm'].forEach(k=>{
+    const el=id(k); el?.addEventListener('input',()=>build()); });
+})();

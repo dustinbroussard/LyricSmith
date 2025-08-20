@@ -14,7 +14,7 @@ const APP_SHELL = [
     '/hub/sunopromptengine.html',
     '/assets/icons/icon-192x192.png',
     '/assets/icons/icon-512x512.png',
-    '/assets/images/mylogo.png',
+    '/assets/images/logo.png',
     '/lib/mammoth.browser.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
     'https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js'

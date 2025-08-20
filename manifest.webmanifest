@@ -14,7 +14,7 @@
   "categories": ["music", "productivity"],
   "screenshots": [
     {
-      "src": "assets/images/mylogo.png",
+      "src": "assets/images/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "label": "Home screen"
