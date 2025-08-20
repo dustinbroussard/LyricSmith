@@ -2,7 +2,7 @@
   "name": "LyricSmith",
   "short_name": "LyricSmith",
   "description": "A modern, touch-friendly lyric & setlist manager.",
-  "start_url": "hub/hub.html",
+  "start_url": "index.html",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0d0004",

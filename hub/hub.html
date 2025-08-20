@@ -48,15 +48,21 @@
       border-radius: 8px;
       filter: drop-shadow(0 0 6px var(--accent-glow));
     }
-    .hub-brand .title {
-      font-weight: 700;
-      letter-spacing: 0.02em;
-    }
+      .hub-brand .title {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
 
-    .hub-main {
-      flex: 1;
-      max-width: 1100px;
-      margin: 0 auto;
+      .hub-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .hub-main {
+        flex: 1;
+        max-width: 1100px;
+        margin: 0 auto;
       padding: 1.25rem;
       display: grid;
       gap: 1.25rem;
@@ -222,11 +228,14 @@
           <img src="../assets/images/mylogo.png" alt="LyricSmith Logo" />
           <div class="title">LyricSmith Hub</div>
         </div>
-        <div>
-          <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Light/Dark">
-            <i class="fas fa-adjust"></i>
-          </button>
-        </div>
+          <div class="hub-actions">
+            <a href="../index.html" class="icon-btn" title="Back to Library">
+              <i class="fas fa-home"></i>
+            </a>
+            <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Light/Dark">
+              <i class="fas fa-adjust"></i>
+            </button>
+          </div>
       </div>
     </header>
 
