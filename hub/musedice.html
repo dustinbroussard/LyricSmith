@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>MuseDice — Songwriting Spark</title>
+  <style>
+    :root{
+      --bg:#0b0b0c;--fg:#e9e9ef;--muted:#b2b2bb;--card:#141418;--card2:#121217;--acc:#8b5cf6;--acc2:#22d3ee;--warn:#f59e0b;--danger:#ef4444;--ok:#10b981;
+      --shadow:0 6px 24px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 800px at 10% -10%, #111 0%, #0b0b0c 60%, #09090b 100%);color:var(--fg);font:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,Apple Color Emoji,Segoe UI Emoji,sans-serif;}
+    header{position:sticky;top:0;background:linear-gradient(180deg,rgba(11,11,12,.95),rgba(11,11,12,.7));backdrop-filter: blur(8px);z-index:10;border-bottom:1px solid #1e1e25}
+    .wrap{max-width:1000px;margin:0 auto;padding:14px 14px 0}
+    h1{margin:0;font-size:20px;letter-spacing:.4px;display:flex;align-items:center;gap:10px}
+    h1 .badge{font-size:12px;color:#111;background:linear-gradient(90deg,var(--acc),var(--acc2));padding:2px 8px;border-radius:999px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 12px}
+    .btn{appearance:none;border:0;border-radius:14px;padding:10px 14px;background:#1a1a22;color:var(--fg);box-shadow:var(--shadow);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:linear-gradient(180deg,#2a2a34,#1a1a22);border:1px solid #2f2f3a}
+    .btn.accent{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#0a0a0f;font-weight:700}
+    .btn.warn{background:#2a2312;border:1px solid #3a2f12;color:#ffd38a}
+    .btn.ghost{background:transparent;border:1px solid #292935}
+    .btn.icon{padding:10px;border-radius:12px}
+    .btn.small{padding:8px 10px;border-radius:10px;font-size:13px}
+    .icon{width:18px;height:18px;display:inline-block}
+
+    #controls{display:grid;grid-template-columns:1fr auto auto;gap:8px}
+    #seed{width:100%;padding:10px 12px;border-radius:12px;background:#121218;color:var(--fg);border:1px solid #232330}
+    label{font-size:12px;color:var(--muted)}
+
+    #cards{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0 20px}
+    @media(min-width:720px){#cards{grid-template-columns:repeat(2,1fr)}}
+    .card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid #1c1c25;border-radius:18px;box-shadow:var(--shadow);padding:12px}
+    .card h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .card .value{font-size:16px;line-height:1.5;color:#f5f5fa;white-space:pre-wrap}
+    .locks{display:flex;gap:6px}
+    .pill{display:inline-flex;align-items:center;gap:6px;border:1px dashed #30303a;background:#101016;padding:4px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
+
+    #output{background:#0e0e13;border:1px solid #232330;border-radius:16px;padding:12px}
+    #aiText{width:100%;min-height:160px;background:#0b0b10;color:var(--fg);border:1px solid #242432;border-radius:12px;padding:12px}
+
+    footer{padding:24px 0 40px;color:var(--muted);font-size:12px}
+
+    dialog{border:none;border-radius:16px;padding:0;max-width:560px;width:92vw;background:linear-gradient(180deg,#14141a,#0e0e13);color:var(--fg)}
+    dialog::backdrop{background:rgba(0,0,0,.6)}
+    .modal{padding:16px}
+    .field{display:grid;gap:6px;margin:10px 0}
+    .field input,.field select,.field textarea{padding:10px 12px;border-radius:12px;background:#0b0b12;color:var(--fg);border:1px solid #262636}
+    .grid{display:grid;gap:10px}
+    @media(min-width:640px){.grid.two{grid-template-columns:1fr 1fr}}
+
+    .spinner{display:none;width:18px;height:18px;border:2px solid #ffffff26;border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
+    .spinner.show{display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .tips{font-size:12px;color:var(--muted)}
+    .kbd{padding:.1rem .4rem;border:1px solid #3a3a48;border-bottom-width:2px;border-radius:6px;background:#0c0c14;color:#c9c9d6;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New", monospace}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="row" style="justify-content:space-between">
+        <h1>
+          🎲 MuseDice <span class="badge">Songwriting Spark</span>
+        </h1>
+        <div class="row">
+          <button class="btn ghost small" id="btnSettings" title="Settings">⚙️ Settings</button>
+          <button class="btn ghost small" id="btnAbout" title="About">❓ About</button>
+        </div>
+      </div>
+      <div id="controls" class="row">
+        <div style="flex:1 1 auto;min-width:200px">
+          <label for="seed">Random seed (optional — same seed = same rolls)</label>
+          <input id="seed" inputmode="numeric" placeholder="leave blank for fresh chaos" />
+        </div>
+        <div class="row">
+          <button class="btn icon primary" id="btnRoll" title="Shuffle all (unlocked)">🎲</button>
+          <button class="btn accent" id="btnWrite">✍️ Write lyric <span class="spinner" id="spinWrite"></span></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="cards"></section>
+
+    <section id="output">
+      <div class="row" style="justify-content:space-between">
+        <strong>AI Output</strong>
+        <div class="row">
+          <button class="btn small ghost" id="btnCopy">Copy</button>
+          <button class="btn small ghost" id="btnClear">Clear</button>
+          <button class="btn small" id="btnExport">Export JSON</button>
+          <label class="btn small warn" for="importFile" title="Import JSON">Import<input id="importFile" type="file" accept="application/json" style="display:none"></label>
+        </div>
+      </div>
+      <textarea id="aiText" placeholder="Click ✍️ Write lyric (with an API key in Settings) — or just use the dice to get offline prompts."></textarea>
+    </section>
+
+    <footer>
+      <div class="pill">Offline: fully usable with random prompts • Online: add an OpenRouter API key for AI writing</div>
+      <div style="margin-top:10px" class="tips">Pro tip: lock any card you love, then hit 🎲 to remix the rest. Long‑press on a card to regenerate only that card.</div>
+    </footer>
+  </main>
+
+  <!-- SETTINGS MODAL -->
+  <dialog id="modal">
+    <div class="modal">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <strong>Settings</strong>
+        <button class="btn small ghost" id="btnClose">Close</button>
+      </div>
+      <div class="grid two">
+        <div class="field">
+          <label for="apiKey">OpenRouter API Key (stored locally)</label>
+          <input id="apiKey" type="password" placeholder="sk-or-v1-..." autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="model">Model</label>
+          <select id="model">
+            <option value="anthropic/claude-3.5-sonnet">anthropic/claude-3.5-sonnet</option>
+            <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
+            <option value="google/gemini-1.5-flash">google/gemini-1.5-flash</option>
+            <option value="meta-llama/llama-3.1-70b-instruct">meta-llama/llama-3.1-70b-instruct</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="temp">Creativity (temperature)</label>
+          <input id="temp" type="range" min="0" max="2" step="0.05" />
+        </div>
+        <div class="field">
+          <label for="base">OpenRouter Base URL</label>
+          <input id="base" placeholder="https://openrouter.ai/api/v1" />
+        </div>
+      </div>
+      <div class="tips">Your key never leaves this device except to call OpenRouter directly from your browser. <span class="kbd">Esc</span> to close.</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnSave">Save</button>
+        <button class="btn ghost" id="btnClearKey">Remove key</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ABOUT MODAL -->
+  <dialog id="about">
+    <div class="modal">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <strong>About MuseDice</strong>
+        <button class="btn small ghost" id="btnAboutClose">Close</button>
+      </div>
+      <p>MuseDice generates <em>structured randomness</em> for songwriting: themes, settings, POV, constraints, imagery, hooks, and chord ideas. Lock what you like, roll the rest. If you add an OpenRouter key, MuseDice will also draft lyrics and a focused brief based on your current deck.</p>
+      <p class="tips">Single‑file, mobile‑first, no build step. Host anywhere, or open locally.</p>
+    </div>
+  </dialog>
+
+  <script>
+  // ---------- UTIL: Seeded RNG ----------
+  function mulberry32(a){return function(){var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296}}
+  function hashString(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h = Math.imul(h ^ str.charCodeAt(i), 3432918353);h = (h<<13) | (h>>>19);}return (h>>>0)}
+  function choice(arr, rng){return arr[Math.floor(rng()*arr.length)]}
+  function pickN(arr, n, rng){const out=[];const pool=[...arr];for(let i=0;i<Math.min(n,pool.length);i++){out.push(pool.splice(Math.floor(rng()*pool.length),1)[0])}return out}
+
+  // ---------- DATA POOLS ----------
+  const POOLS = {
+    themes:[
+      'midnight laundromat confessions','rust‑belt wedding parking lot','desert long‑haul radio fade','last shift at the diner','back porch meteor shower',
+      'neon pawn shop miracles','rain‑soaked bus stop truce','small‑town carnival ghosts','storm cellar lullaby','motel bible underlined in red',
+      'one‑room apartment waltz','gas station birthday cake','off‑season boardwalk','church basement AA coffee','city bridge at 3am',
+      'trainyard echo games','tornado siren picnic','winter kitchen dance floor','flea market gold tooth grin','late notice, early morning'
+    ],
+    settingsTime:['dawn','high noon','blue hour','midnight','2 a.m.','closing time','first frost','late July','Sunday evening','September rain'],
+    settingsPlace:['riverbank','laundromat','rooftop','bus depot','abandoned mall','corner booth','kitchen tile','front seat','driveway','church steps'],
+    pov:[
+      'first person — unreliable narrator','second person — address the you','third person — camera following two strangers','choral — we/us communal voice','call‑and‑response: singer vs echo',
+      'omniscient but tender','letter never sent','voicemail transcript','confession to a pet','diary with crossed‑out lines'
+    ],
+    emotions:['wistful','defiant','tender','haunted','reckless','homesick','sardonic','forgiving','wired','soft‑angry','cautiously hopeful','nostalgic','electric','spent','unapologetic'],
+    constraints:[
+      'include a color in every verse','one internal rhyme per line','no line starts with the same word','use exactly 12 lines per verse','last word of each line echoes a clock sound',
+      'no adjectives in the chorus','metaphor must change meaning by the bridge','pre‑chorus only monosyllables','a place name in verse two','one surprising verb repeats three times',
+      'rhyme scheme: aaab cccb','end every chorus with a question','all imagery is tactile or taste','use anaphora: start each verse line with the same phrase',
+      'hide a phone number across the lines'
+    ],
+    imagery:['cigarette cellophane','wet denim','box fan breath','frying oil halo','neon hum','cold porcelain','loose gravel','moth‑eaten felt','cardboard after rain','diesel blanket','ozone on tongue','cheap perfume orbit'],
+    hookForms:['If __ then __','I keep __ because __','The way __ when __','I would __ but __','We were __ until __','You say __ so I __','It was __, it was __','All my __ live in __','Call me __ when __','I learned __ by __'],
+    twists:['the apology arrives too late','the letter was never sent','they were siblings not lovers','it was the wrong house','today is the anniversary, but of the wrong event','the hero is the problem','the chorus is a lie admitted in the bridge','they never left the town—they left each other','the ring was from a pawn shop and that matters','the storm missed; they stayed anyway'],
+    twoWords:[
+      'blue thunder','salt sleep','mercy engine','hunger gospel','paper crown','ghost miles','sugar riot','saint static','nickel halo','wound light','fable ash','velvet fuse','hollow honey','plastic prayer','graveyard glitter','ember slang','river armor','calico gravity','borrowed moon','pennies & gasoline'
+    ],
+    keys:['C','G','D','A','E','B','F#','C#','F','Bb','Eb','Ab','Db','Gb','Cb'],
+    timeSigs:['4/4','6/8','12/8','3/4','2/4'],
+    verseProgs:['I–V–vi–IV','vi–IV–I–V','I–IV–V–IV','ii–V–I–vi','I–V–ii–IV','I–V–I–IV'],
+    chorusProgs:['vi–IV–I–V','I–V–vi–IV','IV–I–V–vi','I–V–IV–V','I–IV–I–V'],
+    bridgeProgs:['iv–i–V','ii–V–iii–vi','vi–V–IV–V','V–IV–I','ii–iv–I–V']
+  }
+
+  // Roman to chord in key
+  const KEY_INDEX = {C:0,'G':7,'D':2,'A':9,'E':4,'B':11,'F#':6,'C#':1,'F':5,'Bb':10,'Eb':3,'Ab':8,'Db':1,'Gb':6,'Cb':11};
+  const NOTE_NAMES_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const NOTE_NAMES_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+  function preferFlats(key){return ['F','Bb','Eb','Ab','Db','Gb','Cb'].includes(key)}
+  function romanToChords(romanStr, key){
+    const useFlat = preferFlats(key); const N=useFlat?NOTE_NAMES_FLAT:NOTE_NAMES_SHARP; const base=KEY_INDEX[key];
+    const map={'I':0,'ii':2,'iii':4,'IV':5,'V':7,'vi':9,'vii°':11,'iv':5,'i':0};
+    return romanStr.split('–').map(sym=>{
+      let s=sym.trim(); let degree=map[s.replace(/[^IiVv°]/g,'')]??0; let note=N[(base+degree)%12];
+      let quality=''; if(/[a-z]/.test(s[0])) quality='m'; if(s.includes('°')) quality='dim';
+      if(quality==='dim') return note+'dim'; if(quality==='m') return note+'m'; return note;
+    }).join(' – ')
+  }
+
+  // ---------- STATE ----------
+  const STATE = {
+    seed:'',
+    deck:{},
+    locks:{},
+    settings:{ apiKey:'', model:'anthropic/claude-3.5-sonnet', base:'https://openrouter.ai/api/v1', temp:0.9 }
+  }
+
+  const CARD_DEFS = [
+    {key:'theme', label:'Theme', gen:(rng)=> choice(POOLS.themes, rng)},
+    {key:'setting', label:'Setting', gen:(rng)=> `${choice(POOLS.settingsTime,rng)} at the ${choice(POOLS.settingsPlace,rng)}`},
+    {key:'pov', label:'Point of View', gen:(rng)=> choice(POOLS.pov,rng)},
+    {key:'emotion', label:'Emotional Palette', gen:(rng)=> pickN(POOLS.emotions,2,rng).join(' • ')},
+    {key:'constraint', label:'Constraint', gen:(rng)=> choice(POOLS.constraints, rng)},
+    {key:'imagery', label:'Imagery Seeds', gen:(rng)=> pickN(POOLS.imagery,3,rng).join(' • ')},
+    {key:'hook', label:'Hook Form', gen:(rng)=> choice(POOLS.hookForms, rng)},
+    {key:'twist', label:'Twist/Reversal', gen:(rng)=> choice(POOLS.twists, rng)},
+    {key:'twowords', label:'Two‑Word Fuse', gen:(rng)=> choice(POOLS.twoWords, rng)},
+    {key:'music', label:'Key • Tempo • Progressions', gen:(rng)=>{ const key=choice(POOLS.keys,rng); const bpm = 70+Math.floor(rng()*80); const ts = choice(POOLS.timeSigs,rng);
+        const v=choice(POOLS.verseProgs,rng), c=choice(POOLS.chorusProgs,rng), b=choice(POOLS.bridgeProgs,rng);
+        return `Key: ${key} | ${ts} • ${bpm} BPM\nVerse: ${v}  (${romanToChords(v,key)})\nChorus: ${c}  (${romanToChords(c,key)})\nBridge: ${b}  (${romanToChords(b,key)})`}}
+  ]
+
+  // ---------- RENDER ----------
+  const elCards = document.getElementById('cards');
+  function renderCards(){
+    elCards.innerHTML='';
+    CARD_DEFS.forEach(def=>{
+      const val = STATE.deck[def.key] ?? '';
+      const locked = !!STATE.locks[def.key];
+      const card = document.createElement('div'); card.className='card'; card.dataset.key=def.key;
+      card.innerHTML = `
+        <h3><span>${def.label}</span>
+          <span class="locks">
+            <button class="btn small ghost lockBtn" aria-pressed="${locked}" title="Lock/unlock">${locked?'🔒':'🔓'}</button>
+            <button class="btn small ghost oneBtn" title="Regenerate this">↻</button>
+          </span>
+        </h3>
+        <div class="value">${val||'<span style="color:var(--muted)">— roll the dice —</span>'}</div>
+      `;
+      // Events
+      card.querySelector('.lockBtn').onclick=()=>{ STATE.locks[def.key]=!locked; renderCards(); saveLocal(); };
+      card.querySelector('.oneBtn').onclick=(e)=>{ e.stopPropagation(); regenOne(def.key,true) };
+      // Long‑press anywhere on card to regen it
+      let t; card.addEventListener('touchstart',()=>{t=setTimeout(()=>regenOne(def.key,true),450)});
+      card.addEventListener('touchend',()=>clearTimeout(t));
+      elCards.appendChild(card);
+    })
+  }
+
+  // ---------- GENERATION ----------
+  function rngFromSeed(){
+    const seedStr = STATE.seed?.toString().trim();
+    if(!seedStr) return Math.random; // non‑deterministic
+    return mulberry32(hashString(seedStr))
+  }
+  function regenAll(){
+    const rng = rngFromSeed();
+    CARD_DEFS.forEach(def=>{ if(!STATE.locks[def.key]) STATE.deck[def.key] = def.gen(rng) });
+    renderCards(); saveLocal();
+  }
+  function regenOne(key, force=false){
+    if(!force && STATE.locks[key]) return; const rng = rngFromSeed();
+    const def = CARD_DEFS.find(d=>d.key===key); if(!def) return; STATE.deck[key]=def.gen(rng);
+    renderCards(); saveLocal();
+  }
+
+  // ---------- STORAGE ----------
+  const LS_KEY = 'musedice_v1';
+  function loadLocal(){ try{ const o = JSON.parse(localStorage.getItem(LS_KEY)||'{}'); Object.assign(STATE, o); }catch{} }
+  function saveLocal(){ localStorage.setItem(LS_KEY, JSON.stringify(STATE)) }
+
+  // ---------- AI CALL ----------
+  async function writeLyric(){
+    const out = document.getElementById('aiText');
+    const spin = document.getElementById('spinWrite');
+    const {apiKey, model, base, temp} = STATE.settings;
+    if(!apiKey){ out.value = 'Add an OpenRouter API key in Settings to enable AI writing. Random prompts work offline.'; return }
+    spin.classList.add('show');
+    try{
+      const brief = buildBrief();
+      const body = {
+        model,
+        temperature: Number(temp)||0.9,
+        messages:[
+          {role:'system', content:'You are a seasoned songwriter and lyric producer. Write vivid, singable lines with concrete images and musical phrasing. Respect constraints.'},
+          {role:'user', content:`Using the following deck, draft: (1) a tight 8‑line \"Lyric Spark\" chorus candidate, (2) a short verse (6 lines), and (3) a compact creative brief (bulleted). Avoid rhyming clichés. Keep it under 250 words.\n\nDECK\n${brief}`} ]
+      }
+      const res = await fetch(`${base.replace(/\/$/,'')}/chat/completions`,{
+        method:'POST',
+        headers:{
+          'content-type':'application/json',
+          'authorization':`Bearer ${apiKey}`,
+          'HTTP-Referer': location.origin,
+          'X-Title':'MuseDice'
+        },
+        body: JSON.stringify(body)
+      });
+      if(!res.ok){ const tx = await res.text(); throw new Error(`HTTP ${res.status}: ${tx}`) }
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content || JSON.stringify(data,null,2);
+      out.value = text;
+    }catch(err){ out.value = `Error: ${err.message || err}` }
+    finally{ spin.classList.remove('show') }
+  }
+
+  function buildBrief(){
+    const d = STATE.deck; return [
+      `Theme: ${d.theme||'—'}`,
+      `Setting: ${d.setting||'—'}`,
+      `POV: ${d.pov||'—'}`,
+      `Emotion: ${d.emotion||'—'}`,
+      `Constraint: ${d.constraint||'—'}`,
+      `Imagery: ${d.imagery||'—'}`,
+      `Hook Form: ${d.hook||'—'}`,
+      `Twist: ${d.twist||'—'}`,
+      `Two‑Word Fuse: ${d.twowords||'—'}`,
+      `Music: ${d.music||'—'}`
+    ].join('\n') }
+
+  // ---------- EXPORT / IMPORT ----------
+  function exportJSON()

@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Suno Prompt Engine — OpenRouter</title>
+  <style>
+    :root{
+      --bg: #0b0c10; /* dark default */
+      --fg: #f2f5f7;
+      --muted: #9aa6b2;
+      --card: #111318;
+      --accent: #7c5cff;
+      --accent-2: #28c1a5;
+      --danger: #ff5c7c;
+      --border: #1d2129;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg: #f7f8fa;
+        --fg: #0f1720;
+        --muted: #496176;
+        --card: #ffffff;
+        --accent: #5b3df6;
+        --accent-2: #18a28b;
+        --danger: #e03a5b;
+        --border: #e6e8ee;
+        --shadow: 0 10px 30px rgba(16,24,40,.08);
+      }
+    }
+    [data-theme="light"]{ --bg:#ffffff; --fg:#0f1720; --muted:#516070; --card:#ffffff; --border:#e7e9ee; --shadow:0 10px 30px rgba(16,24,40,.08); }
+    [data-theme="dark"]{ --bg:#0b0c10; --fg:#f2f5f7; --muted:#9aa6b2; --card:#111318; --border:#1d2129; --shadow:0 10px 30px rgba(0,0,0,.35); }
+
+    *{ box-sizing: border-box; }
+    html, body{ height:100%; }
+    body{ margin:0; background:var(--bg); color:var(--fg); font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
+
+    .container{ max-width: 1100px; margin: 0 auto; padding: 16px; }
+    header{ position: sticky; top:0; z-index:10; backdrop-filter:saturate(1.2) blur(6px); background: color-mix(in oklab, var(--bg) 86%, transparent); border-bottom:1px solid var(--border); }
+    header .bar{ display:flex; gap:12px; align-items:center; justify-content:space-between; padding:12px 8px; }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px; }
+    .brand .logo{ width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); display:grid; place-items:center; box-shadow:var(--shadow); }
+    .brand .logo svg{ width:18px; height:18px; color:white; }
+
+    .btn{ appearance:none; border:1px solid var(--border); background:linear-gradient(180deg, color-mix(in oklab, var(--card) 92%, transparent), var(--card)); color:var(--fg); padding:10px 12px; border-radius:14px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; transition: .15s ease; box-shadow:0 1px 0 rgba(255,255,255,.03) inset; }
+    .btn:hover{ transform: translateY(-1px); }
+    .btn:active{ transform: translateY(0); }
+    .btn.primary{ background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 80%, transparent), var(--accent)); border-color: transparent; color: white; }
+    .btn.ghost{ background: transparent; }
+    .btn.danger{ background: linear-gradient(180deg, color-mix(in oklab, var(--danger) 82%, transparent), var(--danger)); border-color: transparent; color: white; }
+
+    .grid{ display:grid; gap:12px; }
+    @media(min-width:840px){ .grid.cols-3{ grid-template-columns: 1fr 1fr 1fr; } }
+
+    .card{ background: var(--card); border:1px solid var(--border); border-radius:18px; padding:14px; box-shadow: var(--shadow); }
+    .card h3{ margin:0 0 10px; font-size:14px; letter-spacing:.3px; text-transform:uppercase; color:var(--muted); }
+    textarea, input, select{ width:100%; background: color-mix(in oklab, var(--card) 95%, black 0%); color: var(--fg); border:1px solid var(--border); border-radius:14px; padding:12px 12px; font:inherit; outline:none; box-shadow: 0 1px 0 rgba(255,255,255,.02) inset; }
+    textarea{ min-height: 120px; resize: vertical; }
+    .row{ display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+    .spacer{ flex:1; }
+    .muted{ color:var(--muted); }
+    .pill{ padding:6px 10px; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted); }
+
+    .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .toolbar .group{ display:flex; gap:10px; align-items:center; }
+
+    .outputs .box{ position:relative; }
+    .outputs pre{ margin:0; padding:12px; border-radius:12px; background: color-mix(in oklab, var(--bg) 85%, #000 0%); border:1px solid var(--border); min-height:130px; white-space: pre-wrap; word-wrap:break-word; }
+    .chipbar{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+
+    .status{ font-size:12px; color:var(--muted); }
+
+    dialog{ border:none; border-radius:16px; padding:0; max-width: 560px; width: calc(100% - 24px); background: var(--card); color:var(--fg); box-shadow: var(--shadow); }
+    dialog::backdrop{ background: rgba(0,0,0,.35); backdrop-filter: blur(3px); }
+    .modal-head{ display:flex; align-items:center; justify-content:space-between; padding:14px; border-bottom:1px solid var(--border); }
+    .modal-body{ padding:14px; }
+
+    .list{ display:flex; flex-direction:column; gap:8px; max-height:260px; overflow:auto; border:1px solid var(--border); border-radius:12px; padding:8px; }
+    .list .item{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; border-radius:10px; cursor:pointer; border:1px solid transparent; }
+    .list .item:hover{ background: color-mix(in oklab, var(--bg) 90%, transparent); border-color: var(--border); }
+    .list .item small{ color:var(--muted); }
+
+    .kbd{ border:1px solid var(--border); background: color-mix(in oklab, var(--bg) 92%, transparent); border-radius:6px; padding:1px 6px; font-size:12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container bar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.5 6.5L22 9l-5 4.9L18.5 21 12 17.8 5.5 21 7 13.9 2 9l6.5-.5L12 2z"/></svg>
+        </div>
+        <div>
+          <div>Suno Prompt Engine</div>
+          <small class="muted">OpenRouter • v1.0</small>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button id="themeBtn" class="btn ghost" title="Toggle theme">🌓 Theme</button>
+        <button id="aboutBtn" class="btn ghost">About</button>
+        <button id="filesBtn" class="btn ghost">Files</button>
+        <button id="settingsBtn" class="btn">⚙️ Settings</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top:18px; padding-bottom: 60px;">
+    <section class="card" aria-label="Prompt Builder">
+      <div class="row" style="margin-bottom:10px;">
+        <div class="pill">Model: <span id="modelLabel" class="muted">(not set)</span></div>
+        <div class="spacer"></div>
+        <div class="status" id="status">Ready</div>
+      </div>
+
+      <label class="muted" for="idea">Describe the track you want (references, vibe, constraints)</label>
+      <textarea id="idea" placeholder="e.g., gritty modern R&B with psychedelic guitars, halftime groove, big anthemic chorus; no trap hats, no autotune"></textarea>
+
+      <div class="row" style="margin:10px 0;">
+        <div class="group">
+          <label for="temperature" class="muted">Temperature</label>
+          <input id="temperature" type="range" min="0" max="1" step="0.05" value="0.6" style="width:180px"/>
+          <span id="tempVal" class="pill">0.60</span>
+        </div>
+        <div class="group">
+          <label for="seed" class="muted">Seed</label>
+          <input id="seed" type="number" inputmode="numeric" placeholder="optional" class="" style="width:120px"/>
+        </div>
+        <div class="spacer"></div>
+        <button id="sendBtn" class="btn primary">▶ Generate</button>
+      </div>
+
+      <details id="advanced">
+        <summary class="muted">Advanced • System Prompt (editable)</summary>
+        <textarea id="systemPrompt" style="min-height: 320px;"></textarea>
+      </details>
+    </section>
+
+    <section class="outputs grid cols-3" style="margin-top:12px;">
+      <div class="card box">
+        <h3>1 • Natural language description</h3>
+        <pre id="outDescription" aria-live="polite"></pre>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn" data-copy="outDescription">Copy</button>
+          <span class="spacer"></span>
+          <span class="status" id="descCount">0 chars</span>
+        </div>
+      </div>
+      <div class="card box">
+        <h3>2 • Style meta tags</h3>
+        <pre id="outStyle" aria-live="polite"></pre>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn" data-copy="outStyle">Copy</button>
+          <span class="spacer"></span>
+          <span class="status" id="styleCount">0 chars</span>
+        </div>
+      </div>
+      <div class="card box">
+        <h3>3 • Exclude metatags</h3>
+        <pre id="outExclude" aria-live="polite"></pre>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn" data-copy="outExclude">Copy</button>
+          <span class="spacer"></span>
+          <span class="status" id="excludeCount">0 chars</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:12px;">
+      <div class="row">
+        <button id="exportTxt" class="btn">⬇ Export All (.txt)</button>
+        <button id="saveLocal" class="btn">💾 Save</button>
+        <button id="clearAll" class="btn danger">✖ Clear</button>
+        <div class="spacer"></div>
+        <small class="muted">Tips: <span class="kbd">Ctrl/Cmd+Enter</span> to generate • <span class="kbd">Ctrl/Cmd+K</span> to focus input</small>
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings Modal -->
+  <dialog id="settingsModal">
+    <div class="modal-head">
+      <strong>Settings</strong>
+      <button class="btn ghost" data-close="settingsModal">Close</button>
+    </div>
+    <div class="modal-body">
+      <label class="muted" for="apiKey">OpenRouter API Key</label>
+      <input id="apiKey" type="password" placeholder="sk-or-v1-..." autocomplete="off"/>
+      <div class="row" style="margin:8px 0;">
+        <button id="fetchModels" class="btn">🔄 Fetch Models</button>
+        <div class="spacer"></div>
+        <label class="muted" for="themeSelect">Theme</label>
+        <select id="themeSelect">
+          <option value="auto">Auto</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+
+      <label class="muted" for="modelSearch">Choose Model</label>
+      <input id="modelSearch" placeholder="Search models..." />
+      <div id="modelList" class="list" role="listbox" aria-label="Models"></div>
+    </div>
+  </dialog>
+
+  <!-- About Modal -->
+  <dialog id="aboutModal">
+    <div class="modal-head">
+      <strong>About</strong>
+      <button class="btn ghost" data-close="aboutModal">Close</button>
+    </div>
+    <div class="modal-body">
+      <p><strong>Suno Prompt Engine</strong> is a mobile‑first, light/dark, production‑ready web app that crafts Suno v4.5 prompts using OpenRouter models. Nothing leaves your browser except direct API calls you make with your key (stored locally). You can edit the system prompt and export the outputs.</p>
+      <ul>
+        <li>Enter your <em>OpenRouter API key</em> in Settings.</li>
+        <li>Fetch and pick a model (e.g., gpt‑4.1‑mini, llama‑3.1‑70b, etc.).</li>
+        <li>Describe your track, hit <strong>Generate</strong>.</li>
+        <li>Copy each output or export a combined .txt.</li>
+      </ul>
+      <p class="muted">Security: API key is kept in <code>localStorage</code>. Clear it any time in Settings. OpenRouter requests are sent to <code>https://openrouter.ai/api/v1</code>.</p>
+    </div>
+  </dialog>
+
+  <!-- Files Modal -->
+  <dialog id="filesModal">
+    <div class="modal-head">
+      <strong>Files</strong>
+      <button class="btn ghost" data-close="filesModal">Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="row" style="margin-bottom:8px;">
+        <button id="exportAllLocal" class="btn">Export All Saved (.zip)</button>
+        <div class="spacer"></div>
+        <button id="clearSaved" class="btn danger">Clear Saved</button>
+      </div>
+      <div id="savedList" class="list" role="listbox" aria-label="Saved prompts"></div>
+    </div>
+  </dialog>
+
+  <script>
+    // --------- State & Utilities ---------
+    const S = {
+      model: null,
+      models: [],
+      theme: localStorage.getItem('theme') || 'auto',
+    };
+
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    function setStatus(msg){ $('#status').textContent = msg; }
+
+    function applyTheme(mode){
+      if(mode === 'auto'){ document.documentElement.removeAttribute('data-theme'); }
+      else{ document.documentElement.setAttribute('data-theme', mode); }
+      localStorage.setItem('theme', mode);
+    }
+
+    function loadPersist(){
+      const key = localStorage.getItem('or_key');
+      if(key) $('#apiKey').value = key;
+      const model = localStorage.getItem('or_model');
+      if(model){
+        try { S.model = JSON.parse(model); } catch {}
+      }
+      $('#modelLabel').textContent = S.model ? S.model.id : '(not set)';
+      const sys = localStorage.getItem('systemPrompt');
+      if(sys) $('#systemPrompt').value = sys; else $('#systemPrompt').value = DEFAULT_SYSTEM_PROMPT;
+      $('#themeSelect').value = S.theme; applyTheme(S.theme);
+    }
+
+    function saveKey(){ const v = $('#apiKey').value.trim(); if(v){ localStorage.setItem('or_key', v); }}
+    function saveModel(m){ localStorage.setItem('or_model', JSON.stringify(m)); }
+
+    function copyFrom(id){
+      const el = document.getElementById(id);
+      const blob = new Blob([el.textContent], {type:'text/plain'});
+      const r = new FileReader();
+      r.onload = () => {
+        navigator.clipboard.writeText(el.textContent).then(()=> setStatus('Copied to clipboard')).catch(()=> setStatus('Copy failed'));
+      }; r.readAsText(blob);
+    }
+
+    function countUpdate(){
+      $('#descCount').textContent = $('#outDescription').textContent.length + ' chars';
+      $('#styleCount').textContent = $('#outStyle').textContent.length + ' chars';
+      $('#excludeCount').textContent = $('#outExclude').textContent.length + ' chars';
+    }
+
+    function exportTxt(){
+      const parts = [
+        `# Natural Language\n\n${$('#outDescription').textContent}\n\n`,
+        `# Style Meta Tags\n\n${$('#outStyle').textContent}\n\n`,
+        `# Exclude Metatags\n\n${$('#outExclude').textContent}\n`
+      ];
+      const blob = new Blob(parts, {type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `suno_prompt_${new Date().toISOString().replace(/[:.]/g,'-')}.txt`;
+      document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
+    }
+
+    function saveCurrent(){
+      const entry = {
+        ts: Date.now(),
+        idea: $('#idea').value,
+        out: {
+          desc: $('#outDescription').textContent,
+          style: $('#outStyle').textContent,
+          excl: $('#outExclude').textContent,
+        },
+        model: S.model?.id || null,
+      };
+      const arr = JSON.parse(localStorage.getItem('saved_prompts')||'[]');
+      arr.unshift(entry);
+      localStorage.setItem('saved_prompts', JSON.stringify(arr));
+      renderSaved();
+      setStatus('Saved locally');
+    }
+
+    function renderSaved(){
+      const box = $('#savedList');
+      box.innerHTML = '';
+      const arr = JSON.parse(localStorage.getItem('saved_prompts')||'[]');
+      if(!arr.length){ box.innerHTML = '<div class="muted">No saved items yet.</div>'; return; }
+      arr.forEach((e, idx)=>{
+        const d = new Date(e.ts).toLocaleString();
+        const item = document.createElement('div'); item.className='item'; item.role='option';
+        item.innerHTML = `<div><strong>${e.model||'model?'}</strong> <small class="muted">• ${d}</small><br><small class="muted">${(e.idea||'').slice(0,80)}${(e.idea||'').length>80?'…':''}</small></div>
+          <div class="row">
+            <button class="btn" data-load="${idx}">Load</button>
+            <button class="btn" data-download="${idx}">.txt</button>
+            <button class="btn danger" data-delete="${idx}">Delete</button>
+          </div>`;
+        box.appendChild(item);
+      });
+    }
+
+    function downloadSaved(idx){
+      const arr = JSON.parse(localStorage.getItem('saved_prompts')||'[]');
+      const e = arr[idx]; if(!e) return;
+      const parts = [ `# Idea\n${e.idea}\n\n`, `# Description\n${e.out.desc}\n\n`, `# Style Meta Tags\n${e.out.style}\n\n`, `# Exclude Metatags\n${e.out.excl}\n` ];
+      const blob = new Blob(parts,{type:'text/plain'});
+      const url = URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download=`saved_suno_${new Date(e.ts).toISOString().replace(/[:.]/g,'-')}.txt`;
+      document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
+    }
+
+    async function exportAllZip(){
+      // Minimal client-side zip (store only) without deps
+      const texts = (JSON.parse(localStorage.getItem('saved_prompts')||'[]')).map((e,i)=>({
+        name: `saved_${i+1}_${new Date(e.ts).toISOString().slice(0,19).replace(/[:T]/g,'-')}.txt`,
+        content: `# Idea\n${e.idea}\n\n# Description\n${e.out.desc}\n\n# Style Meta Tags\n${e.out.style}\n\n# Exclude Metatags\n${e.out.excl}\n`
+      }));
+      if(!texts.length){ setStatus('Nothing to export'); return; }
+      const encoder = new TextEncoder();
+      let offset = 0; const files = [];
+      // Build local headers + content and central directory (no compression)
+      function crc32(buf){ // tiny crc32
+        let c = ~0; for(let i=0;i<buf.length;i++){ c = (c>>>8) ^ CRC_TABLE[(c ^ buf[i]) & 0xFF]; } return ~c >>>0; }
+      const CRC_TABLE = (()=>{ let c, t=[]; for(let n=0;n<256;n++){ c=n; for(let k=0;k<8;k++){ c = c&1 ? 0xEDB88320 ^ (c>>>1) : c>>>1; } t[n]=c>>>0; } return t; })();
+      const parts=[]; const central=[];
+      for(const f of texts){
+        const data = encoder.encode(f.content);
+        const name = encoder.encode(f.name);
+        const crc = crc32(data);
+        const lh = new Uint8Array(30 + name.length);
+        const view = new DataView(lh.buffer);
+        view.setUint32(0,0x04034b50,true); // local header sig
+        view.setUint16(4,20,true); // version
+        view.setUint16(6,0,true); // flags
+        view.setUint16(8,0,true); // method (store)
+        view.setUint16(10,0,true); view.setUint16(12,0,true); // time/date
+        view.setUint32(14,crc,true);
+        view.setUint32(18,data.length,true);
+        view.setUint32(22,data.length,true);
+        view.setUint16(26,name.length,true);
+        view.setUint16(28,0,true); // extra len
+        lh.set(name,30);
+        const centralHdr = new Uint8Array(46 + name.length);
+        const cv = new DataView(centralHdr.buffer);
+        cv.setUint32(0,0x02014b50,true);
+        cv.setUint16(4,20,true); cv.setUint16(6,20,true);
+        cv.setUint16(8,0,true); cv.setUint16(10,0,true);
+        cv.setUint16(12,0,true); cv.setUint16(14,0,true); cv.setUint16(16,0,true);
+        cv.setUint32(16,crc,true); // (overwrites method, ok for store)
+        cv.setUint32(20,data.length,true);
+        cv.setUint32(24,data.length,true);
+        cv.setUint16(28,name.length,true);
+        cv.setUint16(30,0,true); cv.setUint16(32,0,true); cv.setUint16(34,0,true); cv.setUint16(36,0,true);
+        cv.setUint32(38,0,true); // external attrs
+        cv.setUint32(42,offset,true); // relative offset
+        centralHdr.set(name,46);
+        parts.push(lh, data);
+        central.push(centralHdr);
+        offset += lh.length + data.length;
+      }
+      const centralSize = central.reduce((a,b)=>a+b.length,0);
+      const centralOffset = offset;
+      const eocd = new Uint8Array(22);
+      const ev = new DataView(eocd.buffer);
+      ev.setUint32(0,0x06054b50,true);
+      ev.setUint16(8,texts.length,true); ev.setUint16(10,texts.length,true);
+      ev.setUint32(12,centralSize,true); ev.setUint32(16,centralOffset,true);
+      // concat all
+      const out = new Blob([...parts, ...central, eocd], {type:'application/zip'});
+      const url = URL.createObjectURL(out); const a=document.createElement('a');
+      a.href=url; a.download='suno_saved_prompts.zip'; document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
+    }
+
+    function clearOutputs(){ ['outDescription','outStyle','outExclude'].forEach(id=> document.getElementById(id).textContent=''); countUpdate(); }
+
+    // --------- OpenRouter Integration ---------
+    async function fetchModels(){
+      try{
+        saveKey();
+        const key = localStorage.getItem('or_key');
+        if(!key){ alert('Enter your OpenRouter API key first.'); return; }
+        setStatus('Fetching models…');
+        const r = await fetch('https://openrouter.ai/api/v1/models', {
+          headers: { 'Authorization': `Bearer ${key}` }
+        });
+        if(!r.ok){ throw new Error('Model list failed: '+r.status); }
+        const j = await r.json();
+        S.models = (j.data||[]).sort((a,b)=> (a.name||a.id).localeCompare(b.name||b.id));
+        renderModelList(); setStatus(`Models loaded (${S.models.length})`);
+      }catch(err){ console.error(err); setStatus('Failed to fetch models'); }
+    }
+
+    function renderModelList(){
+      const list = $('#modelList'); list.innerHTML = '';
+      const q = $('#modelSearch').value.trim().toLowerCase();
+      const arr = S.models.filter(m => (m.name||m.id).toLowerCase().includes(q));
+      if(!arr.length){ list.innerHTML = '<div class="muted">No models</div>'; return; }
+      arr.forEach(m => {
+        const div = document.createElement('div'); div.className='item'; div.role='option';
+        const price = m.pricing ? `${m.pricing.prompt_token || m.pricing.input || ''}/${m.pricing.completion_token || m.pricing.output || ''}` : '';
+        div.innerHTML = `<div><strong>${m.name||m.id}</strong><br><small class="muted">${m.id}${price?` • ${price}`:''}</small></div><button class="btn" data-pick="${m.id}">Select</button>`;
+        list.appendChild(div);
+      });
+    }
+
+    $('#modelSearch').addEventListener('input', renderModelList);
+
+    function pickModel(id){
+      const m = S.models.find(x=>x.id===id) || { id, name: id };
+      S.model = m; saveModel(m); $('#modelLabel').textContent = m.id; setStatus(`Model set → ${m.id}`);
+    }
+
+    async function generate(){
+      try{
+        const key = localStorage.getItem('or_key');
+        if(!key){ alert('Set your OpenRouter API key in Settings.'); return; }
+        if(!S.model){ alert('Pick a model in Settings.'); return; }
+        const idea = $('#idea').value.trim();
+        if(!idea){ alert('Describe the track first.'); return; }
+        clearOutputs(); setStatus('Generating…');
+
+        const sys = $('#systemPrompt').value;
+        localStorage.setItem('systemPrompt', sys);
+        const temperature = parseFloat($('#temperature').value);
+        const seedStr = $('#seed').value.trim();
+
+        const body = {
+          model: S.model.id,
+          temperature,
+          messages: [
+            { role: 'system', content: sys + "\n\n---\n\nSTRICT RESPONSE FORMAT: Return a single JSON object with keys: description (string), style_meta (string), exclude_meta (string). Do not include markdown fences or extra commentary." },
+            { role: 'user', content: idea }
+          ]
+        };
+        if(seedStr){ body.seed = Number(seedStr); }
+
+        const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${key}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': location.origin,
+            'X-Title': 'Suno Prompt Engine'
+          },
+          body: JSON.stringify(body)
+        });
+        if(!r.ok){ const t = await r.text(); throw new Error('API error '+r.status+': '+t); }
+        const j = await r.json();
+        const content = j.choices?.[0]?.message?.content || '';
+        let parsed;
+        try{ parsed = JSON.parse(content); }
+        catch{ // fallback: try to extract JSON block
+          const m = content.match(/\{[\s\S]*\}/);
+          if(m){ parsed = JSON.parse(m[0]); }
+        }
+        if(!parsed){ throw new Error('Could not parse model response'); }
+        $('#outDescription').textContent = parsed.description || '';
+        $('#outStyle').textContent = parsed.style_meta || '';
+        $('#outExclude').textContent = parsed.exclude_meta || '';
+        countUpdate(); setStatus('Done');
+      }catch(err){ console.error(err); setStatus('Generation failed'); alert(err.message); }
+    }
+
+    // --------- Events ---------
+    $('#temperature').addEventListener('input', e=> { $('#tempVal').textContent = Number(e.target.value).toFixed(2); });
+    $('#sendBtn').addEventListener('click', generate);
+    $('#exportTxt').addEventListener('click', exportTxt);
+    $('#saveLocal').addEventListener('click', saveCurrent);
+    $('#clearAll').addEventListener('click', ()=>{ $('#idea').value=''; clearOutputs(); setStatus('Cleared'); });
+
+    $$('#settingsBtn, #aboutBtn, #filesBtn').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        const id = e.target.id;
+        if(id==='settingsBtn') $('#settingsModal').showModal();
+        if(id==='aboutBtn') $('#aboutModal').showModal();
+        if(id==='filesBtn'){ renderSaved(); $('#filesModal').showModal(); }
+      });
+    });
+    $$('[data-close]').forEach(b=> b.addEventListener('click', e=>{ document.getElementById(e.target.getAttribute('data-close')).close(); }));
+
+    $('#fetchModels').addEventListener('click', fetchModels);
+    $('#modelList').addEventListener('click', e=>{
+      const id = e.target.getAttribute('data-pick'); if(id) { pickModel(id); }
+    });
+
+    document.body.addEventListener('click', e=>{
+      const id = e.target.getAttribute('data-copy'); if(id){ copyFrom(id); }
+      const load = e.target.getAttribute('data-load'); if(load){
+        const arr = JSON.parse(localStorage.getItem('saved_prompts')||'[]'); const it=arr[Number(load)]; if(!it) return;
+        $('#idea').value = it.idea || '';
+        $('#outDescription').textContent = it.out.desc || '';
+        $('#outStyle').textContent = it.out.style || '';
+        $('#outExclude').textContent = it.out.excl || '';
+        countUpdate(); setStatus('Loaded from saved');
+      }
+      const del = e.target.getAttribute('data-delete'); if(del){
+        const arr = JSON.parse(localStorage.getItem('saved_prompts')||'[]'); arr.splice(Number(del),1); localStorage.setItem('saved_prompts', JSON.stringify(arr)); renderSaved();
+      }
+      const dl = e.target.getAttribute('data-download'); if(dl){ downloadSaved(Number(dl)); }
+    });
+
+    // Theme
+    $('#themeBtn').addEventListener('click', ()=>{
+      const cur = document.documentElement.getAttribute('data-theme') || 'auto';
+      const next = cur==='dark' ? 'light' : cur==='light' ? 'auto' : 'dark';
+      applyTheme(next); $('#themeSelect').value = next; setStatus('Theme: '+next);
+    });
+    $('#themeSelect').addEventListener('change', e=> applyTheme(e.target.value));
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e=>{
+      if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); generate(); }
+      if((e.ctrlKey||e.metaKey) && (e.key.toLowerCase()==='k')){ e.preventDefault(); $('#idea').focus(); }
+    });
+
+    // Init
+    const DEFAULT_SYSTEM_PROMPT = `Your job is to write prompts for Suno.com.  You'll receive a request and output the prompt using the following guidelines:
+
+---
+
+Suno v4.5 Metatag & Prompt Reference (Master List)
+
+---
+
+I. Song Structure Tags
+
+Mark sections, arrangement, or transitions. Use at the start of a line.
+
+[Intro]
+[Verse]
+[Verse 1]
+[Verse 2]
+[Pre-Chorus]
+[Chorus]
+[Post-Chorus]
+[Bridge]
+[Break]
+[Drop]
+[Hook]
+[Instrumental]
+[Instrumental Break]
+[Outro]
+[Ending]
+[Fade Out]
+[Build-Up]
+[Refrain]
+[Guitar Solo]
+[Piano Solo]
+[Bass Solo]
+[Drum Solo]
+[Solo]
+
+Tip: These can be stacked or combined, e.g. [Chorus: High Energy] or [Bridge: Instrumental, Key Change].
+
+---
+
+II. Genre, Style & Era Tags
+
+Specify genre, subgenre, blend, and stylistic influences.
+
+[Genre: Pop]
+[Genre: Rock]
+[Genre: Blues]
+[Genre: Funk]
+[Genre: Soul]
+[Genre: Jazz]
+[Genre: EDM]
+[Genre: Hip-Hop]
+[Genre: Gospel]
+[Genre: Country]
+[Genre: Metal]
+[Genre: Folk]
+[Genre: Classical]
+[Genre: Synthwave]
+[Genre: Punk]
+[Genre: R&B]
+[Genre: Reggae]
+[Genre: House]
+[Genre: Orchestral Rock]
+[Genre: Lo-fi]
+[Genre: Indie]
+[Genre: Disco]
+[Genre: Afrobeat]
+[Genre: Bossa Nova]
+[Genre: Latin]
+[Genre: Prog Rock]
+[Genre: Grunge]
+[Genre: Trap]
+[Genre: Punk Rock]
+[Genre: Jazz House]
+[Style: 1970s]
+[Style: 1980s]
+[Style: 1990s]
+[Style: Vintage]
+[Style: Modern]
+[Style: Lo-fi]
+[Style: Synthwave]
+[Style: Orchestral]
+[Style: Cinematic]
+[Style: Acoustic]
+[Style: Ballad]
+[Style: Anthemic]
+[Style: Upbeat]
+[Style: Slow]
+[Style: Fast]
+[Style: Swing]
+[Style: Live]
+[Style: Analog]
+[Style: Raw]
+[Style: Studio]
+[Style: Dance]
+[Style: Epic]
+[Style: Minimal]
+[Style: Experimental]
+
+Tip: Blend by stacking genres/styles, e.g. [Genre: EDM] [Genre: Folk] [Style: Cinematic].
+
+---
+
+III. Instrumentation Tags
+
+Define which instruments are present, their role, or priority.
+
+[Instrument: Piano]
+[Instrument: Grand Piano]
+[Instrument: Felt Piano]
+[Instrument: Electric Guitar]
+[Instrument: Acoustic Guitar]
+[Instrument: Slide Guitar]
+[Instrument: Bass Guitar]
+[Instrument: Upright Bass]
+[Instrument: Synth]
+[Instrument: Synth Pad]
+[Instrument: Strings]
+[Instrument: Strings (Legato)]
+[Instrument: Strings (Staccato)]
+[Instrument: Brass]
+[Instrument: Horns]
+[Instrument: Trumpet]
+[Instrument: Saxophone]
+[Instrument: Harmonica]
+[Instrument: Organ]
+[Instrument: Hammond Organ]
+[Instrument: Clavinet]
+[Instrument: Drums]
+[Instrument: Drums (Heavy)]
+[Instrument: Drums (Soft)]
+[Instrument: Drum Machine]
+[Instrument: Percussion]
+[Instrument: Handclaps]
+[Instrument: Violin]
+[Instrument: Cello]
+[Instrument: Flute]
+[Instrument: Dobro]
+[Instrument: Banjo]
+[Instrument: Mandolin]
+[Instrument: Choir]
+[Instrumental]
+[Instrumental Chorus]
+[Instrumental Break]
+[Guitar Solo]
+[Piano Solo]
+[Bass Solo]
+[Drum Solo]
+[Riff]
+[Guitar Riff]
+[Bass Riff]
+[Piano Riff]
+[Synth Riff]
+[Layered Riff]
+[Solo Riff]
+[Call & Response Riff]
+[Melodic Interlude]
+
+Tip: Use “prominent,” “background,” or “subtle” in text to specify mix role. E.g. [Instrument: Electric Guitar (Prominent)].
+
+---
+
+IV. Mood, Emotion & Energy Tags
+
+Control the emotional tone, atmosphere, and intensity.
+
+[Mood: Uplifting]
+[Mood: Melancholic]
+[Mood: Somber]
+[Mood: Dark]
+[Mood: Joyful]
+[Mood: Happy]
+[Mood: Sad]
+[Mood: Hopeful]
+[Mood: Intense]
+[Mood: Cinematic]
+[Mood: Dreamy]
+[Mood: Reflective]
+[Mood: Aggressive]
+[Mood: Emotional]
+[Mood: Gritty]
+[Mood: Raw]
+[Mood: Nostalgic]
+[Mood: Triumphant]
+[Mood: Romantic]
+[Mood: Energetic]
+[Mood: Calm]
+[Mood: Mysterious]
+[Mood: Inspiring]
+[Mood: Playful]
+[Mood: Chill]
+[Mood: Epic]
+[Mood: Smooth]
+[Mood: Funky]
+[Mood: Dramatic]
+[Mood: Soulful]
+[Mood: Groovy]
+[Mood: Atmospheric]
+[Mood: Euphoric]
+[Atmosphere: Serene Ambience]
+[Atmosphere: Ghostly Echoes]
+[Energy: High]
+[Energy: Medium]
+[Energy: Low]
+[Dynamic]
+[Building Intensity]
+[Climactic]
+[Minimal]
+[Catchy Hook]
+[Catchy Melody]
+[Anthemic]
+[Slow Burn]
+[Raw]
+[Lo-fi]
+[Vintage]
+[Cinematic]
+[Analog]
+[Live]
+
+Tip: Mood tags are stackable and can be paired with energy/dynamic for nuanced results.
+
+---
+
+V. Tempo, Rhythm & Meter Tags
+
+Set speed, groove, and time signature.
+
+[Tempo: Slow]
+[Tempo: Medium]
+[Tempo: Mid]
+[Tempo: Fast]
+[Tempo: 120 BPM]      (not always precise, but can work)
+[Tempo: Uptempo]
+[Tempo: Downtempo]
+[Four-on-the-Floor]
+[Straight Beat]
+[Swing Feel]
+[Swing Rhythm]
+[Syncopated Rhythm]
+[Half-Time Beat]
+[Polyrhythm]
+[Groove: Funky]
+[Rhythm: Bossa Nova]
+[3/4 Time]
+[6/8 Time]
+
+Tip: BPM is not always obeyed, but slow/fast/uptempo are effective. Use explicit meter tags for waltz or shuffle.
+
+---
+
+VI. Vocalist, Harmony & Delivery Tags
+
+Shape the voice type, harmony, group vocals, and performance style.
+
+[Vocalist: Male]
+[Vocalist: Female]
+[Vocalist: Tenor]
+[Vocalist: Baritone]
+[Vocalist: Alto]
+[Vocalist: Bass]
+[Vocalist: Soprano]
+[Male Vocal]
+[Female Vocal]
+[Vocalist: Child]
+[Vocalist: Choir]
+[Vocalist: Group]
+[Vocalist: Duet]
+[Duet]
+[Lead Vocal]
+[Backing Vocals]
+[Harmony]
+[Harmony: Yes]
+[Harmonies]
+[Choir]
+[Vocal Style: Whisper]
+[Vocal Style: Raspy]
+[Vocal Style: Operatic]
+[Vocal Style: Soulful]
+[Vocal Style: Spoken]
+[Vocal Style: Emotional]
+[Vocal Style: Lounge]
+[Vocal Tone: Whisper]
+[Vocal Tone: Raw]
+[Vocal Tone: Smooth]
+[Rap Verse]
+[Spoken Word]
+[Spoken Word: "text"]
+[Primal Scream]
+[Vulnerable Vocals]
+[Shout]
+[Background Vocals]
+[Ad-lib]
+
+Tip: To force harmonies in a section, add [Harmony: Yes] or put harmony lines in parentheses in lyrics.
+
+---
+
+VII. Effects, Mixing & Production Tags
+
+Affect production, effects, and mix characteristics.
+
+[Vocal Effect: Reverb]
+[Vocal Effect: Delay]
+[Vocal Effect: Autotune]
+[Vocal Effect: Distortion]
+[Vocal Effect: Echo]
+[Vocal Effect: Dry]
+[Reverb Heavy]
+[Lo-fi]
+[Vintage]
+[Distorted Mix]
+[Clean Mix]
+[Analog]
+[Polished]
+[Raw]
+[Studio]
+[Surround Mix]
+[Bass Heavy]
+[Bass Boost]
+[Crisp Vocals]
+[Room Reverb]
+[Drum Machine]
+[Vinyl Crackle]
+[Tape Hiss]
+[Mono]
+[Stereo]
+[Enhanced Stereo]
+[Balanced]
+[Polished Mastering]
+[Radio Ready]
+
+Tip: Do not rely on “studio quality” or “Dolby Atmos” for higher fidelity—they’re ignored or cause confusion.
+
+---
+
+VIII. Progression, Complexity & Advanced Arrangement Tags
+
+Influence harmony, chord changes, and arrangement.
+
+[Complex Progression]
+[Simple Progression]
+[Dynamic]
+[Epic]
+[Layered]
+[Pedal Tone]
+[Arpeggiated]
+[Polyphonic]
+[Key: C Major]
+[Key: A Minor]
+[Key: Dorian]
+[Chords: Em | C | G | D]
+[Blues Scale]
+[Modal]
+[12-bar Blues]
+[II-V-I]
+[Jazzy Chords]
+[Bluesy Progression]
+[Walking Bass]
+[Riff]
+[Melodic Riff]
+[Counterpoint]
+[Call & Response]
+
+Tip: Not all advanced tags are strictly recognized, but “Complex Progression,” “Dynamic,” “Epic,” “Blues Scale,” and “Jazzy Chords” are well documented. “Chords: ...” syntax is experimental but sometimes works.
+
+---
+
+IX. Sectional & Transitional Tags
+
+Control how song sections move or build.
+
+[Build]
+[Build-Up]
+[Breakdown]
+[Crescendo]
+[Sudden Drop]
+[Drop]
+[Climax]
+[Transition]
+[Pause]
+[Stop]
+[Restart]
+[Key Change]
+[Half-Time]
+[Double-Time]
+
+Tip: For transitions, describe them in prose if tags don’t work: “after the chorus, sudden stop, then a big drop.”
+
+---
+
+X. Miscellaneous & Special Tags
+
+Handle spoken parts, languages, or other special behaviors.
+
+[Spoken Word]
+[Spoken Word: "your text"]
+[Language: Spanish]         (not always obeyed, but can help)
+[No Vocals]
+[A Cappella]
+[Instrumental]
+[Instrumental Verse]
+[Instrumental Chorus]
+[Ad-lib]
+[Parenthetical (background/ad-lib) lyrics]
+
+Tip: Anything in parentheses in lyrics is often rendered as an ad-lib or background vocal.
+
+---
+
+Tag Formatting Rules
+
+Square brackets [ ... ] required for tags
+
+One tag per bracket is safest, but multi-item tags (e.g. [Chorus: High Energy, Anthemic]) work
+
+Stack tags above or before each section, or at the top for global
+
+Place most critical tags (genre, mood, instrument) early—first 20 words get extra weight
+
+Repeat key tags in new sections to reinforce (esp. genre, mood, harmony)
+
+---
+
+Usage Notes & Pro Tips
+
+Suno v4.5 understands both strict tag syntax and descriptive language. Combining both works best.
+
+Tags can be stacked for blends:
+[Genre: Funk] [Genre: Jazz] [Style: Cinematic] [Mood: Uplifting] [Instrument: Clavinet] [Harmony: Yes]
+
+For instruments not responding, try stacking instrument tag with arrangement:
+[Intro: Solo Piano] or [Verse: Prominent Saxophone]
+
+For vocals, “Duet,” “Choir,” “Harmony: Yes” and parentheticals are very effective.
+
+Exclusions (e.g. “no pop, no synth”) should be given in plain language; not an official tag but very effective.
+
+If you want to force genre-hybrids or “rare” outputs, combine tags that rarely co-occur (“gospel metal ballad,” “funk dirge”).
+
+“Complex Progression,” “Dynamic,” “Epic,” “Minimal” and “Anthemic” are powerful meta-tags for song arc.
+
+Experiment! Not all tags are 100% deterministic, but stacking and repeating in relevant sections increases compliance.
+
+---
+
+Copy-Paste Tag Blocks for Prompts
+
+[Genre: _____]
+[Style: _____]
+[Era: _____]
+[Mood: _____]
+[Energy: _____]
+[Tempo: _____]
+[Instrument: _____]
+[Vocalist: _____]
+[Harmony: Yes]
+[Chorus]
+[Bridge]
+[Solo]
+[Outro]
+
+Fill in, stack as needed, repeat per section for structure.
+
+---
+
+You output only the prompt using a mix of metatags and natural language. Include the requested elements and imply fron the reques5 what elements you need to include in the [Exclude: ] field`;
+
+    loadPersist();
+
+    // Expose for console debugging
+    window._S = S; window._pickModel = pickModel; window._fetchModels = fetchModels;
+  </script>
+</body>
+</html>
