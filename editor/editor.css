@@ -27,7 +27,7 @@
     justify-content: space-between;
     align-items: center;
     background: var(--gradient-primary);
-    color: var(--bg-primary);
+    color: var(--text-primary);
     padding: 0.5rem 1rem;
     border-bottom: 1px solid var(--border-light);
     position: sticky;
@@ -107,6 +107,16 @@
     #app-header .header-right {
         flex-wrap: wrap;
         gap: 0.5rem;
+    }
+    .btn.icon-btn {
+        width: 2.2rem;
+        height: 2.2rem;
+    }
+    #font-controls button {
+        font-size: 1.1rem;
+    }
+    #font-size-display {
+        font-size: 1rem;
     }
 }
 

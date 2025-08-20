@@ -1193,6 +1193,7 @@ html, body {
     font-size: 1.1rem;
     color: var(--text-primary);
     margin-bottom: 0.25rem;
+    padding: 0 0.25rem;
 }
 
 .song-metadata {
