@@ -9,31 +9,16 @@
   <link rel="icon" href="../assets/icons/icon-192x192.png" />
   <style>
     :root{
-      --bg: #0b0c10; /* dark default */
-      --fg: #f2f5f7;
-      --muted: #9aa6b2;
-      --card: #111318;
-      --accent: #7c5cff;
-      --accent-2: #28c1a5;
-      --danger: #ff5c7c;
-      --border: #1d2129;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --bg: var(--bg-primary);
+      --fg: var(--text-primary);
+      --muted: var(--text-secondary);
+      --card: var(--bg-secondary);
+      --accent: var(--accent-primary);
+      --accent-2: var(--accent-secondary);
+      --danger: var(--danger);
+      --border: var(--border);
+      --shadow: var(--shadow-md);
     }
-    @media (prefers-color-scheme: light){
-      :root{
-        --bg: #f7f8fa;
-        --fg: #0f1720;
-        --muted: #496176;
-        --card: #ffffff;
-        --accent: #5b3df6;
-        --accent-2: #18a28b;
-        --danger: #e03a5b;
-        --border: #e6e8ee;
-        --shadow: 0 10px 30px rgba(16,24,40,.08);
-      }
-    }
-    [data-theme="light"]{ --bg:#ffffff; --fg:#0f1720; --muted:#516070; --card:#ffffff; --border:#e7e9ee; --shadow:0 10px 30px rgba(16,24,40,.08); }
-    [data-theme="dark"]{ --bg:#0b0c10; --fg:#f2f5f7; --muted:#9aa6b2; --card:#111318; --border:#1d2129; --shadow:0 10px 30px rgba(0,0,0,.35); }
 
     *{ box-sizing: border-box; }
     html, body{ height:100%; }
@@ -69,7 +54,7 @@
     .toolbar .group{ display:flex; gap:10px; align-items:center; }
 
     .outputs .box{ position:relative; }
-    .outputs pre{ margin:0; padding:12px; border-radius:12px; background: color-mix(in oklab, var(--bg) 85%, #000 0%); border:1px solid var(--border); min-height:130px; white-space: pre-wrap; word-wrap:break-word; }
+    .outputs pre{ margin:0; padding:12px; border-radius:12px; background: var(--bg-secondary); border:1px solid var(--border); min-height:130px; white-space: pre-wrap; word-wrap:break-word; }
     .chipbar{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
 
     .status{ font-size:12px; color:var(--muted); }
