@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>MuseDice — Songwriting Spark</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="manifest" href="../manifest.webmanifest" />
+  <link rel="icon" href="../assets/icons/icon-192x192.png" />
   <style>
     :root{
       --bg:#0b0b0c;--fg:#e9e9ef;--muted:#b2b2bb;--card:#141418;--card2:#121217;--acc:#8b5cf6;--acc2:#22d3ee;--warn:#f59e0b;--danger:#ef4444;--ok:#10b981;
@@ -68,6 +71,7 @@
           🎲 MuseDice <span class="badge">Songwriting Spark</span>
         </h1>
         <div class="row">
+          <button id="theme-toggle-btn" class="btn ghost small" title="Toggle theme">🌓</button>
           <button class="btn ghost small" id="btnSettings" title="Settings">⚙️ Settings</button>
           <button class="btn ghost small" id="btnAbout" title="About">❓ About</button>
         </div>
@@ -135,6 +139,10 @@
         <div class="field">
           <label for="base">OpenRouter Base URL</label>
           <input id="base" placeholder="https://openrouter.ai/api/v1" />
+        </div>
+        <div class="field">
+          <label for="systemPrompt">Custom System Prompt</label>
+          <textarea id="systemPrompt" placeholder="You are a helpful songwriting assistant..."></textarea>
         </div>
       </div>
       <div class="tips">Your key never leaves this device except to call OpenRouter directly from your browser. <span class="kbd">Esc</span> to close.</div>
@@ -333,5 +341,50 @@
       `Music: ${d.music||'—'}`
     ].join('\n') }
 
-  // ---------- EXPORT / IMPORT ----------
-  function exportJSON()
+  // ===== Theme toggle =====
+  (function initTheme(){
+    const saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.dataset.theme = saved;
+    document.getElementById('theme-toggle-btn')?.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem('theme', next);
+    });
+  })();
+
+  // ===== Settings modal integration =====
+  const modal = document.getElementById('modal');
+  const btnSettings = document.getElementById('btnSettings');
+  const btnClose = document.getElementById('btnClose');
+  const btnSave = document.getElementById('btnSave');
+  const apiKeyInput = document.getElementById('apiKey');
+  const modelInput = document.getElementById('model');
+  const sysPromptInput = document.getElementById('systemPrompt');
+
+  function loadSettings(){
+    apiKeyInput.value = localStorage.getItem('openrouterApiKey') || '';
+    modelInput.value = localStorage.getItem('openrouterModel') || modelInput.value;
+    sysPromptInput.value = localStorage.getItem('systemPrompt') || '';
+  }
+
+  btnSettings?.addEventListener('click', () => { loadSettings(); modal.showModal(); });
+  btnClose?.addEventListener('click', () => modal.close());
+  btnSave?.addEventListener('click', () => {
+    const key = apiKeyInput.value.trim();
+    const model = modelInput.value.trim();
+    const sys = sysPromptInput.value;
+    localStorage.setItem('openrouterApiKey', key);
+    localStorage.setItem('openrouterModel', model);
+    localStorage.setItem('systemPrompt', sys);
+    STATE.settings.apiKey = key;
+    STATE.settings.model = model;
+    modal.close();
+  });
+
+  // Load saved settings on start
+  STATE.settings.apiKey = localStorage.getItem('openrouterApiKey') || '';
+  STATE.settings.model = localStorage.getItem('openrouterModel') || STATE.settings.model;
+
+</script>
+</body>
+</html>

@@ -128,13 +128,17 @@ async function callOpenRouterAPI(prompt) {
             },
             body: JSON.stringify({
                 model: window.CONFIG.defaultModel || 'openrouter/auto',
-                messages: [
-                    {
+                messages: (() => {
+                    const msgs = [];
+                    const sys = window.CONFIG.systemPrompt?.trim();
+                    if (sys) msgs.push({ role: 'system', content: sys });
+                    msgs.push({
                         role: 'system',
                         content: 'You are a helpful songwriting assistant. When chords are provided, return chords and lyrics on alternating lines without additional commentary. Label song sections in square brackets (e.g., [Verse 1], [Chorus]).'
-                    },
-                    { role: 'user', content: prompt }
-                ]
+                    });
+                    msgs.push({ role: 'user', content: prompt });
+                    return msgs;
+                })()
             }),
             signal: controller.signal
         });
@@ -638,10 +642,12 @@ function enforceAlternating(lines) {
         loadAISettings() {
             const key = localStorage.getItem('openrouterApiKey') || '';
             const model = localStorage.getItem('openrouterModel') || '';
+            const sysPrompt = localStorage.getItem('systemPrompt') || '';
             window.CONFIG = window.CONFIG || {};
             if (typeof window.CONFIG.autosaveEnabled === 'undefined') window.CONFIG.autosaveEnabled = true;
             window.CONFIG.openrouterApiKey = key;
             window.CONFIG.defaultModel = model;
+            window.CONFIG.systemPrompt = sysPrompt;
             this.selectedModel = model;
             if (this.apiKeyInput) this.apiKeyInput.value = key;
         },
@@ -1502,7 +1508,7 @@ saveCurrentSong(isExplicit = false) {
                 }
             }
             if (this.resizeObserver) this.resizeObserver.disconnect();
-            window.location.href = '../index.html';
+            window.location.href = '../hub/hub.html';
         },
 
         scrollToTop() {
