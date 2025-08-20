@@ -23,11 +23,17 @@
             width: 380px;
             height: 100vh;
             background: var(--bg-secondary);
-            border-left: 1px solid var(--border);
+            border-left: 1px solid var(--border-light);
+            border-radius: calc(var(--border-radius-base) * 1.25) 0 0 calc(var(--border-radius-base) * 1.25);
             z-index: 1001;
             transition: right 0.3s ease;
             overflow-y: auto;
             padding: 1rem;
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(4px);
+        }
+
+        .metadata-panel:hover {
             box-shadow: var(--shadow-lg);
         }
         

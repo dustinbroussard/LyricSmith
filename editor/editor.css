@@ -26,10 +26,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #1e1e1e;
-    color: #fff;
+    background: var(--gradient-primary);
+    color: var(--bg-primary);
     padding: 0.5rem 1rem;
-    border-bottom: 2px solid #333;
+    border-bottom: 1px solid var(--border-light);
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -118,7 +118,7 @@
     overflow-y: auto;
     font-size: var(--font-size-lyrics, 1rem); /* Base size, slider still works */
     padding: var(--padding-lyrics, 2rem);
-    line-height: var(--line-height-lyrics, 1.6);
+    line-height: 1.33;
     color: var(--text-primary); /* Lyrics use primary text color */
     transition: color var(--transition-speed);
     text-align: left; /* Adjust for better lyric display */
@@ -185,7 +185,7 @@
     white-space: pre-wrap;
     word-break: break-word;
     font-size: 1.5rem;
-    line-height: 1.6;
+    line-height: 1.33;
     color: var(--text-primary);
 }
 #lyrics-editor-container {
@@ -619,7 +619,7 @@
   .lyrics-container {
     font-size: 1rem; /* Base font size for lyrics on mobile */
     padding: 1em 0.8em 1.5em 0.8em !important;
-    line-height: 1.4 !important; /* Slightly more relaxed line-height for readability */
+    line-height: 1.33 !important; /* Consistent line-height for readability */
   }
   .scroll-to-top-btn {
     position: fixed;
@@ -769,15 +769,21 @@
     left: 50%;
     transform: translate(-50%, -50%);
     background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--border-radius-base);
-    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-light);
+    border-radius: calc(var(--border-radius-base) * 1.25);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(4px);
     z-index: 99999;
     padding: 1rem;
     width: 300px;
     max-height: 80vh;
     overflow-y: auto;
     display: none;
+    transition: box-shadow var(--transition-speed);
+}
+
+.ai-settings-panel:hover {
+    box-shadow: var(--shadow-lg);
 }
 
 .ai-settings-panel h3 {
@@ -856,8 +862,8 @@
 }
 
 .btn.icon-btn {
-    width: 2rem;
-    height: 2rem;
+    width: 2.5rem;
+    height: 2.5rem;
     padding: 0;
-    border-radius
+    border-radius: 50%;
 }
