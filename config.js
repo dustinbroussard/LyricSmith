@@ -8,4 +8,7 @@ window.CONFIG = {
   devMode: true,
   openrouterApiKey: '',
   defaultModel: '',
+  // New:
+  chordLinePrefix: '~',
+  assumeNoChords: true,
 };
