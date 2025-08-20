@@ -19,6 +19,7 @@
     <script src="config.js"></script>
 </head>
 <body>
+  <a href="hub/hub.html">Go to Hub</a>
   <div class="main-box">
     <header class="app-header">
       <div class="header-top">
@@ -77,5 +78,10 @@
         }
     </script>
     <script src="script.js"></script>
+  <script>
+    if (!sessionStorage.getItem('skipHubOnce')) {
+      window.location.href = 'hub/hub.html';
+    }
+  </script>
 </body>
 </html>

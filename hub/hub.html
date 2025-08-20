@@ -5,10 +5,10 @@
   <meta charset="UTF-8" />
   <title>LyricSmith — Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="manifest" href="../manifest.webmanifest" />
   <meta name="theme-color" content="#000000" />
-  <link rel="icon" href="/assets/icons/icon-192x192.png" />
+  <link rel="icon" href="../assets/icons/icon-192x192.png" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -219,7 +219,7 @@
     <header class="hub-header">
       <div class="hub-header-inner">
         <div class="hub-brand">
-          <img src="assets/images/mylogo.png" alt="LyricSmith Logo" />
+          <img src="../assets/images/mylogo.png" alt="LyricSmith Logo" />
           <div class="title">LyricSmith Hub</div>
         </div>
         <div>
@@ -237,7 +237,7 @@
 
       <section class="hub-grid">
         <!-- 1. MuseDice -->
-        <a class="hub-card" href="muse.html">
+        <a class="hub-card" href="musedice.html">
           <i class="fas fa-dice"></i>
           <h3>MuseDice</h3>
           <p>Roll creative seeds: moods, metaphors, images, and lines to spark songs.</p>
@@ -245,7 +245,7 @@
         </a>
 
         <!-- 2. Suno Prompt Engine -->
-        <a class="hub-card" href="suno_prompt_engine_vanilla_html_open_router.html">
+        <a class="hub-card" href="sunopromptengine.html">
           <i class="fas fa-music"></i>
           <h3>Suno Prompt Engine</h3>
           <p>Turn your lyrics into Suno-ready prompts with structured guidance.</p>
@@ -318,6 +318,8 @@
   <!-- Tiny toast -->
   <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
+  <script src="../config.js"></script>
+  <script src="../editor/songs.js"></script>
   <script>
     // ===== Theme =====
     (function initTheme(){
@@ -333,7 +335,7 @@
 
     // ===== Service Worker (same pattern as index.html) =====
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(reg => {
+      navigator.serviceWorker.register('../sw.js').then(reg => {
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
           newWorker.addEventListener('statechange', () => {
@@ -356,51 +358,13 @@
       setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 2600);
     }
 
-    // ===== Minimal song helpers (mirror your app schema) =====
-    const defaultSections = "[Intro]\\n\\n[Verse 1]\\n\\n[Pre-Chorus]\\n\\n[Chorus]\\n\\n[Verse 2]\\n\\n[Bridge]\\n\\n[Outro]";
-
-    function normalizeSectionLabels(text = '') {
-      const keys = ['intro','verse','prechorus','chorus','bridge','outro','hook','refrain','coda','solo','interlude','ending','breakdown','tag'];
-      return text.split(/\\r?\\n/).map(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return line;
-        const m = trimmed.match(/^[\\*\\s\\-_=~`]*[\\(\\[\\{]?\\s*([^\\]\\)\\}]+?)\\s*[\\)\\]\\}]?[\\*\\s\\-_=~`]*:?$/);
-        if (m) {
-          const label = m[1].trim();
-          const normalized = label.toLowerCase().replace(/[^a-z]/g,'');
-          if (keys.some(k => normalized.startsWith(k))) {
-            const formatted = label.replace(/\\s+/g,' ').replace(/(^|\\s)\\S/g, c => c.toUpperCase());
-            return '[' + formatted + ']';
-          }
-        }
-        return line;
-      }).join('\\n');
-    }
-
-    function createSong(title, lyrics = '', chords = '') {
-      const normalizedLyrics = lyrics.trim() ? normalizeSectionLabels(lyrics) : defaultSections;
-      return {
-        id: Date.now().toString(),
-        title,
-        lyrics: normalizedLyrics,
-        chords,
-        key: '',
-        tempo: 120,
-        timeSignature: '4/4',
-        notes: '',
-        createdAt: new Date().toISOString(),
-        lastEditedAt: new Date().toISOString(),
-        tags: []
-      };
-    }
-
     // ===== Create New Song → jump to editor =====
     document.getElementById('create-song-card')?.addEventListener('click', () => {
       const songs = JSON.parse(localStorage.getItem('songs') || '[]');
       const song = createSong('New Song', '');
       songs.push(song);
       localStorage.setItem('songs', JSON.stringify(songs));
-      window.location.href = `editor/editor.html?songId=${song.id}`;
+      window.location.href = `../editor/editor.html?songId=${song.id}`;
     });
 
     // ===== Settings Modal =====

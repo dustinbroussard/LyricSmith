@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Suno Prompt Engine — OpenRouter</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="manifest" href="../manifest.webmanifest" />
+  <link rel="icon" href="../assets/icons/icon-192x192.png" />
   <style>
     :root{
       --bg: #0b0c10; /* dark default */
@@ -97,7 +100,7 @@
         </div>
       </div>
       <div class="toolbar">
-        <button id="themeBtn" class="btn ghost" title="Toggle theme">🌓 Theme</button>
+        <button id="theme-toggle-btn" class="btn ghost" title="Toggle theme">🌓 Theme</button>
         <button id="aboutBtn" class="btn ghost">About</button>
         <button id="filesBtn" class="btn ghost">Files</button>
         <button id="settingsBtn" class="btn">⚙️ Settings</button>
@@ -257,9 +260,9 @@
     }
 
     function loadPersist(){
-      const key = localStorage.getItem('or_key');
+      const key = localStorage.getItem('openrouterApiKey');
       if(key) $('#apiKey').value = key;
-      const model = localStorage.getItem('or_model');
+      const model = localStorage.getItem('openrouterModel');
       if(model){
         try { S.model = JSON.parse(model); } catch {}
       }
@@ -269,8 +272,8 @@
       $('#themeSelect').value = S.theme; applyTheme(S.theme);
     }
 
-    function saveKey(){ const v = $('#apiKey').value.trim(); if(v){ localStorage.setItem('or_key', v); }}
-    function saveModel(m){ localStorage.setItem('or_model', JSON.stringify(m)); }
+    function saveKey(){ const v = $('#apiKey').value.trim(); if(v){ localStorage.setItem('openrouterApiKey', v); }}
+    function saveModel(m){ localStorage.setItem('openrouterModel', JSON.stringify(m)); }
 
     function copyFrom(id){
       const el = document.getElementById(id);
@@ -414,7 +417,7 @@
     async function fetchModels(){
       try{
         saveKey();
-        const key = localStorage.getItem('or_key');
+        const key = localStorage.getItem('openrouterApiKey');
         if(!key){ alert('Enter your OpenRouter API key first.'); return; }
         setStatus('Fetching models…');
         const r = await fetch('https://openrouter.ai/api/v1/models', {
@@ -449,7 +452,7 @@
 
     async function generate(){
       try{
-        const key = localStorage.getItem('or_key');
+        const key = localStorage.getItem('openrouterApiKey');
         if(!key){ alert('Set your OpenRouter API key in Settings.'); return; }
         if(!S.model){ alert('Pick a model in Settings.'); return; }
         const idea = $('#idea').value.trim();
@@ -537,7 +540,7 @@
     });
 
     // Theme
-    $('#themeBtn').addEventListener('click', ()=>{
+    $('#theme-toggle-btn').addEventListener('click', ()=>{
       const cur = document.documentElement.getAttribute('data-theme') || 'auto';
       const next = cur==='dark' ? 'light' : cur==='light' ? 'auto' : 'dark';
       applyTheme(next); $('#themeSelect').value = next; setStatus('Theme: '+next);
