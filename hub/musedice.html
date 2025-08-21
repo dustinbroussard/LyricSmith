@@ -77,12 +77,12 @@
     <div class="wrap">
       <div class="row" style="justify-content:space-between">
         <h1>
-          🎲 MuseDice <span class="badge">Songwriting Spark</span>
+          <i class="fas fa-dice"></i> MuseDice <span class="badge">Songwriting Spark</span>
         </h1>
         <div class="row">
-          <button id="theme-toggle-btn" class="btn ghost small" title="Toggle theme">🌓</button>
-          <button class="btn ghost small" id="btnSettings" title="Settings">⚙️ Settings</button>
-          <button class="btn ghost small" id="btnAbout" title="About">❓ About</button>
+          <button id="theme-toggle-btn" class="btn ghost small" title="Toggle theme"><i class="fas fa-adjust"></i></button>
+          <button class="btn ghost small" id="btnSettings" title="Settings"><i class="fas fa-cog"></i></button>
+          <button class="btn ghost small" id="btnAbout" title="About"><i class="fas fa-question-circle"></i></button>
         </div>
       </div>
       <div id="controls" class="row">
@@ -91,8 +91,8 @@
           <input id="seed" inputmode="numeric" placeholder="leave blank for fresh chaos" />
         </div>
         <div class="row">
-          <button class="btn icon primary" id="btnRoll" title="Shuffle all (unlocked)">🎲</button>
-          <button class="btn accent" id="btnWrite">✍️ Write lyric <span class="spinner" id="spinWrite"></span></button>
+          <button class="btn icon primary" id="btnRoll" title="Shuffle all (unlocked)"><i class="fas fa-dice"></i></button>
+          <button class="btn accent" id="btnWrite" title="Write lyric"><i class="fas fa-pen"></i><span class="spinner" id="spinWrite"></span></button>
         </div>
       </div>
     </div>
@@ -105,18 +105,18 @@
       <div class="row" style="justify-content:space-between">
         <strong>AI Output</strong>
         <div class="row">
-          <button class="btn small ghost" id="btnCopy">Copy</button>
-          <button class="btn small ghost" id="btnClear">Clear</button>
-          <button class="btn small" id="btnExport">Export JSON</button>
-          <label class="btn small warn" for="importFile" title="Import JSON">Import<input id="importFile" type="file" accept="application/json" style="display:none"></label>
+          <button class="btn small ghost" id="btnCopy" title="Copy"><i class="fas fa-copy"></i></button>
+          <button class="btn small ghost" id="btnClear" title="Clear"><i class="fas fa-times"></i></button>
+          <button class="btn small" id="btnExport" title="Export JSON"><i class="fas fa-file-export"></i></button>
+          <label class="btn small warn" for="importFile" title="Import JSON"><i class="fas fa-file-import"></i><input id="importFile" type="file" accept="application/json" style="display:none"></label>
         </div>
       </div>
-      <textarea id="aiText" placeholder="Click ✍️ Write lyric (with an API key in Settings) — or just use the dice to get offline prompts."></textarea>
+      <textarea id="aiText" placeholder="Click Write lyric (with an API key in Settings) — or just use the dice to get offline prompts."></textarea>
     </section>
 
     <footer>
       <div class="pill">Offline: fully usable with random prompts • Online: add an OpenRouter API key for AI writing</div>
-      <div style="margin-top:10px" class="tips">Pro tip: lock any card you love, then hit 🎲 to remix the rest. Long‑press on a card to regenerate only that card.</div>
+      <div style="margin-top:10px" class="tips">Pro tip: lock any card you love, then hit <i class="fas fa-dice"></i> to remix the rest. Long‑press on a card to regenerate only that card.</div>
     </footer>
   </main>
 
@@ -125,7 +125,7 @@
     <div class="modal">
       <div class="row" style="justify-content:space-between;align-items:center">
         <strong>Settings</strong>
-        <button class="btn small ghost" id="btnClose">Close</button>
+        <button class="btn small ghost" id="btnClose" title="Close"><i class="fas fa-times"></i></button>
       </div>
       <div class="grid two">
         <div class="field">
@@ -156,8 +156,8 @@
       </div>
       <div class="tips">Your key never leaves this device except to call OpenRouter directly from your browser. <span class="kbd">Esc</span> to close.</div>
       <div class="row" style="margin-top:10px">
-        <button class="btn primary" id="btnSave">Save</button>
-        <button class="btn ghost" id="btnClearKey">Remove key</button>
+        <button class="btn primary" id="btnSave" title="Save"><i class="fas fa-save"></i></button>
+        <button class="btn ghost" id="btnClearKey" title="Remove key"><i class="fas fa-key"></i></button>
       </div>
     </div>
   </dialog>
@@ -167,7 +167,7 @@
     <div class="modal">
       <div class="row" style="justify-content:space-between;align-items:center">
         <strong>About MuseDice</strong>
-        <button class="btn small ghost" id="btnAboutClose">Close</button>
+        <button class="btn small ghost" id="btnAboutClose" title="Close"><i class="fas fa-times"></i></button>
       </div>
       <p>MuseDice generates <em>structured randomness</em> for songwriting: themes, settings, POV, constraints, imagery, hooks, and chord ideas. Lock what you like, roll the rest. If you add an OpenRouter key, MuseDice will also draft lyrics and a focused brief based on your current deck.</p>
       <p class="tips">Single‑file, mobile‑first, no build step. Host anywhere, or open locally.</p>
@@ -264,11 +264,11 @@
       card.innerHTML = `
         <h3><span>${def.label}</span>
           <span class="locks">
-            <button class="btn small ghost lockBtn" aria-pressed="${locked}" title="Lock/unlock">${locked?'🔒':'🔓'}</button>
-            <button class="btn small ghost oneBtn" title="Regenerate this">↻</button>
+            <button class="btn small ghost lockBtn" aria-pressed="${locked}" title="Lock/unlock"><i class="fas ${locked?'fa-lock':'fa-unlock'}"></i></button>
+            <button class="btn small ghost oneBtn" title="Regenerate this"><i class="fas fa-sync"></i></button>
           </span>
         </h3>
-        <div class="value">${val||'<span style="color:var(--muted)">— roll the dice —</span>'}</div>
+        <div class="value">${val||'<span style=\"color:var(--muted)\">— roll the dice —</span>'}</div>
       `;
       // Events
       card.querySelector('.lockBtn').onclick=()=>{ STATE.locks[def.key]=!locked; renderCards(); saveLocal(); };

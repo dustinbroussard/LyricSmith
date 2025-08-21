@@ -223,7 +223,7 @@
           <i class="fas fa-dice"></i>
           <h3>MuseDice</h3>
           <p>Roll creative seeds: moods, metaphors, images, and lines to spark songs.</p>
-          <button class="btn go">Open</button>
+          <button class="btn go" title="Open"><i class="fas fa-arrow-right"></i></button>
         </a>
 
         <!-- 2. Suno Prompt Engine -->
@@ -231,7 +231,7 @@
           <i class="fas fa-music"></i>
           <h3>Suno Prompt Engine</h3>
           <p>Turn your lyrics into Suno-ready prompts with structured guidance.</p>
-          <button class="btn go">Open</button>
+          <button class="btn go" title="Open"><i class="fas fa-arrow-right"></i></button>
         </a>
 
         <!-- 3. Create New Song -->
@@ -239,7 +239,7 @@
           <i class="fas fa-pen-nib"></i>
           <h3>Create New Song</h3>
           <p>Blank slate in the editor with section scaffolding ready to go.</p>
-          <span class="btn go">Start</span>
+          <span class="btn go" title="Start"><i class="fas fa-play"></i></span>
         </button>
 
         <!-- 4. Settings -->
@@ -247,7 +247,7 @@
           <i class="fas fa-cog"></i>
           <h3>Settings</h3>
           <p>Set your OpenRouter key & model, custom system prompt, and manage export/import.</p>
-          <span class="btn go">Configure</span>
+          <span class="btn go" title="Configure"><i class="fas fa-sliders-h"></i></span>
         </button>
       </section>
     </main>
@@ -280,14 +280,14 @@
 
       <div class="btn-row">
         <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-          <button id="saveSettings" class="btn"><i class="fas fa-save"></i> Save</button>
-          <button id="closeSettings" class="btn ghost"><i class="fas fa-times"></i> Close</button>
+          <button id="saveSettings" class="btn" title="Save"><i class="fas fa-save"></i></button>
+          <button id="closeSettings" class="btn ghost" title="Close"><i class="fas fa-times"></i></button>
         </div>
         <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
           <input id="importFile" type="file" accept=".json" style="display:none;" />
-          <button id="exportAll" class="btn"><i class="fas fa-download"></i> Export All</button>
-          <button id="importAll" class="btn"><i class="fas fa-upload"></i> Import</button>
-          <button id="clearAll" class="btn danger"><i class="fas fa-trash"></i> Clear All</button>
+          <button id="exportAll" class="btn" title="Export All"><i class="fas fa-download"></i></button>
+          <button id="importAll" class="btn" title="Import"><i class="fas fa-upload"></i></button>
+          <button id="clearAll" class="btn danger" title="Clear All"><i class="fas fa-trash"></i></button>
         </div>
       </div>
 

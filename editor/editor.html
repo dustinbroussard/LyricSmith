@@ -111,17 +111,17 @@
         </div>
 
         <div id="ai-context-menu" class="ai-context-menu">
-            <button data-action="rhyme"><i class="fas fa-bullseye"></i> Rhyme</button>
-            <button data-action="reword"><i class="fas fa-sync"></i> Reword</button>
-            <button data-action="rewrite"><i class="fas fa-pen"></i> Rewrite</button>
-            <button data-action="continue"><i class="fas fa-lightbulb"></i> Continue</button>
+            <button data-action="rhyme" title="Rhyme"><i class="fas fa-bullseye"></i></button>
+            <button data-action="reword" title="Reword"><i class="fas fa-sync"></i></button>
+            <button data-action="rewrite" title="Rewrite"><i class="fas fa-pen"></i></button>
+            <button data-action="continue" title="Continue"><i class="fas fa-lightbulb"></i></button>
             <button id="ai-menu-close" class="ai-menu-close"><i class="fas fa-times"></i></button>
         </div>
 
         <div id="section-menu" class="section-menu">
-            <button data-action="rename"><i class="fas fa-i-cursor"></i> Rename</button>
-            <button data-action="delete-label"><i class="fas fa-tag"></i> Delete Label</button>
-            <button data-action="delete-section"><i class="fas fa-trash"></i> Delete Label + Lyrics</button>
+            <button data-action="rename" title="Rename"><i class="fas fa-i-cursor"></i></button>
+            <button data-action="delete-label" title="Delete Label"><i class="fas fa-tag"></i></button>
+            <button data-action="delete-section" title="Delete Label + Lyrics"><i class="fas fa-trash"></i></button>
             <button id="section-menu-close" class="section-menu-close"><i class="fas fa-times"></i></button>
         </div>
         
@@ -133,20 +133,20 @@
     <div id="copy-modal" class="modal-overlay">
       <div class="modal">
         <h2>Copy Options</h2>
-        <button class="modal-copy-btn" data-copy-type="raw"><i class="fas fa-align-left"></i> Raw Lyrics</button>
-        <button class="modal-copy-btn" data-copy-type="chords"><i class="fas fa-guitar"></i> Lyrics + Chords</button>
-        <button class="modal-copy-btn" data-copy-type="formatted"><i class="fas fa-file-alt"></i> Full Song (Markdown)</button>
-        <button class="modal-copy-btn" data-copy-type="metadata"><i class="fas fa-info-circle"></i> Metadata Only</button>
-        <button class="modal-copy-btn" data-copy-type="download"><i class="fas fa-download"></i> Download as TXT</button>
-        <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
+        <button class="modal-copy-btn" data-copy-type="raw" title="Raw Lyrics"><i class="fas fa-align-left"></i></button>
+        <button class="modal-copy-btn" data-copy-type="chords" title="Lyrics + Chords"><i class="fas fa-guitar"></i></button>
+        <button class="modal-copy-btn" data-copy-type="formatted" title="Full Song (Markdown)"><i class="fas fa-file-alt"></i></button>
+        <button class="modal-copy-btn" data-copy-type="metadata" title="Metadata Only"><i class="fas fa-info-circle"></i></button>
+        <button class="modal-copy-btn" data-copy-type="download" title="Download as TXT"><i class="fas fa-download"></i></button>
+        <button class="close-modal-btn" title="Close"><i class="fas fa-times"></i></button>
       </div>
     </div>
 
     <div id="editor-modal" class="modal-overlay">
       <div class="modal">
         <h2>Editor Options</h2>
-        <button id="toggle-chords-btn" class="modal-action-btn"><i class="fas fa-guitar"></i> Toggle Chords</button>
-        <button id="toggle-read-only-btn" class="modal-action-btn"><i class="fas fa-lock"></i> Performance Mode</button>
+        <button id="toggle-chords-btn" class="modal-action-btn" title="Toggle Chords"><i class="fas fa-guitar"></i></button>
+        <button id="toggle-read-only-btn" class="modal-action-btn" title="Performance Mode"><i class="fas fa-lock"></i></button>
         <div class="modal-action-btn">
           <label for="edit-mode-select"><i class="fas fa-edit"></i> Edit Mode</label>
           <select id="edit-mode-select" class="modal-select">
@@ -158,12 +158,12 @@
         <div class="modal-action-btn">
            <i class="fas fa-bullseye"></i> Rhyme Colors   <input type="checkbox" id="rhyme-mode-toggle">
         </div>
-        <button id="save-song-btn" class="modal-action-btn"><i class="fas fa-save"></i> Save Song</button>
-        <button id="copy-lyrics-btn" class="modal-action-btn"><i class="fas fa-copy"></i> Copy Options</button>
-        <button id="undo-btn" class="modal-action-btn"><i class="fas fa-undo"></i> Undo</button>
-        <button id="redo-btn" class="modal-action-btn"><i class="fas fa-redo"></i> Redo</button>
-        <button id="metadata-toggle-btn" class="modal-action-btn"><i class="fas fa-info-circle"></i> Song Metadata</button>
-        <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
+        <button id="save-song-btn" class="modal-action-btn" title="Save Song"><i class="fas fa-save"></i></button>
+        <button id="copy-lyrics-btn" class="modal-action-btn" title="Copy Options"><i class="fas fa-copy"></i></button>
+        <button id="undo-btn" class="modal-action-btn" title="Undo"><i class="fas fa-undo"></i></button>
+        <button id="redo-btn" class="modal-action-btn" title="Redo"><i class="fas fa-redo"></i></button>
+        <button id="metadata-toggle-btn" class="modal-action-btn" title="Song Metadata"><i class="fas fa-info-circle"></i></button>
+        <button class="close-modal-btn" title="Close"><i class="fas fa-times"></i></button>
       </div>
     </div>
 
@@ -171,28 +171,28 @@
       <div class="modal">
         <h2>AI Tools</h2>
         <textarea id="ai-additional-notes" class="ai-notes-input" placeholder="Additional notes..." rows="2"></textarea>
-        <button class="tool-option modal-action-btn" data-prompt="Generate First Draft"><i class="fas fa-magic"></i> Generate First Draft</button>
-        <button class="tool-option modal-action-btn" data-prompt="Polish Lyrics"><i class="fas fa-brush"></i> Polish Lyrics</button>
-        <button class="tool-option modal-action-btn" data-prompt="Rewrite in Different Style"><i class="fas fa-pen"></i> Rewrite in Style</button>
-        <button class="tool-option modal-action-btn" data-prompt="Continue Song"><i class="fas fa-arrow-down"></i> Continue Song</button>
-        <button class="tool-option modal-action-btn" data-prompt="Suggest Chords"><i class="fas fa-guitar"></i> Suggest Chords</button>
-        <button id="ai-format-btn" class="modal-action-btn"><i class="fas fa-broom"></i> Clean Format</button>
-        <button id="regenre-btn" class="modal-action-btn"><i class="fas fa-random"></i> Re-Genre</button>
-        <button id="ai-settings-btn" class="modal-action-btn"><i class="fas fa-cog"></i> Settings</button>
-        <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
+        <button class="tool-option modal-action-btn" data-prompt="Generate First Draft" title="Generate First Draft"><i class="fas fa-magic"></i></button>
+        <button class="tool-option modal-action-btn" data-prompt="Polish Lyrics" title="Polish Lyrics"><i class="fas fa-brush"></i></button>
+        <button class="tool-option modal-action-btn" data-prompt="Rewrite in Different Style" title="Rewrite in Style"><i class="fas fa-pen"></i></button>
+        <button class="tool-option modal-action-btn" data-prompt="Continue Song" title="Continue Song"><i class="fas fa-arrow-down"></i></button>
+        <button class="tool-option modal-action-btn" data-prompt="Suggest Chords" title="Suggest Chords"><i class="fas fa-guitar"></i></button>
+        <button id="ai-format-btn" class="modal-action-btn" title="Clean Format"><i class="fas fa-broom"></i></button>
+        <button id="regenre-btn" class="modal-action-btn" title="Re-Genre"><i class="fas fa-random"></i></button>
+        <button id="ai-settings-btn" class="modal-action-btn" title="Settings"><i class="fas fa-cog"></i></button>
+        <button class="close-modal-btn" title="Close"><i class="fas fa-times"></i></button>
       </div>
     </div>
 
     <div id="add-section-modal" class="modal-overlay">
       <div class="modal">
         <h2>Add Section</h2>
-        <button class="modal-action-btn" data-section="[Intro]"><i class="fas fa-play"></i> Intro</button>
-        <button class="modal-action-btn" data-section="[Pre-Chorus]"><i class="fas fa-step-forward"></i> Pre-Chorus</button>
-        <button class="modal-action-btn" data-section="[Verse]"><i class="fas fa-microphone-alt"></i> Verse</button>
-        <button class="modal-action-btn" data-section="[Chorus]"><i class="fas fa-music"></i> Chorus</button>
-        <button class="modal-action-btn" data-section="[Bridge]"><i class="fas fa-link"></i> Bridge</button>
-        <button class="modal-action-btn" data-section="[Outro]"><i class="fas fa-flag-checkered"></i> Outro</button>
-        <button class="close-modal-btn"><i class="fas fa-times"></i> Close</button>
+        <button class="modal-action-btn" data-section="[Intro]" title="Intro"><i class="fas fa-play"></i></button>
+        <button class="modal-action-btn" data-section="[Pre-Chorus]" title="Pre-Chorus"><i class="fas fa-step-forward"></i></button>
+        <button class="modal-action-btn" data-section="[Verse]" title="Verse"><i class="fas fa-microphone-alt"></i></button>
+        <button class="modal-action-btn" data-section="[Chorus]" title="Chorus"><i class="fas fa-music"></i></button>
+        <button class="modal-action-btn" data-section="[Bridge]" title="Bridge"><i class="fas fa-link"></i></button>
+        <button class="modal-action-btn" data-section="[Outro]" title="Outro"><i class="fas fa-flag-checkered"></i></button>
+        <button class="close-modal-btn" title="Close"><i class="fas fa-times"></i></button>
       </div>
     </div>
 
