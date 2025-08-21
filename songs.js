@@ -1,7 +1,7 @@
 // if songs.js is used via <script>, we can’t import ES modules directly without type="module".
 // So: convert songs.js into a module and adjust script tags that consume it.
 
-import { normalizeSectionLabels, cleanAIOutput, enforceAlternating, ClipboardManager } from './lib/utils.js';
+import { normalizeSectionLabels, cleanAIOutput, enforceAlternating, ClipboardManager } from './lib/songUtils.js';
 
 export { normalizeSectionLabels, cleanAIOutput, enforceAlternating, ClipboardManager };
 
