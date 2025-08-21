@@ -168,6 +168,11 @@
       </section>
     </main>
   </div>
+  <div id="install-banner" class="install-banner" role="dialog" aria-label="Install LyricSmith">
+    <span>Install LyricSmith?</span>
+    <button id="install-btn" class="btn-primary">Install</button>
+    <button id="close-install" class="btn-ghost">Not now</button>
+  </div>
     <script>
         // Register service worker and check for updates
         if ('serviceWorker' in navigator) {
@@ -208,5 +213,6 @@
         }
     </script>
     <script src="script.js"></script>
+    <script src="js/pwa.js"></script>
 </body>
 </html>
