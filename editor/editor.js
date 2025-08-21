@@ -1,3 +1,5 @@
+import { ClipboardManager, cleanAIOutput, enforceAlternating, normalizeSectionLabels } from '../lib/utils.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Ensure touch devices trigger button actions
     document.addEventListener('touchstart', (e) => {
@@ -17,101 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-// Clipboard Manager Class
-    class ClipboardManager {
-        static async copyToClipboard(text, showToast = true) {
-            try {
-                if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(text);
-                } else {
-                    // Fallback for mobile/older browsers
-                    const textArea = document.createElement('textarea');
-                    textArea.value = text;
-                    textArea.style.position = 'fixed';
-                    textArea.style.left = '-999999px';
-                    textArea.style.top = '-999999px';
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    document.execCommand('copy');
-                    textArea.remove();
-                }
-                
-                if (showToast) {
-                    this.showToast('Copied to clipboard!', 'success');
-                }
-                return true;
-            } catch (err) {
-                console.error('Failed to copy:', err);
-                if (showToast) {
-                    this.showToast('Failed to copy to clipboard', 'error');
-                }
-                return false;
-            }
-        }
-
-        static showToast(message, type = 'info') {
-            let container = document.querySelector('.toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.className = 'toast-container';
-                document.body.appendChild(container);
-            }
-
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.textContent = message;
-            container.appendChild(toast);
-
-            // Trigger animation
-            setTimeout(() => toast.classList.add('show'), 10);
-
-            // Remove after 3 seconds with fade out
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        static formatLyricsWithChords(lyrics, chords) {
-            const lyricLines = lyrics.split('\n');
-            const chordLines = chords.split('\n');
-            
-            return lyricLines.map((lyricLine, i) => {
-                const chordLine = chordLines[i] || '';
-                if (chordLine.trim()) {
-                    return `${chordLine}\n${lyricLine}`;
-                }
-                return lyricLine;
-            }).join('\n');
-        }
-
-        static formatSongForExport(song, includeMetadata = true) {
-            let output = '';
-            
-            if (includeMetadata) {
-                output += `# ${song.title}\n\n`;
-                if (song.key) output += `**Key:** ${song.key}\n`;
-                if (song.tempo) output += `**Tempo:** ${song.tempo} BPM\n`;
-                if (song.timeSignature) output += `**Time Signature:** ${song.timeSignature}\n`;
-                if (song.tags && song.tags.length > 0) output += `**Tags:** ${song.tags.join(', ')}\n`;
-                output += '\n---\n\n';
-            }
-            
-            // Add lyrics with chords
-            if (song.chords && song.chords.trim()) {
-                output += this.formatLyricsWithChords(song.lyrics, song.chords);
-            } else {
-                output += song.lyrics;
-            }
-            
-            if (song.notes && song.notes.trim()) {
-                output += '\n\n---\n**Notes:**\n' + song.notes;
-            }
-            
-            return output;
-        }
-    }
 
 async function callOpenRouterAPI(prompt) {
     try {
@@ -166,31 +73,6 @@ async function callOpenRouterAPI(prompt) {
     }
 }
 
-function cleanAIOutput(text) {
-    return text
-        .replace(/\r\n/g, '\n')
-        .replace(/\n{3,}/g, '\n\n')
-        .replace(/[ \t]+$/gm, '')
-        .replace(/^\s+|\s+$/g, '')
-        .replace(/^(Verse|Chorus|Bridge|Outro)[^\n]*$/gmi, '[$1]')
-        .replace(/^#+\s*/gm, '')
-        .replace(/```[\s\S]*?```/g, '')
-        .replace(/^(Capo|Key|Tempo|Time Signature).*$/gmi, '')
-        .trim();
-}
-
-function enforceAlternating(lines) {
-    const chords = [];
-    const lyrics = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (i % 2 === 0) {
-            chords.push(lines[i] || '');
-        } else {
-            lyrics.push(lines[i] || '');
-        }
-    }
-    return { chords, lyrics };
-}
 
     const app = {
         // DOM Elements (keeping existing ones and adding new)
@@ -316,7 +198,7 @@ function enforceAlternating(lines) {
         // Enhanced song creation with metadata
         createSong(title, lyrics = '', chords = '') {
             const normalizedLyrics = lyrics.trim()
-                ? this.normalizeSectionLabels(lyrics)
+                ? normalizeSectionLabels(lyrics)
                 : this.defaultSections;
             return {
                 id: Date.now().toString(),
@@ -333,40 +215,6 @@ function enforceAlternating(lines) {
             };
         },
 
-        normalizeSectionLabels(text = '') {
-            const sectionKeywords = [
-                'intro',
-                'verse',
-                'prechorus',
-                'chorus',
-                'bridge',
-                'outro',
-                'hook',
-                'refrain',
-                'coda',
-                'solo',
-                'interlude',
-                'ending',
-                'breakdown',
-                'tag'
-            ];
-            return text.split(/\r?\n/).map(line => {
-                const trimmed = line.trim();
-                if (!trimmed) return line;
-                const match = trimmed.match(/^[\*\s\-_=~`]*[\(\[\{]?\s*([^\]\)\}]+?)\s*[\)\]\}]?[\*\s\-_=~`]*:?$/);
-                if (match) {
-                    const label = match[1].trim();
-                    const normalized = label.toLowerCase().replace(/[^a-z]/g, '');
-                    if (sectionKeywords.some(k => normalized.startsWith(k))) {
-                        const formatted = label
-                            .replace(/\s+/g, ' ')
-                            .replace(/(^|\s)\S/g, c => c.toUpperCase());
-                        return `[${formatted}]`;
-                    }
-                }
-                return line;
-            }).join('\n');
-        },
 
         trimExtraEmptyLines(text = '') {
             const lines = text.split('\n');
@@ -895,7 +743,7 @@ function enforceAlternating(lines) {
             const cleaned = cleanAIOutput(responseText);
             const lines = cleaned.split(/\n/);
             const { chords, lyrics } = enforceAlternating(lines);
-            const lyricsText = this.normalizeSectionLabels(lyrics.join('\n'));
+            const lyricsText = normalizeSectionLabels(lyrics.join('\n'));
             const chordsText = chords.join('\n');
 
             if (append) {
@@ -994,7 +842,7 @@ saveCurrentSong(isExplicit = false) {
             const lyrics = this.trimExtraEmptyLines(lyricLines.join('\n'));
             const chords = this.trimExtraEmptyLines(chordLines.join('\n'));
 
-            this.currentSong.lyrics = this.normalizeSectionLabels(lyrics);
+            this.currentSong.lyrics = normalizeSectionLabels(lyrics);
             this.currentSong.chords = chords;
             this.currentSong.lastEditedAt = new Date().toISOString();
             const editedText = new Date(this.currentSong.lastEditedAt).toLocaleString();
@@ -1056,7 +904,7 @@ saveCurrentSong(isExplicit = false) {
             if (headerEdited) headerEdited.textContent = editedText;
             if (metaEdited) metaEdited.textContent = editedText;
 
-            this.currentSong.lyrics = this.normalizeSectionLabels(this.currentSong.lyrics || '');
+            this.currentSong.lyrics = normalizeSectionLabels(this.currentSong.lyrics || '');
 
             const linesNoTitle = this.currentSong.lyrics.split('\n');
             const normalizedTitle = (this.currentSong.title || '').trim().toLowerCase();

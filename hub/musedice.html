@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../style.css" />
   <link rel="manifest" href="../manifest.webmanifest" />
   <link rel="icon" href="../assets/icons/icon-192x192.png" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
   <style>
     :root{
       --bg: var(--bg-primary);
@@ -119,6 +120,7 @@
       <div style="margin-top:10px" class="tips">Pro tip: lock any card you love, then hit <i class="fas fa-dice"></i> to remix the rest. Long‑press on a card to regenerate only that card.</div>
     </footer>
   </main>
+  <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- SETTINGS MODAL -->
   <dialog id="modal">
@@ -393,6 +395,34 @@
   // Load saved settings on start
   STATE.settings.apiKey = localStorage.getItem('openrouterApiKey') || '';
   STATE.settings.model = localStorage.getItem('openrouterModel') || STATE.settings.model;
+
+  function toast(msg){
+    const container=document.querySelector('.toast-container');
+    const t=document.createElement('div');
+    t.className='toast toast-info';
+    t.textContent=msg;
+    container.appendChild(t);
+    setTimeout(()=>t.classList.add('show'),10);
+    setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(),300);},3000);
+  }
+
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('../sw.js').then(reg=>{
+      function listenWaiting(worker){
+        toast('Update ready — reload to apply.');
+      }
+      if(reg.waiting) listenWaiting(reg.waiting);
+      reg.addEventListener('updatefound',()=>{
+        const newWorker=reg.installing;
+        newWorker?.addEventListener('statechange',()=>{
+          if(newWorker.state==='installed' && reg.waiting){
+            listenWaiting(reg.waiting);
+          }
+        });
+      });
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{});
+    });
+  }
 
 </script>
 </body>
