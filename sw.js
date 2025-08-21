@@ -7,7 +7,7 @@ const APP_SHELL = [
     '/editor/editor.html',
     '/editor/editor.js',
     '/editor/editor.css',
-    '/editor/songs.js',
+    '/songs.js',
     '/manifest.webmanifest',
     '/hub/hub.html',
     '/hub/musedice.html',

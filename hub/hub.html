@@ -301,7 +301,10 @@
   <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <script src="../config.js"></script>
-  <script src="../editor/songs.js"></script>
+  <script type="module">
+    import { createSong } from '../songs.js';
+    window.createSong = createSong;
+  </script>
   <script>
     // ===== Theme =====
     (function initTheme(){
@@ -315,16 +318,25 @@
       });
     })();
 
-    // ===== Service Worker (same pattern as index.html) =====
+    // ===== Service Worker =====
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('../sw.js').then(reg => {
+        function listenWaiting(worker){
+          toast('Update ready — reload to apply.');
+          // Optionally trigger skipWaiting on click:
+          // worker.postMessage({ type: 'SKIP_WAITING' });
+        }
+        if (reg.waiting) listenWaiting(reg.waiting);
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'activated') {
-              toast('Update available! Refresh to apply.');
+          newWorker?.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && reg.waiting) {
+              listenWaiting(reg.waiting);
             }
           });
+        });
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          // page will reload automatically after activation
         });
       });
     }

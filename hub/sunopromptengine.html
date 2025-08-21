@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../style.css" />
   <link rel="manifest" href="../manifest.webmanifest" />
   <link rel="icon" href="../assets/icons/icon-192x192.png" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
   <style>
     :root{
       --bg: var(--bg-primary);
@@ -164,6 +165,7 @@
       </div>
     </section>
   </main>
+  <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Settings Modal -->
   <dialog id="settingsModal">
@@ -233,6 +235,13 @@
       theme: localStorage.getItem('theme') || 'auto',
     };
 
+    const DEFAULT_SYSTEM_PROMPT = `You are an expert music prompt formatter for Suno v4.5+.
+- Output three parallel strings:
+  1) description: a single-paragraph natural language brief of the track to generate.
+  2) style_meta: a compact comma-separated list of stylistic tags (genres, eras, instruments, production cues, vocal character).
+  3) exclude_meta: a compact comma-separated list of negative tags (what to avoid).
+- Be specific, concrete, and performance-ready. No markdown fences. No extra commentary.`;
+
     const $ = sel => document.querySelector(sel);
     const $$ = sel => Array.from(document.querySelectorAll(sel));
 
@@ -252,9 +261,9 @@
         try { S.model = JSON.parse(model); } catch {}
       }
       $('#modelLabel').textContent = S.model ? S.model.id : '(not set)';
-      const sys = localStorage.getItem('systemPrompt');
-      if(sys) $('#systemPrompt').value = sys; else $('#systemPrompt').value = DEFAULT_SYSTEM_PROMPT;
-      $('#themeSelect').value = S.theme; applyTheme(S.theme);
+    const sys = localStorage.getItem('systemPrompt');
+    if(sys) $('#systemPrompt').value = sys; else $('#systemPrompt').value = DEFAULT_SYSTEM_PROMPT;
+    $('#themeSelect').value = S.theme; applyTheme(S.theme);
     }
 
     function saveKey(){ const v = $('#apiKey').value.trim(); if(v){ localStorage.setItem('openrouterApiKey', v); }}
@@ -539,474 +548,36 @@
     });
 
     // Init
-    const DEFAULT_SYSTEM_PROMPT = `Your job is to write prompts for Suno.com.  You'll receive a request and output the prompt using the following guidelines:
-
----
-
-Suno v4.5 Metatag & Prompt Reference (Master List)
-
----
-
-I. Song Structure Tags
-
-Mark sections, arrangement, or transitions. Use at the start of a line.
-
-[Intro]
-[Verse]
-[Verse 1]
-[Verse 2]
-[Pre-Chorus]
-[Chorus]
-[Post-Chorus]
-[Bridge]
-[Break]
-[Drop]
-[Hook]
-[Instrumental]
-[Instrumental Break]
-[Outro]
-[Ending]
-[Fade Out]
-[Build-Up]
-[Refrain]
-[Guitar Solo]
-[Piano Solo]
-[Bass Solo]
-[Drum Solo]
-[Solo]
-
-Tip: These can be stacked or combined, e.g. [Chorus: High Energy] or [Bridge: Instrumental, Key Change].
-
----
-
-II. Genre, Style & Era Tags
-
-Specify genre, subgenre, blend, and stylistic influences.
-
-[Genre: Pop]
-[Genre: Rock]
-[Genre: Blues]
-[Genre: Funk]
-[Genre: Soul]
-[Genre: Jazz]
-[Genre: EDM]
-[Genre: Hip-Hop]
-[Genre: Gospel]
-[Genre: Country]
-[Genre: Metal]
-[Genre: Folk]
-[Genre: Classical]
-[Genre: Synthwave]
-[Genre: Punk]
-[Genre: R&B]
-[Genre: Reggae]
-[Genre: House]
-[Genre: Orchestral Rock]
-[Genre: Lo-fi]
-[Genre: Indie]
-[Genre: Disco]
-[Genre: Afrobeat]
-[Genre: Bossa Nova]
-[Genre: Latin]
-[Genre: Prog Rock]
-[Genre: Grunge]
-[Genre: Trap]
-[Genre: Punk Rock]
-[Genre: Jazz House]
-[Style: 1970s]
-[Style: 1980s]
-[Style: 1990s]
-[Style: Vintage]
-[Style: Modern]
-[Style: Lo-fi]
-[Style: Synthwave]
-[Style: Orchestral]
-[Style: Cinematic]
-[Style: Acoustic]
-[Style: Ballad]
-[Style: Anthemic]
-[Style: Upbeat]
-[Style: Slow]
-[Style: Fast]
-[Style: Swing]
-[Style: Live]
-[Style: Analog]
-[Style: Raw]
-[Style: Studio]
-[Style: Dance]
-[Style: Epic]
-[Style: Minimal]
-[Style: Experimental]
-
-Tip: Blend by stacking genres/styles, e.g. [Genre: EDM] [Genre: Folk] [Style: Cinematic].
-
----
-
-III. Instrumentation Tags
-
-Define which instruments are present, their role, or priority.
-
-[Instrument: Piano]
-[Instrument: Grand Piano]
-[Instrument: Felt Piano]
-[Instrument: Electric Guitar]
-[Instrument: Acoustic Guitar]
-[Instrument: Slide Guitar]
-[Instrument: Bass Guitar]
-[Instrument: Upright Bass]
-[Instrument: Synth]
-[Instrument: Synth Pad]
-[Instrument: Strings]
-[Instrument: Strings (Legato)]
-[Instrument: Strings (Staccato)]
-[Instrument: Brass]
-[Instrument: Horns]
-[Instrument: Trumpet]
-[Instrument: Saxophone]
-[Instrument: Harmonica]
-[Instrument: Organ]
-[Instrument: Hammond Organ]
-[Instrument: Clavinet]
-[Instrument: Drums]
-[Instrument: Drums (Heavy)]
-[Instrument: Drums (Soft)]
-[Instrument: Drum Machine]
-[Instrument: Percussion]
-[Instrument: Handclaps]
-[Instrument: Violin]
-[Instrument: Cello]
-[Instrument: Flute]
-[Instrument: Dobro]
-[Instrument: Banjo]
-[Instrument: Mandolin]
-[Instrument: Choir]
-[Instrumental]
-[Instrumental Chorus]
-[Instrumental Break]
-[Guitar Solo]
-[Piano Solo]
-[Bass Solo]
-[Drum Solo]
-[Riff]
-[Guitar Riff]
-[Bass Riff]
-[Piano Riff]
-[Synth Riff]
-[Layered Riff]
-[Solo Riff]
-[Call & Response Riff]
-[Melodic Interlude]
-
-Tip: Use “prominent,” “background,” or “subtle” in text to specify mix role. E.g. [Instrument: Electric Guitar (Prominent)].
-
----
-
-IV. Mood, Emotion & Energy Tags
-
-Control the emotional tone, atmosphere, and intensity.
-
-[Mood: Uplifting]
-[Mood: Melancholic]
-[Mood: Somber]
-[Mood: Dark]
-[Mood: Joyful]
-[Mood: Happy]
-[Mood: Sad]
-[Mood: Hopeful]
-[Mood: Intense]
-[Mood: Cinematic]
-[Mood: Dreamy]
-[Mood: Reflective]
-[Mood: Aggressive]
-[Mood: Emotional]
-[Mood: Gritty]
-[Mood: Raw]
-[Mood: Nostalgic]
-[Mood: Triumphant]
-[Mood: Romantic]
-[Mood: Energetic]
-[Mood: Calm]
-[Mood: Mysterious]
-[Mood: Inspiring]
-[Mood: Playful]
-[Mood: Chill]
-[Mood: Epic]
-[Mood: Smooth]
-[Mood: Funky]
-[Mood: Dramatic]
-[Mood: Soulful]
-[Mood: Groovy]
-[Mood: Atmospheric]
-[Mood: Euphoric]
-[Atmosphere: Serene Ambience]
-[Atmosphere: Ghostly Echoes]
-[Energy: High]
-[Energy: Medium]
-[Energy: Low]
-[Dynamic]
-[Building Intensity]
-[Climactic]
-[Minimal]
-[Catchy Hook]
-[Catchy Melody]
-[Anthemic]
-[Slow Burn]
-[Raw]
-[Lo-fi]
-[Vintage]
-[Cinematic]
-[Analog]
-[Live]
-
-Tip: Mood tags are stackable and can be paired with energy/dynamic for nuanced results.
-
----
-
-V. Tempo, Rhythm & Meter Tags
-
-Set speed, groove, and time signature.
-
-[Tempo: Slow]
-[Tempo: Medium]
-[Tempo: Mid]
-[Tempo: Fast]
-[Tempo: 120 BPM]      (not always precise, but can work)
-[Tempo: Uptempo]
-[Tempo: Downtempo]
-[Four-on-the-Floor]
-[Straight Beat]
-[Swing Feel]
-[Swing Rhythm]
-[Syncopated Rhythm]
-[Half-Time Beat]
-[Polyrhythm]
-[Groove: Funky]
-[Rhythm: Bossa Nova]
-[3/4 Time]
-[6/8 Time]
-
-Tip: BPM is not always obeyed, but slow/fast/uptempo are effective. Use explicit meter tags for waltz or shuffle.
-
----
-
-VI. Vocalist, Harmony & Delivery Tags
-
-Shape the voice type, harmony, group vocals, and performance style.
-
-[Vocalist: Male]
-[Vocalist: Female]
-[Vocalist: Tenor]
-[Vocalist: Baritone]
-[Vocalist: Alto]
-[Vocalist: Bass]
-[Vocalist: Soprano]
-[Male Vocal]
-[Female Vocal]
-[Vocalist: Child]
-[Vocalist: Choir]
-[Vocalist: Group]
-[Vocalist: Duet]
-[Duet]
-[Lead Vocal]
-[Backing Vocals]
-[Harmony]
-[Harmony: Yes]
-[Harmonies]
-[Choir]
-[Vocal Style: Whisper]
-[Vocal Style: Raspy]
-[Vocal Style: Operatic]
-[Vocal Style: Soulful]
-[Vocal Style: Spoken]
-[Vocal Style: Emotional]
-[Vocal Style: Lounge]
-[Vocal Tone: Whisper]
-[Vocal Tone: Raw]
-[Vocal Tone: Smooth]
-[Rap Verse]
-[Spoken Word]
-[Spoken Word: "text"]
-[Primal Scream]
-[Vulnerable Vocals]
-[Shout]
-[Background Vocals]
-[Ad-lib]
-
-Tip: To force harmonies in a section, add [Harmony: Yes] or put harmony lines in parentheses in lyrics.
-
----
-
-VII. Effects, Mixing & Production Tags
-
-Affect production, effects, and mix characteristics.
-
-[Vocal Effect: Reverb]
-[Vocal Effect: Delay]
-[Vocal Effect: Autotune]
-[Vocal Effect: Distortion]
-[Vocal Effect: Echo]
-[Vocal Effect: Dry]
-[Reverb Heavy]
-[Lo-fi]
-[Vintage]
-[Distorted Mix]
-[Clean Mix]
-[Analog]
-[Polished]
-[Raw]
-[Studio]
-[Surround Mix]
-[Bass Heavy]
-[Bass Boost]
-[Crisp Vocals]
-[Room Reverb]
-[Drum Machine]
-[Vinyl Crackle]
-[Tape Hiss]
-[Mono]
-[Stereo]
-[Enhanced Stereo]
-[Balanced]
-[Polished Mastering]
-[Radio Ready]
-
-Tip: Do not rely on “studio quality” or “Dolby Atmos” for higher fidelity—they’re ignored or cause confusion.
-
----
-
-VIII. Progression, Complexity & Advanced Arrangement Tags
-
-Influence harmony, chord changes, and arrangement.
-
-[Complex Progression]
-[Simple Progression]
-[Dynamic]
-[Epic]
-[Layered]
-[Pedal Tone]
-[Arpeggiated]
-[Polyphonic]
-[Key: C Major]
-[Key: A Minor]
-[Key: Dorian]
-[Chords: Em | C | G | D]
-[Blues Scale]
-[Modal]
-[12-bar Blues]
-[II-V-I]
-[Jazzy Chords]
-[Bluesy Progression]
-[Walking Bass]
-[Riff]
-[Melodic Riff]
-[Counterpoint]
-[Call & Response]
-
-Tip: Not all advanced tags are strictly recognized, but “Complex Progression,” “Dynamic,” “Epic,” “Blues Scale,” and “Jazzy Chords” are well documented. “Chords: ...” syntax is experimental but sometimes works.
-
----
-
-IX. Sectional & Transitional Tags
-
-Control how song sections move or build.
-
-[Build]
-[Build-Up]
-[Breakdown]
-[Crescendo]
-[Sudden Drop]
-[Drop]
-[Climax]
-[Transition]
-[Pause]
-[Stop]
-[Restart]
-[Key Change]
-[Half-Time]
-[Double-Time]
-
-Tip: For transitions, describe them in prose if tags don’t work: “after the chorus, sudden stop, then a big drop.”
-
----
-
-X. Miscellaneous & Special Tags
-
-Handle spoken parts, languages, or other special behaviors.
-
-[Spoken Word]
-[Spoken Word: "your text"]
-[Language: Spanish]         (not always obeyed, but can help)
-[No Vocals]
-[A Cappella]
-[Instrumental]
-[Instrumental Verse]
-[Instrumental Chorus]
-[Ad-lib]
-[Parenthetical (background/ad-lib) lyrics]
-
-Tip: Anything in parentheses in lyrics is often rendered as an ad-lib or background vocal.
-
----
-
-Tag Formatting Rules
-
-Square brackets [ ... ] required for tags
-
-One tag per bracket is safest, but multi-item tags (e.g. [Chorus: High Energy, Anthemic]) work
-
-Stack tags above or before each section, or at the top for global
-
-Place most critical tags (genre, mood, instrument) early—first 20 words get extra weight
-
-Repeat key tags in new sections to reinforce (esp. genre, mood, harmony)
-
----
-
-Usage Notes & Pro Tips
-
-Suno v4.5 understands both strict tag syntax and descriptive language. Combining both works best.
-
-Tags can be stacked for blends:
-[Genre: Funk] [Genre: Jazz] [Style: Cinematic] [Mood: Uplifting] [Instrument: Clavinet] [Harmony: Yes]
-
-For instruments not responding, try stacking instrument tag with arrangement:
-[Intro: Solo Piano] or [Verse: Prominent Saxophone]
-
-For vocals, “Duet,” “Choir,” “Harmony: Yes” and parentheticals are very effective.
-
-Exclusions (e.g. “no pop, no synth”) should be given in plain language; not an official tag but very effective.
-
-If you want to force genre-hybrids or “rare” outputs, combine tags that rarely co-occur (“gospel metal ballad,” “funk dirge”).
-
-“Complex Progression,” “Dynamic,” “Epic,” “Minimal” and “Anthemic” are powerful meta-tags for song arc.
-
-Experiment! Not all tags are 100% deterministic, but stacking and repeating in relevant sections increases compliance.
-
----
-
-Copy-Paste Tag Blocks for Prompts
-
-[Genre: _____]
-[Style: _____]
-[Era: _____]
-[Mood: _____]
-[Energy: _____]
-[Tempo: _____]
-[Instrument: _____]
-[Vocalist: _____]
-[Harmony: Yes]
-[Chorus]
-[Bridge]
-[Solo]
-[Outro]
-
-Fill in, stack as needed, repeat per section for structure.
-
----
-
-You output only the prompt using a mix of metatags and natural language. Include the requested elements and imply fron the reques5 what elements you need to include in the [Exclude: ] field`;
 
     loadPersist();
+
+    function toast(msg){
+      const container=document.querySelector('.toast-container');
+      const t=document.createElement('div');
+      t.className='toast toast-info';
+      t.textContent=msg;
+      container.appendChild(t);
+      setTimeout(()=>t.classList.add('show'),10);
+      setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(),300);},3000);
+    }
+
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('../sw.js').then(reg=>{
+        function listenWaiting(worker){
+          toast('Update ready — reload to apply.');
+        }
+        if(reg.waiting) listenWaiting(reg.waiting);
+        reg.addEventListener('updatefound',()=>{
+          const newWorker=reg.installing;
+          newWorker?.addEventListener('statechange',()=>{
+            if(newWorker.state==='installed' && reg.waiting){
+              listenWaiting(reg.waiting);
+            }
+          });
+        });
+        navigator.serviceWorker.addEventListener('controllerchange',()=>{});
+      });
+    }
 
     // Expose for console debugging
     window._S = S; window._pickModel = pickModel; window._fetchModels = fetchModels;
