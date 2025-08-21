@@ -85,10 +85,10 @@
         </div>
       </div>
       <div class="toolbar">
-        <button id="theme-toggle-btn" class="btn ghost" title="Toggle theme">🌓 Theme</button>
-        <button id="aboutBtn" class="btn ghost">About</button>
-        <button id="filesBtn" class="btn ghost">Files</button>
-        <button id="settingsBtn" class="btn">⚙️ Settings</button>
+        <button id="theme-toggle-btn" class="btn ghost" title="Toggle theme"><i class="fas fa-adjust"></i></button>
+        <button id="aboutBtn" class="btn ghost" title="About"><i class="fas fa-info-circle"></i></button>
+        <button id="filesBtn" class="btn ghost" title="Files"><i class="fas fa-folder-open"></i></button>
+        <button id="settingsBtn" class="btn" title="Settings"><i class="fas fa-cog"></i></button>
       </div>
     </div>
   </header>
@@ -115,7 +115,7 @@
           <input id="seed" type="number" inputmode="numeric" placeholder="optional" class="" style="width:120px"/>
         </div>
         <div class="spacer"></div>
-        <button id="sendBtn" class="btn primary">▶ Generate</button>
+        <button id="sendBtn" class="btn primary" title="Generate"><i class="fas fa-play"></i></button>
       </div>
 
       <details id="advanced">
@@ -129,7 +129,7 @@
         <h3>1 • Natural language description</h3>
         <pre id="outDescription" aria-live="polite"></pre>
         <div class="row" style="margin-top:8px;">
-          <button class="btn" data-copy="outDescription">Copy</button>
+          <button class="btn" data-copy="outDescription" title="Copy"><i class="fas fa-copy"></i></button>
           <span class="spacer"></span>
           <span class="status" id="descCount">0 chars</span>
         </div>
@@ -138,7 +138,7 @@
         <h3>2 • Style meta tags</h3>
         <pre id="outStyle" aria-live="polite"></pre>
         <div class="row" style="margin-top:8px;">
-          <button class="btn" data-copy="outStyle">Copy</button>
+          <button class="btn" data-copy="outStyle" title="Copy"><i class="fas fa-copy"></i></button>
           <span class="spacer"></span>
           <span class="status" id="styleCount">0 chars</span>
         </div>
@@ -147,7 +147,7 @@
         <h3>3 • Exclude metatags</h3>
         <pre id="outExclude" aria-live="polite"></pre>
         <div class="row" style="margin-top:8px;">
-          <button class="btn" data-copy="outExclude">Copy</button>
+          <button class="btn" data-copy="outExclude" title="Copy"><i class="fas fa-copy"></i></button>
           <span class="spacer"></span>
           <span class="status" id="excludeCount">0 chars</span>
         </div>
@@ -156,9 +156,9 @@
 
     <section class="card" style="margin-top:12px;">
       <div class="row">
-        <button id="exportTxt" class="btn">⬇ Export All (.txt)</button>
-        <button id="saveLocal" class="btn">💾 Save</button>
-        <button id="clearAll" class="btn danger">✖ Clear</button>
+        <button id="exportTxt" class="btn" title="Export All"><i class="fas fa-file-export"></i></button>
+        <button id="saveLocal" class="btn" title="Save"><i class="fas fa-save"></i></button>
+        <button id="clearAll" class="btn danger" title="Clear"><i class="fas fa-times"></i></button>
         <div class="spacer"></div>
         <small class="muted">Tips: <span class="kbd">Ctrl/Cmd+Enter</span> to generate • <span class="kbd">Ctrl/Cmd+K</span> to focus input</small>
       </div>
@@ -169,13 +169,13 @@
   <dialog id="settingsModal">
     <div class="modal-head">
       <strong>Settings</strong>
-      <button class="btn ghost" data-close="settingsModal">Close</button>
+      <button class="btn ghost" data-close="settingsModal" title="Close"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
       <label class="muted" for="apiKey">OpenRouter API Key</label>
       <input id="apiKey" type="password" placeholder="sk-or-v1-..." autocomplete="off"/>
       <div class="row" style="margin:8px 0;">
-        <button id="fetchModels" class="btn">🔄 Fetch Models</button>
+        <button id="fetchModels" class="btn" title="Fetch Models"><i class="fas fa-sync"></i></button>
         <div class="spacer"></div>
         <label class="muted" for="themeSelect">Theme</label>
         <select id="themeSelect">
@@ -195,7 +195,7 @@
   <dialog id="aboutModal">
     <div class="modal-head">
       <strong>About</strong>
-      <button class="btn ghost" data-close="aboutModal">Close</button>
+      <button class="btn ghost" data-close="aboutModal" title="Close"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
       <p><strong>Suno Prompt Engine</strong> is a mobile‑first, light/dark, production‑ready web app that crafts Suno v4.5 prompts using OpenRouter models. Nothing leaves your browser except direct API calls you make with your key (stored locally). You can edit the system prompt and export the outputs.</p>
@@ -213,13 +213,13 @@
   <dialog id="filesModal">
     <div class="modal-head">
       <strong>Files</strong>
-      <button class="btn ghost" data-close="filesModal">Close</button>
+      <button class="btn ghost" data-close="filesModal" title="Close"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
       <div class="row" style="margin-bottom:8px;">
-        <button id="exportAllLocal" class="btn">Export All Saved (.zip)</button>
+        <button id="exportAllLocal" class="btn" title="Export All Saved"><i class="fas fa-file-export"></i></button>
         <div class="spacer"></div>
-        <button id="clearSaved" class="btn danger">Clear Saved</button>
+        <button id="clearSaved" class="btn danger" title="Clear Saved"><i class="fas fa-trash"></i></button>
       </div>
       <div id="savedList" class="list" role="listbox" aria-label="Saved prompts"></div>
     </div>
@@ -316,9 +316,9 @@
         const item = document.createElement('div'); item.className='item'; item.role='option';
         item.innerHTML = `<div><strong>${e.model||'model?'}</strong> <small class="muted">• ${d}</small><br><small class="muted">${(e.idea||'').slice(0,80)}${(e.idea||'').length>80?'…':''}</small></div>
           <div class="row">
-            <button class="btn" data-load="${idx}">Load</button>
-            <button class="btn" data-download="${idx}">.txt</button>
-            <button class="btn danger" data-delete="${idx}">Delete</button>
+            <button class="btn" data-load="${idx}" title="Load"><i class="fas fa-file-import"></i></button>
+            <button class="btn" data-download="${idx}" title="Download"><i class="fas fa-file-download"></i></button>
+            <button class="btn danger" data-delete="${idx}" title="Delete"><i class="fas fa-trash"></i></button>
           </div>`;
         box.appendChild(item);
       });
@@ -423,7 +423,7 @@
       arr.forEach(m => {
         const div = document.createElement('div'); div.className='item'; div.role='option';
         const price = m.pricing ? `${m.pricing.prompt_token || m.pricing.input || ''}/${m.pricing.completion_token || m.pricing.output || ''}` : '';
-        div.innerHTML = `<div><strong>${m.name||m.id}</strong><br><small class="muted">${m.id}${price?` • ${price}`:''}</small></div><button class="btn" data-pick="${m.id}">Select</button>`;
+        div.innerHTML = `<div><strong>${m.name||m.id}</strong><br><small class="muted">${m.id}${price?` • ${price}`:''}</small></div><button class="btn" data-pick="${m.id}" title="Select"><i class="fas fa-check"></i></button>`;
         list.appendChild(div);
       });
     }

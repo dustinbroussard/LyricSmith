@@ -10,11 +10,12 @@ export default function ThemeToggle() {
           key={opt}
           role="radio"
           aria-checked={mode===opt}
+          aria-label={opt}
           onClick={() => setMode(opt)}
           className={`px-3 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus
                       ${mode===opt ? 'bg-primary text-cream shadow-glow' : 'hover:bg-muted/10'}`}
         >
-          {opt}
+          <i className={`fas fa-${opt==='light'?'sun':opt==='dark'?'moon':'desktop'}`}></i>
         </button>
       ))}
     </div>

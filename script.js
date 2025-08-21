@@ -754,8 +754,8 @@ Turnaround: ${pick(['ii–V–I','♭VII → I','IV → V'])}`;
   el('md-roll')?.addEventListener('click', roll);
   el('md-lock-seed')?.addEventListener('click', ()=>{
     locked=!locked; el('md-lock-seed').innerHTML = locked
-      ? '<i class="fas fa-lock"></i> Seed'
-      : '<i class="fas fa-unlock"></i> Seed';
+      ? '<i class="fas fa-lock"></i>'
+      : '<i class="fas fa-unlock"></i>';
   });
   el('md-copy')?.addEventListener('click', async ()=>{
     const out = `# MuseDice Brief\n\n${el('md-brief-out').value}\n\n## Chords\n${el('md-chords-out').value}\n\n## Lyric Starters\n${el('md-lyrics-out').value}`;
