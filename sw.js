@@ -1,23 +1,17 @@
-const CACHE_NAME = 'lyricsmith-v3';
+const CACHE_NAME = 'lyricsmith-cache-v1';
 const APP_SHELL = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/editor/editor.html',
-    '/editor/editor.js',
-    '/editor/editor.css',
-    '/songs.js',
-    '/manifest.webmanifest',
-    '/hub/hub.html',
-    '/hub/musedice.html',
-    '/hub/sunopromptengine.html',
-    '/assets/icons/icon-192x192.png',
-    '/assets/icons/icon-512x512.png',
-    '/assets/images/logo.png',
-    '/lib/mammoth.browser.min.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
-    'https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js'
+  '/',
+  '/index.html',
+  '/style.css',
+  '/script.js',
+  '/songs.js',
+  '/editor/editor.html',
+  '/hub/hub.html',
+  '/hub/musedice.html',
+  '/hub/sunopromptengine.html',
+  '/manifest.webmanifest',
+  '/assets/icons/icon-192x192.png',
+  '/assets/icons/icon-512x512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -50,17 +44,6 @@ self.addEventListener('fetch', event => {
       }).catch(() => cached);
       return cached || network;
     })());
-  } else {
-    event.respondWith((async () => {
-      try {
-        const resp = await fetch(request);
-        return resp;
-      } catch (err) {
-        const cache = await caches.open(CACHE_NAME);
-        const cached = await cache.match(request);
-        return cached || Response.error();
-      }
-    })());
   }
 });
 
@@ -69,4 +52,3 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
 });
-

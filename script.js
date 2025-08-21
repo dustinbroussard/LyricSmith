@@ -1,3 +1,5 @@
+import { normalizeSectionLabels, cleanAIOutput, enforceAlternating, ClipboardManager } from "./lib/songUtils.js";
+
 document.addEventListener('DOMContentLoaded', () => {
   // Ensure touch devices trigger button actions
   document.addEventListener(
@@ -50,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .some(line => line.trim().startsWith(prefix));
     // Fast path: no chord markers at all → purely lyrics
     if (!hasMarker && window.CONFIG?.assumeNoChords !== false) {
-      return { lyrics: app.normalizeSectionLabels(rawText || ''), chords: '' };
+      return { lyrics: normalizeSectionLabels(rawText || ''), chords: '' };
     }
 
     const lines = (rawText || '').replace(/\r\n?/g, '\n').split('\n');
@@ -82,80 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return {
-      lyrics: app.normalizeSectionLabels(lyricsLines.join('\n')),
+      lyrics: normalizeSectionLabels(lyricsLines.join('\n')),
       chords: chordLines.join('\n')
     };
   }
 
-  // === CLIPBOARD MANAGER ===
-  class ClipboardManager {
-    static async copyToClipboard(text, showToast = true) {
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(text);
-        } else {
-          // Fallback for mobile/older browsers
-          const textArea = document.createElement('textarea');
-          textArea.value = text;
-          textArea.style.position = 'fixed';
-          textArea.style.left = '-999999px';
-          textArea.style.top = '-999999px';
-          document.body.appendChild(textArea);
-          textArea.focus();
-          textArea.select();
-          document.execCommand('copy');
-          textArea.remove();
-        }
-        
-        if (showToast) {
-          this.showToast('Copied to clipboard!', 'success');
-        }
-        return true;
-      } catch (err) {
-        console.error('Failed to copy:', err);
-        if (showToast) {
-          this.showToast('Failed to copy to clipboard', 'error');
-        }
-        return false;
-      }
-    }
-
-    static showToast(message, type = 'info') {
-      let container = document.querySelector('.toast-container');
-      if (!container) {
-        container = document.createElement('div');
-        container.className = 'toast-container';
-        document.body.appendChild(container);
-      }
-
-      const toast = document.createElement('div');
-      toast.className = `toast toast-${type}`;
-      toast.textContent = message;
-      container.appendChild(toast);
-
-      // Trigger animation
-      setTimeout(() => toast.classList.add('show'), 10);
-
-      // Remove after 3 seconds with fade out
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-    }
-
-    static formatLyricsWithChords(lyrics, chords) {
-      const lyricLines = lyrics.split('\n');
-      const chordLines = chords.split('\n');
-      
-      return lyricLines.map((lyricLine, i) => {
-        const chordLine = chordLines[i] || '';
-        if (chordLine.trim()) {
-          return `${chordLine}\n${lyricLine}`;
-        }
-        return lyricLine;
-      }).join('\n');
-    }
-  }
 
   // === APP LOGIC ===
   const app = {
@@ -190,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         id: song.id || Date.now().toString(),
         title: song.title || 'Untitled',
-        lyrics: this.normalizeSectionLabels(song.lyrics || ''),
+        lyrics: normalizeSectionLabels(song.lyrics || ''),
         chords: song.chords || '',
         key: song.key || '',
         tempo: song.tempo || 120,
@@ -204,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     createSong(title, lyrics = '', chords = '') {
       const normalizedLyrics = lyrics.trim()
-        ? this.normalizeSectionLabels(lyrics)
+        ? normalizeSectionLabels(lyrics)
         : this.defaultSections;
       return {
         id: Date.now().toString(),
@@ -235,80 +168,19 @@ document.addEventListener('DOMContentLoaded', () => {
         .replace(/\w\S*/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
     },
 
-    normalizeSectionLabels(text = '') {
-      const sectionKeywords = [
-        'intro',
-        'verse',
-        'prechorus',
-        'chorus',
-        'bridge',
-        'outro',
-        'hook',
-        'refrain',
-        'coda',
-        'solo',
-        'interlude',
-        'ending',
-        'breakdown',
-        'tag'
-      ];
-      return text.split(/\r?\n/).map(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return line;
-        const match = trimmed.match(/^[\*\s\-_=~`]*[\(\[\{]?\s*([^\]\)\}]+?)\s*[\)\]\}]?[\*\s\-_=~`]*:?$/);
-        if (match) {
-          const label = match[1].trim();
-          const normalized = label.toLowerCase().replace(/[^a-z]/g, '');
-          if (sectionKeywords.some(k => normalized.startsWith(k))) {
-            const formatted = label
-              .replace(/\s+/g, ' ')
-              .replace(/(^|\s)\S/g, c => c.toUpperCase());
-            return `[${formatted}]`;
-          }
-        }
-        return line;
-      }).join('\n');
-    },
-
-    cleanAIOutput(text) {
-      return text
-        .replace(/\r\n/g, '\n')
-        .replace(/\n{3,}/g, '\n\n')
-        .replace(/[ \t]+$/gm, '')
-        .replace(/^\s+|\s+$/g, '')
-        .replace(/^(Verse|Chorus|Bridge|Outro)[^\n]*$/gmi, '[$1]')
-        .replace(/^#+\s*/gm, '')
-        .replace(/```[\s\S]*?```/g, '')
-        .replace(/^(Capo|Key|Tempo|Time Signature).*$/gmi, '')
-        .trim();
-    },
-
-    enforceAlternating(lines) {
-      const chords = [];
-      const lyrics = [];
-      for (let i = 0; i < lines.length; i++) {
-        if (i % 2 === 0) {
-          chords.push(lines[i] || '');
-        } else {
-          lyrics.push(lines[i] || '');
-        }
-      }
-      return { chords, lyrics };
-    },
-
     parseSongContent(content) {
-      const cleaned = this.cleanAIOutput(content || '');
+      const cleaned = cleanAIOutput(content || '');
       const lines = cleaned.split(/\r?\n/);
       let lyricsText = cleaned;
       let chordsText = '';
       if (lines.length > 1) {
-        const { chords, lyrics } = this.enforceAlternating(lines);
+        const { chords, lyrics } = enforceAlternating(lines);
         if (chords.some(line => line.trim() !== '')) {
           chordsText = chords.join('\n');
           lyricsText = lyrics.join('\n');
         }
       }
-      lyricsText = this.normalizeSectionLabels(lyricsText);
+      lyricsText = normalizeSectionLabels(lyricsText);
       return { lyrics: lyricsText, chords: chordsText };
     },
 

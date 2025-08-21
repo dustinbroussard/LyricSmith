@@ -1,4 +1,4 @@
-import { ClipboardManager, cleanAIOutput, enforceAlternating, normalizeSectionLabels } from '../lib/utils.js';
+import { ClipboardManager, cleanAIOutput, enforceAlternating, normalizeSectionLabels } from '../lib/songUtils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Ensure touch devices trigger button actions
