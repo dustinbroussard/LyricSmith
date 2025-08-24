@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Suno Prompt Engine — OpenRouter</title>
-  <link rel="stylesheet" href="../style.css" />
-  <link rel="manifest" href="../manifest.webmanifest" />
-  <link rel="icon" href="../assets/logo-mardi-icon.svg" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/logo-mardi-icon.svg" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
   <style>
     :root{
@@ -311,6 +311,8 @@
       const arr = JSON.parse(localStorage.getItem('saved_prompts')||'[]');
       arr.unshift(entry);
       localStorage.setItem('saved_prompts', JSON.stringify(arr));
+      // Stash a “lastSunoPrompt” for quick import in Editor notes
+      localStorage.setItem('lastSunoPrompt', JSON.stringify(entry));
       renderSaved();
       setStatus('Saved locally');
     }
@@ -562,7 +564,7 @@
     }
 
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('../sw.js').then(reg=>{
+      navigator.serviceWorker.register('sw.js').then(reg=>{
         function listenWaiting(worker){
           toast('Update ready — reload to apply.');
         }

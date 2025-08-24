@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>MuseDice — Songwriting Spark</title>
-  <link rel="stylesheet" href="../style.css" />
-  <link rel="manifest" href="../manifest.webmanifest" />
-  <link rel="icon" href="../assets/logo-mardi-icon.svg" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/logo-mardi-icon.svg" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
   <style>
     :root{
@@ -108,6 +108,7 @@
         <div class="row">
           <button class="btn small ghost" id="btnCopy" title="Copy"><i class="fas fa-copy"></i></button>
           <button class="btn small ghost" id="btnClear" title="Clear"><i class="fas fa-times"></i></button>
+          <button class="btn small" id="btnToEditor" title="Send to Editor"><i class="fas fa-share"></i></button>
           <button class="btn small" id="btnExport" title="Export JSON"><i class="fas fa-file-export"></i></button>
           <label class="btn small warn" for="importFile" title="Import JSON"><i class="fas fa-file-import"></i><input id="importFile" type="file" accept="application/json" style="display:none"></label>
         </div>
@@ -406,8 +407,21 @@
     setTimeout(()=>{t.classList.remove('show'); setTimeout(()=>t.remove(),300);},3000);
   }
 
+  document.getElementById('btnToEditor')?.addEventListener('click', ()=>{
+    const deck = STATE.deck || {};
+    const title = (deck.twowords || 'New Song').replace(/\b\w/g, s=>s.toUpperCase());
+    const scaff = `[Verse 1]\n\n[Chorus]\n\n[Verse 2]\n\n[Bridge]\n`;
+    const payload = { title, lyrics: scaff, notes: `MuseDice deck:\n${JSON.stringify(deck, null, 2)}` };
+    const songs = JSON.parse(localStorage.getItem('songs')||'[]');
+    const id = Date.now().toString();
+    const song = { id, chords:'', key:'', tempo:120, timeSignature:'4/4', tags:[], createdAt:new Date().toISOString(), lastEditedAt:new Date().toISOString(), ...payload };
+    songs.push(song);
+    localStorage.setItem('songs', JSON.stringify(songs));
+    location.href = `editor/editor.html?songId=${id}`;
+  });
+
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('../sw.js').then(reg=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
       function listenWaiting(worker){
         toast('Update ready — reload to apply.');
       }

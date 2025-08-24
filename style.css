@@ -13,7 +13,7 @@
 [data-theme="dark"],
 [data-theme="amoled-dark"] {
   /* Background Colors */
-  --bg-primary: ##200029;      
+  --bg-primary: #200029;
   --bg-secondary: #0d0d1a;    /* subtle midnight blue */
   --bg-tertiary: #1a1a33;     /* deep indigo */
   --bg-hover: #20204d;        /* brighter indigo */
