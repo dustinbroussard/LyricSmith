@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>MuseDice — Songwriting Spark</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" href="assets/logo-mardi-icon.svg" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="manifest" href="../manifest.webmanifest" />
+  <link rel="icon" href="../assets/logo-mardi-icon.svg" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
   <style>
     :root{
@@ -30,14 +30,7 @@
     h1{margin:0;font-size:20px;letter-spacing:.4px;display:flex;align-items:center;gap:10px}
     h1 .badge{font-size:12px;color:var(--bg);background:linear-gradient(90deg,var(--acc),var(--acc2));padding:2px 8px;border-radius:999px}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 12px}
-    .btn{appearance:none;border:0;border-radius:14px;padding:10px 14px;background:var(--bg-tertiary);color:var(--fg);box-shadow:var(--shadow);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
-    .btn:active{transform:translateY(1px)}
-    .btn.primary{background:var(--bg-secondary);border:1px solid var(--border)}
-    .btn.accent{background:linear-gradient(90deg,var(--acc),var(--acc2));color:var(--bg);font-weight:700}
-    .btn.warn{background:var(--bg-secondary);border:1px solid var(--border);color:var(--warning)}
-    .btn.ghost{background:transparent;border:1px solid var(--border)}
-    .btn.icon{padding:10px;border-radius:12px}
-    .btn.small{padding:8px 10px;border-radius:10px;font-size:13px}
+    /* Button styles are provided globally in style.css */
     .icon{width:18px;height:18px;display:inline-block}
 
     #controls{display:grid;grid-template-columns:1fr auto auto;gap:8px}
@@ -81,8 +74,8 @@
           <i class="fas fa-dice"></i> MuseDice <span class="badge">Songwriting Spark</span>
         </h1>
         <div class="row">
-          <a href="index.html" class="icon-btn" title="Home" aria-label="Home"><i class="fas fa-home"></i></a>
-          <button id="theme-toggle-btn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme"><i class="fas fa-adjust"></i></button>
+          <a href="../index.html" class="icon-btn" title="Home" aria-label="Home"><i class="fas fa-home"></i></a>
+          <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Light/Dark" aria-label="Toggle Light or Dark"><i class="fas fa-adjust"></i></button>
           <button class="icon-btn" id="btnSettings" title="Settings" aria-label="Settings"><i class="fas fa-cog"></i></button>
           <button class="icon-btn" id="btnAbout" title="About" aria-label="About"><i class="fas fa-question-circle"></i></button>
         </div>
@@ -93,8 +86,8 @@
           <input id="seed" inputmode="numeric" placeholder="leave blank for fresh chaos" />
         </div>
         <div class="row">
-          <button class="btn icon primary" id="btnRoll" title="Shuffle all (unlocked)"><i class="fas fa-dice"></i></button>
-          <button class="btn accent" id="btnWrite" title="Write lyric"><i class="fas fa-pen"></i><span class="spinner" id="spinWrite"></span></button>
+          <button class="btn" id="btnRoll" title="Shuffle all (unlocked)"><i class="fas fa-dice"></i></button>
+          <button class="btn" id="btnWrite" title="Write lyric"><i class="fas fa-pen"></i><span class="spinner" id="spinWrite"></span></button>
         </div>
       </div>
     </div>
@@ -107,11 +100,11 @@
       <div class="row" style="justify-content:space-between">
         <strong>AI Output</strong>
         <div class="row">
-          <button class="btn small ghost" id="btnCopy" title="Copy"><i class="fas fa-copy"></i></button>
-          <button class="btn small ghost" id="btnClear" title="Clear"><i class="fas fa-times"></i></button>
-          <button class="btn small" id="btnToEditor" title="Send to Editor"><i class="fas fa-share"></i></button>
-          <button class="btn small" id="btnExport" title="Export JSON"><i class="fas fa-file-export"></i></button>
-          <label class="btn small warn" for="importFile" title="Import JSON"><i class="fas fa-file-import"></i><input id="importFile" type="file" accept="application/json" style="display:none"></label>
+          <button class="btn ghost" id="btnCopy" title="Copy"><i class="fas fa-copy"></i></button>
+          <button class="btn danger" id="btnClear" title="Clear"><i class="fas fa-times"></i></button>
+          <button class="btn" id="btnToEditor" title="Send to Editor"><i class="fas fa-share"></i></button>
+          <button class="btn" id="btnExport" title="Export JSON"><i class="fas fa-file-export"></i></button>
+          <label class="btn ghost" for="importFile" title="Import JSON"><i class="fas fa-file-import"></i><input id="importFile" type="file" accept="application/json" style="display:none"></label>
         </div>
       </div>
       <textarea id="aiText" placeholder="Click Write lyric (with an API key in Settings) — or just use the dice to get offline prompts."></textarea>
@@ -422,7 +415,7 @@
   });
 
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js').then(reg=>{
+    navigator.serviceWorker.register('../sw.js').then(reg=>{
       function listenWaiting(worker){
         toast('Update ready — reload to apply.');
       }

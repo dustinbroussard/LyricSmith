@@ -6,9 +6,9 @@ const APP_SHELL = [
   '/script.js',
   '/songs.js',
   '/editor/editor.html',
-  '/hub.html',
-  '/musedice.html',
-  '/sunopromptengine.html',
+  '/hub/hub.html',
+  '/hub/musedice.html',
+  '/hub/sunopromptengine.html',
   '/manifest.webmanifest',
   '/assets/icons/icon-192x192.png',
   '/assets/icons/icon-512x512.png'
