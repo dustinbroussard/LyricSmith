@@ -1360,7 +1360,7 @@ saveCurrentSong(isExplicit = false) {
                 }
             }
             if (this.resizeObserver) this.resizeObserver.disconnect();
-            window.location.href = '../hub.html';
+            window.location.href = '../index.html';
         },
 
         scrollToTop() {
