@@ -304,7 +304,9 @@ async function callOpenRouterAPI(prompt) {
             this.decreaseFontBtn?.addEventListener('click', () => this.adjustFontSize(-this.fontSizeStep));
             this.increaseFontBtn?.addEventListener('click', () => this.adjustFontSize(this.fontSizeStep));
             this.toggleThemeBtn?.addEventListener('click', () => this.toggleTheme());
-            this.exitEditorBtn?.addEventListener('click', () => this.exitEditorMode());
+            this.exitEditorBtn?.addEventListener('click', () => {
+                window.location.href = '../index.html';
+            });
             this.lyricsDisplay?.addEventListener('click', (e) => this.handleLyricsClick(e));
             this.lyricsDisplay?.addEventListener('keydown', (e) => this.handleLyricsKeydown(e));
             this.scrollToTopBtn?.addEventListener('click', () => this.scrollToTop());

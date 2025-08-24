@@ -354,11 +354,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="titleDesc">Title Z–A</option>
             <option value="recent">Recently Edited</option>
           </select>
-          <button id="add-song-btn" class="btn icon-btn" title="Add Song"><i class="fas fa-plus"></i></button>
-          <button id="export-library-btn" class="btn icon-btn" title="Export Library"><i class="fas fa-download"></i></button>
-          <button id="import-clipboard-btn" class="btn icon-btn" title="Paste Song"><i class="fas fa-paste"></i></button>
-          <button id="delete-all-songs-btn" class="btn icon-btn danger" title="Delete All Songs"><i class="fas fa-trash"></i></button>
-          <label for="song-upload-input" class="btn icon-btn" title="Upload Files"><i class="fas fa-upload"></i></label>
+          <button id="add-song-btn" class="icon-btn" title="Add Song"><i class="fas fa-plus"></i></button>
+          <button id="export-library-btn" class="icon-btn" title="Export Library"><i class="fas fa-download"></i></button>
+          <button id="import-clipboard-btn" class="icon-btn" title="Paste Song"><i class="fas fa-paste"></i></button>
+          <button id="delete-all-songs-btn" class="icon-btn danger" title="Delete All Songs"><i class="fas fa-trash"></i></button>
+          <label for="song-upload-input" class="icon-btn" title="Upload Files"><i class="fas fa-upload"></i></label>
         </div>
         <input type="file" id="song-upload-input" multiple accept=".txt,.docx,.json" class="hidden-file">
       `;

@@ -468,39 +468,63 @@
 .modal-item input[type="checkbox"] {
   margin-right: 0.25rem;
 }
+/* Unify ALL modal primary action buttons (Editor Options + AI Tools) */
 .modal-action-btn,
+.tool-option,
 .modal-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
   background: var(--accent-primary);
-  color: white;
-  border: none;
-  padding: 0.6rem 1rem;
+  color: #fff;
+  border: 1px solid transparent;
+  padding: .65rem .9rem;
   border-radius: var(--border-radius-base);
-  text-align: left;
   box-shadow: var(--shadow-sm);
-  transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
-}
-.modal-action-btn:hover,
-.modal-copy-btn:hover {
-  background: var(--accent-hover);
-  box-shadow: var(--shadow-md);
+  font: inherit;
+  cursor: pointer;
+  transition: background .15s ease, box-shadow .15s ease, transform .05s ease;
 }
 .modal-action-btn i,
-.modal-copy-btn i {
-  margin-right: 0.5rem;
+.tool-option i,
+.modal-copy-btn i { width: 1.1rem; text-align: center; }
+
+.modal-action-btn:hover,
+.tool-option:hover,
+.modal-copy-btn:hover {
+  background: var(--accent-hover, color-mix(in oklab, var(--accent-primary) 82%, black 0%));
+  box-shadow: var(--shadow-md);
 }
-.close-modal-btn {
-  background: none;
+
+.modal-action-btn:active,
+.tool-option:active,
+.modal-copy-btn:active { transform: translateY(1px); }
+
+/* Secondary/ghost inside modals (like “Close”) */
+.close-modal-btn, .btn.ghost.modal-ghost {
+  background: transparent;
   color: var(--text-secondary);
-  border: none;
-  font-size: 0.9rem;
-  cursor: pointer;
-  margin-top: 1rem;
-  align-self: center;
-  transition: color var(--transition-speed);
+  border: 1px solid var(--border);
+  padding: .6rem 1rem;
+  border-radius: var(--border-radius-base);
 }
-.close-modal-btn:hover {
+.close-modal-btn:hover, .btn.ghost.modal-ghost:hover {
+  background: var(--bg-hover);
+}
+
+/* Ensure selects/toggles in modals remain readable */
+.modal-select,
+.modal .modal-item select,
+.modal .modal-item input[type="checkbox"] {
   color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
 }
+
+[data-theme="light"] .modal-action-btn,
+[data-theme="light"] .tool-option,
+[data-theme="light"] .modal-copy-btn { color: #fff; }
 
 /* Section-based editing */
 .section-label {
