@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lyricsmith-cache-v1';
+const CACHE_NAME = 'lyricsmith-cache-v2';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -6,9 +6,9 @@ const APP_SHELL = [
   '/script.js',
   '/songs.js',
   '/editor/editor.html',
-  '/hub/hub.html',
-  '/hub/musedice.html',
-  '/hub/sunopromptengine.html',
+  '/hub.html',
+  '/musedice.html',
+  '/sunopromptengine.html',
   '/manifest.webmanifest',
   '/assets/icons/icon-192x192.png',
   '/assets/icons/icon-512x512.png'

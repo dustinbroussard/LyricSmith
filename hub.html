@@ -5,10 +5,10 @@
   <meta charset="UTF-8" />
   <title>LyricSmith — Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <link rel="stylesheet" href="../style.css" />
-  <link rel="manifest" href="../manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#00bcd4" />
-  <link rel="icon" href="../assets/logo-mardi-icon.svg" />
+  <link rel="icon" href="assets/logo-mardi-icon.svg" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -87,20 +87,22 @@
 
     .hub-card {
       padding: 1.1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto; /* icon, title, desc (flex), go */
+      gap: 0.6rem;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: transform .15s ease, border-color .2s ease;
+      min-height: 160px;
+      transition: transform .15s ease, border-color .2s ease, box-shadow .15s ease;
     }
     .hub-card:hover {
       transform: translateY(-2px);
       border-color: var(--accent-primary);
+      box-shadow: var(--shadow-lg);
     }
     .hub-card i {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: var(--accent-secondary);
     }
     .hub-card h3 {
@@ -113,13 +115,20 @@
       color: var(--text-secondary);
       line-height: 1.4;
       font-size: 0.95rem;
+      align-self: stretch;
     }
     .hub-card .go {
       margin-top: 0.25rem;
-      align-self: flex-start;
+      justify-self: start;
+      padding: 0.4rem 0.6rem;
+      border-radius: 10px;
     }
     .hub-card .go:hover {
       box-shadow: var(--shadow-md);
+    }
+    .hub-card:focus-visible {
+      outline: 2px solid var(--accent-primary);
+      outline-offset: 2px;
     }
 
     .hub-footer {
@@ -198,11 +207,11 @@
     <header class="hub-header">
       <div class="hub-header-inner">
         <div class="hub-brand">
-          <img src="../assets/images/logo.png" alt="LyricSmith Logo" />
+          <img src="assets/images/logo.png" alt="LyricSmith Logo" />
           <div class="title">"The Hub"</div>
         </div>
           <div class="hub-actions">
-            <a href="../index.html" class="icon-btn" title="Back to Library">
+            <a href="index.html" class="icon-btn" title="Back to Library">
               <i class="fas fa-home"></i>
             </a>
             <button id="theme-toggle-btn" class="icon-btn theme-toggle-btn" title="Toggle Light/Dark">
@@ -220,34 +229,34 @@
       <section class="hub-grid">
         <!-- 1. MuseDice -->
         <a class="hub-card card" href="musedice.html">
-          <i class="fas fa-dice"></i>
+          <i class="fas fa-dice" aria-hidden="true"></i>
           <h3>MuseDice</h3>
           <p>Roll creative seeds: moods, metaphors, images, and lines to spark songs.</p>
-          <button class="btn go" title="Open"><i class="fas fa-arrow-right"></i></button>
+          <span class="btn go" aria-hidden="true" title="Open"><i class="fas fa-arrow-right"></i></span>
         </a>
 
         <!-- 2. Suno Prompt Engine -->
         <a class="hub-card card" href="sunopromptengine.html">
-          <i class="fas fa-music"></i>
+          <i class="fas fa-music" aria-hidden="true"></i>
           <h3>Suno Prompt Engine</h3>
           <p>Turn your lyrics into Suno-ready prompts with structured guidance.</p>
-          <button class="btn go" title="Open"><i class="fas fa-arrow-right"></i></button>
+          <span class="btn go" aria-hidden="true" title="Open"><i class="fas fa-arrow-right"></i></span>
         </a>
 
         <!-- 3. Create New Song -->
-        <button id="create-song-card" class="hub-card card" type="button">
-          <i class="fas fa-pen-nib"></i>
+        <button id="create-song-card" class="hub-card card" type="button" aria-label="Create New Song">
+          <i class="fas fa-pen-nib" aria-hidden="true"></i>
           <h3>Create New Song</h3>
           <p>Blank slate in the editor with section scaffolding ready to go.</p>
-          <span class="btn go" title="Start"><i class="fas fa-play"></i></span>
+          <span class="btn go" aria-hidden="true" title="Start"><i class="fas fa-play"></i></span>
         </button>
 
         <!-- 4. Settings -->
-        <button id="open-settings" class="hub-card card" type="button">
-          <i class="fas fa-cog"></i>
+        <button id="open-settings" class="hub-card card" type="button" aria-label="Settings">
+          <i class="fas fa-cog" aria-hidden="true"></i>
           <h3>Settings</h3>
           <p>Set your OpenRouter key & model, custom system prompt, and manage export/import.</p>
-          <span class="btn go" title="Configure"><i class="fas fa-sliders-h"></i></span>
+          <span class="btn go" aria-hidden="true" title="Configure"><i class="fas fa-sliders-h"></i></span>
         </button>
       </section>
     </main>
@@ -281,6 +290,7 @@
       <div class="btn-row">
         <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
           <button id="saveSettings" class="btn" title="Save"><i class="fas fa-save"></i></button>
+          <button id="testSettings" class="btn" title="Test API Key"><i class="fas fa-vial"></i></button>
           <button id="closeSettings" class="btn ghost" title="Close"><i class="fas fa-times"></i></button>
         </div>
         <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
@@ -300,9 +310,9 @@
   <!-- Tiny toast -->
   <div class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="../config.js"></script>
+  <script src="config.js"></script>
   <script type="module">
-    import { createSong } from '../songs.js';
+    import { createSong } from './songs.js';
     window.createSong = createSong;
   </script>
   <script>
@@ -320,7 +330,7 @@
 
     // ===== Service Worker =====
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('../sw.js').then(reg => {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
         function listenWaiting(worker){
           toast('Update ready — reload to apply.');
           // Optionally trigger skipWaiting on click:
@@ -352,13 +362,22 @@
       setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 2600);
     }
 
+    document.querySelectorAll('.hub-card.card').forEach(card=>{
+      card.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          card.click();
+        }
+      });
+    });
+
     // ===== Create New Song → jump to editor =====
     document.getElementById('create-song-card')?.addEventListener('click', () => {
       const songs = JSON.parse(localStorage.getItem('songs') || '[]');
       const song = createSong('New Song', '');
       songs.push(song);
       localStorage.setItem('songs', JSON.stringify(songs));
-      window.location.href = `../editor/editor.html?songId=${song.id}`;
+      window.location.href = `editor/editor.html?songId=${song.id}`;
     });
 
     // ===== Settings Modal =====
@@ -366,6 +385,7 @@
     const openBtn = document.getElementById('open-settings');
     const closeBtn = document.getElementById('closeSettings');
     const saveBtn = document.getElementById('saveSettings');
+    const testBtn = document.getElementById('testSettings');
     const exportBtn = document.getElementById('exportAll');
     const importBtn = document.getElementById('importAll');
     const clearBtn = document.getElementById('clearAll');
@@ -409,6 +429,17 @@
       window.CONFIG.defaultModel = model;
 
       toast('Settings saved');
+    });
+
+    testBtn?.addEventListener('click', async ()=>{
+      const key = (document.getElementById('apiKey')?.value || '').trim();
+      if(!key){ toast('Enter a key first'); return; }
+      try{
+        const r = await fetch('https://openrouter.ai/api/v1/models', {
+          headers: { 'Authorization': `Bearer ${key}` }
+        });
+        toast(r.ok ? 'API key looks good' : `API test failed (${r.status})`);
+      }catch(e){ toast('Network error while testing'); }
     });
 
     // Export All (songs + settings)

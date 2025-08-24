@@ -823,6 +823,8 @@ async function callOpenRouterAPI(prompt) {
         
 saveCurrentSong(isExplicit = false) {
         if (!this.currentSong || (!window.CONFIG.autosaveEnabled && !isExplicit)) return;
+        // Skip autosave if lyrics are astronomically long and this isn't explicit.
+        if (!isExplicit && (this.currentSong.lyrics?.length || 0) > 200_000) return;
         this.showSaveStatus('saving');
         try {
             const lyricNodes = Array.from(this.lyricsDisplay.querySelectorAll('.section-label-text, .lyric-text'));
@@ -1356,7 +1358,7 @@ saveCurrentSong(isExplicit = false) {
                 }
             }
             if (this.resizeObserver) this.resizeObserver.disconnect();
-            window.location.href = '../hub/hub.html';
+            window.location.href = '../hub.html';
         },
 
         scrollToTop() {

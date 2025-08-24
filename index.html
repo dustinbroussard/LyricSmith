@@ -20,14 +20,18 @@
     <script src="config.js"></script>
 </head>
 <body class="bg-bg text-text">
-  <a href="hub/hub.html">Go to Hub</a>
   <div class="main-box">
     <header class="app-header">
       <div class="header-top">
         <div class="app-logo">
           <img src="assets/images/logo.png" alt="LyricSmith" class="app-logo-img">
         </div>
-        <button id="theme-toggle-btn" class="theme-icon-btn" title="Toggle Light/Dark" aria-label="Toggle light or dark theme"><i class="fas fa-adjust"></i></button>
+        <button id="theme-toggle-btn" class="icon-btn" aria-label="Toggle Theme" title="Toggle Theme">
+          <i class="fas fa-adjust"></i>
+        </button>
+        <a href="hub.html" class="icon-btn" aria-label="Open Hub" title="Open Hub">
+          <i class="fas fa-th-large"></i>
+        </a>
       </div>
       <div id="tab-toolbar" class="toolbar"></div>
     </header>
