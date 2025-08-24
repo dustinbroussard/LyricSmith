@@ -1456,3 +1456,69 @@ html, body {
   .app-logo-img { max-height: 350px; }
 }
 
+/* === Shared compact icon buttons (used in headers) === */
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background var(--transition-speed), color var(--transition-speed), transform .12s ease, box-shadow var(--transition-speed);
+}
+.icon-btn i { font-size: 1.05rem; line-height: 1; }
+.icon-btn:hover { background: var(--bg-hover); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.icon-btn:focus { outline: none; box-shadow: var(--shadow-sm), 0 0 0 2px var(--accent-glow); }
+
+/* === Button variants globally (so we can remove page-local duplicates) === */
+.btn.ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.btn.ghost:hover { background: var(--bg-hover); }
+.btn.danger { background: var(--danger); color: #fff; }
+
+/* === Header actions row that lives under the logo on the home page === */
+.header-actions {
+  margin-top: .6rem;
+  display: flex;
+  gap: .5rem;
+  justify-content: center;
+}
+
+/* === Unify modal buttons across pages === */
+.modal .modal-action-btn,
+.modal .tool-option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: .55rem .8rem;
+  border-radius: var(--border-radius-base);
+  min-width: 9rem;
+  display: inline-flex;
+  gap: .5rem;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition-speed), box-shadow var(--transition-speed), transform .1s ease;
+}
+.modal .modal-action-btn:hover,
+.modal .tool-option:hover {
+  background: var(--bg-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.modal .close-modal-btn { min-width: unset; width: 42px; height: 42px; border-radius: 12px; }
+
+/* Ensure header buttons sit beneath logo */
+.app-header > .header-top {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
