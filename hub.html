@@ -154,6 +154,10 @@
       padding: 1rem;
       display: grid;
       gap: 0.9rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      box-shadow: var(--shadow-md);
     }
     .modal h2 { margin: 0 0 0.25rem 0; }
     .modal .row {
@@ -228,20 +232,20 @@
 
       <section class="hub-grid">
         <!-- 1. MuseDice -->
-        <a class="hub-card card" href="musedice.html">
+        <button class="hub-card card" type="button" data-href="musedice.html" aria-label="MuseDice">
           <i class="fas fa-dice" aria-hidden="true"></i>
           <h3>MuseDice</h3>
           <p>Roll creative seeds: moods, metaphors, images, and lines to spark songs.</p>
           <span class="btn go" aria-hidden="true" title="Open"><i class="fas fa-arrow-right"></i></span>
-        </a>
+        </button>
 
         <!-- 2. Suno Prompt Engine -->
-        <a class="hub-card card" href="sunopromptengine.html">
+        <button class="hub-card card" type="button" data-href="sunopromptengine.html" aria-label="Suno Prompt Engine">
           <i class="fas fa-music" aria-hidden="true"></i>
           <h3>Suno Prompt Engine</h3>
           <p>Turn your lyrics into Suno-ready prompts with structured guidance.</p>
           <span class="btn go" aria-hidden="true" title="Open"><i class="fas fa-arrow-right"></i></span>
-        </a>
+        </button>
 
         <!-- 3. Create New Song -->
         <button id="create-song-card" class="hub-card card" type="button" aria-label="Create New Song">
@@ -368,6 +372,14 @@
           e.preventDefault();
           card.click();
         }
+      });
+    });
+
+    // Handle navigation cards
+    document.querySelectorAll('[data-href]').forEach(card => {
+      card.addEventListener('click', () => {
+        const url = card.getAttribute('data-href');
+        if (url) window.location.href = url;
       });
     });
 
