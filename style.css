@@ -1487,10 +1487,11 @@ html, body {
 
 /* === Header actions row that lives under the logo on the home page === */
 .header-actions {
-  margin-top: .6rem;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
   display: flex;
   gap: .5rem;
-  justify-content: center;
 }
 
 /* === Unify modal buttons across pages === */
