@@ -1,10 +1,13 @@
-const CACHE_NAME = 'lyricsmith-cache-v2';
+const CACHE_NAME = 'lyricsmith-cache-v3';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/style.css',
   '/script.js',
   '/songs.js',
+  '/performance.html',
+  '/performance.css',
+  '/performance.js',
   '/editor/editor.html',
   '/hub/hub.html',
   '/hub/musedice.html',
