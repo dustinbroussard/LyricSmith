@@ -79,11 +79,12 @@ async function callOpenRouterAPI(prompt) {
         editorMode: document.getElementById('editor-mode'),
         lyricsEditorContainer: document.getElementById('lyrics-editor-container'),
         lyricsDisplay: document.getElementById('lyrics-display'),
-        decreaseFontBtn: document.getElementById('font-decrease'),
-        increaseFontBtn: document.getElementById('font-increase'),
-        fontSizeDisplay: document.getElementById('font-size-display'),
+        decreaseFontBtn: document.getElementById('footer-decrease-font-btn') || document.getElementById('font-decrease'),
+        increaseFontBtn: document.getElementById('footer-increase-font-btn') || document.getElementById('font-increase'),
         toggleThemeBtn: document.getElementById('theme-toggle-btn'),
         exitEditorBtn: document.getElementById('exit-editor-btn'),
+        footerThemeToggleBtn: document.getElementById('footer-theme-toggle-btn'),
+        footerExitEditorBtn: document.getElementById('footer-exit-editor-btn'),
         scrollToTopBtn: document.getElementById('scroll-to-top-btn'),
         toggleChordsBtn: document.getElementById('toggle-chords-btn'),
         toggleReadOnlyBtn: document.getElementById('toggle-read-only-btn'),
@@ -303,6 +304,8 @@ async function callOpenRouterAPI(prompt) {
             // Existing event listeners
             this.decreaseFontBtn?.addEventListener('click', () => this.adjustFontSize(-this.fontSizeStep));
             this.increaseFontBtn?.addEventListener('click', () => this.adjustFontSize(this.fontSizeStep));
+            this.footerThemeToggleBtn?.addEventListener('click', () => this.toggleThemeBtn?.click());
+            this.footerExitEditorBtn?.addEventListener('click', () => this.exitEditorBtn?.click());
             this.toggleThemeBtn?.addEventListener('click', () => this.toggleTheme());
             this.exitEditorBtn?.addEventListener('click', () => {
                 window.location.href = '../index.html';
@@ -378,17 +381,17 @@ async function callOpenRouterAPI(prompt) {
             });
 
             this.addSectionBtn?.addEventListener('click', () => {
-                this.addSectionModal?.classList.add('visible');
+                this.addSectionModal?.classList.add('is-open');
             });
             this.addSectionModal?.querySelectorAll('[data-section]').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const label = e.currentTarget.dataset.section;
                     this.insertSectionAtCursor(label);
-                    this.addSectionModal.classList.remove('visible');
+                    this.addSectionModal.classList.remove('is-open');
                 });
             });
             this.addSectionModal?.querySelector('.close-modal-btn')?.addEventListener('click', () => {
-                this.addSectionModal.classList.remove('visible');
+                this.addSectionModal.classList.remove('is-open');
             });
 
             this.aiSettingsBtn?.addEventListener('click', () => {
@@ -468,9 +471,9 @@ async function callOpenRouterAPI(prompt) {
                     this.redo();
                 }
                 if (e.key === 'Escape') {
-                    document.getElementById('editor-modal')?.classList.remove('visible');
-                    document.getElementById('ai-tools-modal')?.classList.remove('visible');
-                    document.getElementById('copy-modal')?.classList.remove('visible');
+                    document.getElementById('editor-modal')?.classList.remove('is-open');
+                    document.getElementById('ai-tools-modal')?.classList.remove('is-open');
+                    document.getElementById('copy-modal')?.classList.remove('is-open');
                 }
             });
         },
@@ -558,7 +561,7 @@ async function callOpenRouterAPI(prompt) {
             this.longPressTimer = setTimeout(() => {
                 if (target.classList?.contains('lyric-text') && target.textContent.trim() === '') {
                     target.focus();
-                    this.addSectionModal?.classList.add('visible');
+                    this.addSectionModal?.classList.add('is-open');
                 } else {
                     this.handleTextSelection();
                 }
@@ -886,9 +889,8 @@ saveCurrentSong(isExplicit = false) {
             if (!this.currentSong.lastEditedAt) this.currentSong.lastEditedAt = new Date().toISOString();
 
             this.fontSize = this.perSongFontSizes[this.currentSong.id] || 16;
-
+            this.updateFontSize();
             document.getElementById('app-title').textContent = this.currentSong.title;
-            this.fontSizeDisplay.textContent = `${Math.round((this.fontSize / 16) * 100)}%`;
 
             const mm = localStorage.getItem(`measureMode_${this.currentSong.id}`);
             this.isMeasureMode = mm === '1';
@@ -1031,7 +1033,7 @@ saveCurrentSong(isExplicit = false) {
                 }
             }
             this.lyricsDisplay.appendChild(__frag);
-            this.lyricsDisplay.style.fontSize = `${this.fontSize}px`;
+            this.updateFontSize();
             this.initSectionDrag();
             this.updateReadOnlyState();
             this.updateChordsVisibility();
@@ -1329,8 +1331,14 @@ saveCurrentSong(isExplicit = false) {
             this.fontSize = Math.max(this.minFontSize, Math.min(this.maxFontSize, this.fontSize + step));
             this.perSongFontSizes[this.currentSong.id] = this.fontSize;
             localStorage.setItem('perSongFontSizes', JSON.stringify(this.perSongFontSizes));
+            this.updateFontSize();
+        },
+
+        updateFontSize() {
             this.lyricsDisplay.style.fontSize = `${this.fontSize}px`;
-            this.fontSizeDisplay.textContent = `${Math.round((this.fontSize / 16) * 100)}%`;
+            const percent = `${Math.round((this.fontSize / 16) * 100)}%`;
+            document.getElementById('font-size-display')?.textContent = percent;
+            document.getElementById('footer-font-size-display')?.textContent = percent;
         },
 
         navigateSong(direction) {
@@ -1470,32 +1478,32 @@ saveCurrentSong(isExplicit = false) {
     app.init();
 
     document.getElementById('copy-lyrics-btn')?.addEventListener('click', () => {
-        document.getElementById('editor-modal')?.classList.remove('visible');
-        document.getElementById('copy-modal')?.classList.add('visible');
+        document.getElementById('editor-modal')?.classList.remove('is-open');
+        document.getElementById('copy-modal')?.classList.add('is-open');
     });
     document.querySelectorAll('.modal-copy-btn')?.forEach(btn => {
         btn.addEventListener('click', async (e) => {
             const type = e.currentTarget.dataset.copyType;
             await app.handleCopySelection({ target: { dataset: { copyType: type } } });
-            document.getElementById('copy-modal')?.classList.remove('visible');
+            document.getElementById('copy-modal')?.classList.remove('is-open');
         });
     });
     document.querySelector('#copy-modal .close-modal-btn')?.addEventListener('click', () => {
-        document.getElementById('copy-modal')?.classList.remove('visible');
+        document.getElementById('copy-modal')?.classList.remove('is-open');
     });
 
     document.getElementById('editor-menu-btn')?.addEventListener('click', () => {
-        document.getElementById('editor-modal')?.classList.add('visible');
+        document.getElementById('editor-modal')?.classList.add('is-open');
     });
     document.querySelector('#editor-modal .close-modal-btn')?.addEventListener('click', () => {
-        document.getElementById('editor-modal')?.classList.remove('visible');
+        document.getElementById('editor-modal')?.classList.remove('is-open');
     });
 
     document.getElementById('ai-tools-btn')?.addEventListener('click', () => {
-        document.getElementById('ai-tools-modal')?.classList.add('visible');
+        document.getElementById('ai-tools-modal')?.classList.add('is-open');
     });
     document.querySelector('#ai-tools-modal .close-modal-btn')?.addEventListener('click', () => {
-        document.getElementById('ai-tools-modal')?.classList.remove('visible');
+        document.getElementById('ai-tools-modal')?.classList.remove('is-open');
     });
     document.querySelectorAll('#ai-tools-modal .tool-option')?.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1528,7 +1536,7 @@ saveCurrentSong(isExplicit = false) {
                     promptText = action;
             }
             app.callOpenRouter(promptText, append);
-            document.getElementById('ai-tools-modal')?.classList.remove('visible');
+            document.getElementById('ai-tools-modal')?.classList.remove('is-open');
         });
     });
 

@@ -21,6 +21,51 @@
     overflow-y: auto;
 }
 
+/* Sticky editor footer */
+.editor-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 56px;
+    z-index: 2025;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--border-light);
+    background: var(--gradient-primary);
+}
+
+.editor-footer .footer-left,
+.editor-footer .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.editor-footer #footer-font-size-display {
+    min-width: 2.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.editor-footer button {
+    background: var(--accent-secondary);
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 0.6rem;
+    border-radius: 40px;
+    transition: background 0.2s;
+}
+
+.editor-footer button:hover {
+    background: var(--bg-hover);
+}
+
 /* Header layout */
 #app-header {
     display: flex;
@@ -161,12 +206,11 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     transition: background 0.14s, color 0.16s, box-shadow 0.13s, transform 0.15s;
     opacity: 0.7;
-    z-index: 1;
+    z-index: 1010;
 }
 
 .scroll-to-top-btn {
     position: fixed;
-    bottom: 2em;
     right: 2em;
     width: 52px;
     height: 52px;
@@ -177,15 +221,18 @@
     border: none;
     cursor: pointer;
     box-shadow: var(--shadow-md);
-    z-index: 999;
+    z-index: 2020;
     opacity: 0.8;
     transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
     display: flex;
     align-items: center;
     justify-content: center;
+    bottom: 136px;
 }
-.scroll-to-top-btn {
-    bottom: 80px;
+
+.auto-scroll-btn {
+    bottom: 72px;
+    z-index: 2020;
 }
 
 .lyrics-container {
@@ -395,17 +442,24 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  z-index: 9999;
+  display: none;
+  z-index: 20010;
   justify-content: center;
   align-items: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-speed);
 }
-.modal-overlay.visible {
+.modal-overlay.is-open {
+  display: flex;
   opacity: 1;
   pointer-events: auto;
+}
+
+#editor-menu-modal,
+#perf-metadata-modal,
+#autoscroll-delay-modal {
+  z-index: 20010;
 }
 .modal {
   background: var(--bg-secondary);
@@ -420,7 +474,7 @@
   transform: scale(0.95);
   transition: transform var(--transition-speed);
 }
-.modal-overlay.visible .modal {
+.modal-overlay.is-open .modal {
   transform: scale(1);
 }
 .modal button {
@@ -659,7 +713,6 @@
   }
   .scroll-to-top-btn {
     position: fixed;
-    bottom: 7em;
     right: 1em;
     width: 44px;
     height: 44px;
@@ -670,12 +723,13 @@
     border: none;
     cursor: pointer;
     box-shadow: var(--shadow-md);
-    z-index: 999;
+    z-index: 2020;
     opacity: 0.8;
     transition: opacity var(--transition-speed), transform var(--transition-speed), background-color var(--transition-speed);
     display: flex;
     align-items: center;
     justify-content: center;
+    bottom: 120px;
   }
   
   
