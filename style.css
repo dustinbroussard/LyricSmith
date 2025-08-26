@@ -1730,18 +1730,3 @@ html, body {
     color: var(--bg-primary);
     transform: scale(1.05);
 }
-
-/* Global modal styles */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  align-items: center;
-  justify-content: center;
-  z-index: 20010;
-}
-
-.modal.is-open {
-  display: flex;
-}
