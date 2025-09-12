@@ -7,7 +7,8 @@ window.HOOK_MILL_PRESETS = (() => {
     PUNK: '140–170 BPM, short lines, barked chant. Humor > coherence; keep lines punchy.',
     BLUES: '12-bar or 8-bar feel; call-and-response phrasing; blue notes; heartbreak/stoicism imagery. Keep lines conversational and soulful.',
     ROCK: 'Arena rock energy; driving backbeat; big chorus; electric guitars; confident attitude. Short, punchy lines with strong hooks.',
-    POP: 'Current pop sensibility; catchy melody shapes; simple, memorable phrasing; positive or relatable vibes; minimal jargon.'
+    POP: 'Current pop sensibility; catchy melody shapes; simple, memorable phrasing; positive or relatable vibes; minimal jargon.',
+    SATIRE: '1. Tone and Voice: Use a sharp, satirical narrator who balances humor with critique. Let the voice sound like a barroom preacher meets stand-up comic, half-exasperated, half-rebellious. Keep the rhythm conversational, but make it poetic and musical—lines should feel like they could be sung and spoken. 2. Themes: Expose hypocrisy: target greed, false piety, cultural contradictions, or personal flaws masked as wisdom. Everyday absurdity: inflate small frustrations into epic battles. Cultural mash-ups: set modern realities against mythic, religious, or historical backdrops. Emotional undercurrent: even the jokes should hide longing, pain, or moral outrage. 3. Imagery and Metaphor: Use exaggerated comparisons: turn consumer goods, apps, or yard decorations into weapons, idols, or holy relics. Crosswire ancient/religious/mythic imagery with modern capitalist language. Push contrasts: sacred vs profane, epic vs petty, cosmic vs suburban. Let each metaphor build on the last until it feels like a satirical avalanche. 4. Structure: Stick with familiar song architecture: Verses: tell the story, pile on imagery, escalate the absurdity. Chorus: repeatable, punchy, ironic “big statement” that condenses the satire. Bridge: either twist the knife with a darker angle or break into wild exaggeration. Outro: often undercuts the whole thing with one last sardonic jab. 5. Language Techniques: Irony as default mode: say the opposite of what’s meant, but make it obvious. Punchy rhythm: short phrases, hard rhymes, strong stresses. Colloquial grit: slang, bar talk, sarcastic asides. Hyperbole: crank the absurdity past believable, then keep going. Use specific, concrete nouns. 6. Perspective: Write as a wry participant-observer: the speaker is inside the mess but also mocking it. Let the voice slip between confessional vulnerability and scathing satire. Balance personal despair with collective absurdity: the “I” is both a character and a mirror of society. 7. Mood and Delivery: Oscillate between comic relief and bitter truth. Lean into dark humor, but never without a pulse of humanity. The listener should be laughing, then wincing, then nodding in recognition. IMPORTANT: Whatever input you receive, your response is to use it to write a song.'
   };
 
   const PRESET_SYSTEMS = {
@@ -15,7 +16,7 @@ window.HOOK_MILL_PRESETS = (() => {
 
 Output ONLY:
 [Style: <genre> | Key: <key> | Tempo: <bpm> | Time: <meter>]
-[Intro] … (optional, 1–2 lines)
+[Intro] … (optional, 2–4 lines)
 [Verse 1] 4–6 lines
 [Pre-Chorus] (optional, 2–4 lines)
 [Chorus] 2–4 lines, chantable
@@ -24,9 +25,9 @@ Output ONLY:
 [Verse 3] 4–6 lines
 [Bridge] 2–4 lines (contrast, set up final chorus)
 [Chorus] final, strongest (may combine prior ideas)
-[Outro] (optional, 1–2 lines)
+[Outro] (optional, 2-4 lines)
 
-Rules: consistent meter & syllables; internal rhyme encouraged; chorus evolves; ≤ ~220 words total; no explanations or extra text.`,
+Rules: consistent meter & syllables; internal rhyme encouraged; chorus evolves; no explanations or extra text.`,
 
     TRUNCATED: `Write a very short meme song for Suno: one [Verse] (2–4 lines) and one [Chorus] (2–4 lines). Chorus must be chantable/repeatable. ≤ 60 words total. Include header.
 
@@ -72,8 +73,8 @@ Output only the revised lyric in the same bracketed format. No explanations.`,
     model: 'deepseek/deepseek-chat-v3.1:free',
     temperature: 0.9,
     top_p: 0.95,
-    max_tokens: 220,
-    stop: ["[END]"],
+    max_tokens: 800,
+    stop: [],
     preset: 'HOOK',
     lens: 'NONE',
     batchSize: 5,
@@ -83,7 +84,7 @@ Output only the revised lyric in the same bracketed format. No explanations.`,
   };
 
   const CAPS = {
-    FULL: { words: 500, chars: 4000 },
+    FULL: { words: 1000, chars: 40000 },
     TRUNCATED: { words: 60, chars: 600 },
     CHORUS: { words: 50, chars: 450 },
     HOOK: { words: 35, chars: 280 },

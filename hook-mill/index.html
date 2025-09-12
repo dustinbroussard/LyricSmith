@@ -52,6 +52,7 @@
         <label><input type="radio" name="lens" value="BLUES">Blues</label>
         <label><input type="radio" name="lens" value="ROCK">Rock</label>
         <label><input type="radio" name="lens" value="POP">Pop</label>
+        <label><input type="radio" name="lens" value="SATIRE">Satire</label>
       </div>
 
       <label class="seed-label" for="seed">Topic / Seed (or paste existing lyrics)</label>
@@ -148,11 +149,11 @@
       <div class="sliders">
         <label>Temperature <input type="range" id="temperature" min="0" max="1" step="0.01"><span id="val-temperature"></span></label>
         <label>Top-p <input type="range" id="top_p" min="0" max="1" step="0.01"><span id="val-top_p"></span></label>
-        <label>Max tokens <input type="range" id="max_tokens" min="50" max="600" step="10"><span id="val-max_tokens"></span></label>
+        <label>Max tokens <input type="range" id="max_tokens" min="50" max="1200" step="10"><span id="val-max_tokens"></span></label>
       </div>
 
-      <label>Stop tokens (comma-separated)
-        <input type="text" id="stop_tokens" placeholder="\\n\\n,[END]">
+      <label>Stop tokens (optional, comma-separated)
+        <input type="text" id="stop_tokens" placeholder=","><!-- intentional: hint that comma separates, no defaults -->
       </label>
 
       <fieldset>
@@ -169,6 +170,7 @@
           <label><input type="radio" name="default-lens" value="COUNTRY"> Country</label>
           <label><input type="radio" name="default-lens" value="VINTAGE"> Vintage</label>
           <label><input type="radio" name="default-lens" value="PUNK"> Punk</label>
+          <label><input type="radio" name="default-lens" value="SATIRE"> Satire</label>
         </div>
       </fieldset>
 

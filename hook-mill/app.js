@@ -94,8 +94,9 @@
       $('#temperature').value = s.temperature;
       $('#top_p').value = s.top_p;
       $('#max_tokens').value = s.max_tokens;
-      // sanitize stop tokens: remove empty and dangerous double-newline token
-      const sanitizedStops = (s.stop||[]).filter(x => !!x && x !== "\n\n");
+      // sanitize stop tokens: remove empty and dangerous tokens
+      const sanitizedStops = (s.stop||[])
+        .filter(x => !!x && x !== "\n\n" && x !== "[END]");
       s.stop = sanitizedStops;
       $('#stop_tokens').value = sanitizedStops.join(',');
       $('#val-temperature').textContent = s.temperature;
@@ -226,6 +227,16 @@
     }
     if (text.length > cap.chars) return text.slice(0, cap.chars);
     return text;
+  }
+
+  // Token heuristics per preset
+  function recommendedMaxTokensFor(preset, userMax){
+    const base = Math.max(1, +userMax || 1);
+    if (preset === 'FULL'){
+      // Ensure ample room for multi-section output
+      return Math.max(base, 800);
+    }
+    return base;
   }
 
   // Auto-tags (simple heuristics)
@@ -451,7 +462,7 @@
     state.lastParams = {
       temperature: s.temperature,
       top_p: s.top_p,
-      max_tokens: s.max_tokens,
+      max_tokens: recommendedMaxTokensFor(state.currentPreset, s.max_tokens),
       stop: s.stop
     };
 
