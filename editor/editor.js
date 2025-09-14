@@ -362,6 +362,92 @@ function computeLyricsAndChordsFromText(text) {
     return { lyricsText: lyricsLines.join('\n'), chordsText: chordLines.join('\n') };
 }
 
+// Remove any lyric lines that exactly match the title (case-insensitive, ignoring spacing),
+// while keeping section labels and preserving chord alignment with remaining lyric lines.
+function stripTitleEverywhere(title = '', lyricsText = '', chordsText = '') {
+    const t = String(title || '').trim();
+    if (!t) return { lyrics: String(lyricsText || ''), chords: String(chordsText || '') };
+    const titleKey = t.replace(/\s+/g, '').toLowerCase();
+    const lyricLines = String(lyricsText || '').replace(/\r\n?/g, '\n').split('\n');
+    const chordLines = String(chordsText || '').replace(/\r\n?/g, '\n').split('\n');
+    const outLyrics = [];
+    const outChords = [];
+    let chordIdx = 0;
+    for (let i = 0; i < lyricLines.length; i++) {
+        const line = lyricLines[i] ?? '';
+        const trimmed = line.trim();
+        const isLabel = isSectionLabel(trimmed);
+        if (isLabel) {
+            outLyrics.push(line);
+            continue;
+        }
+        const norm = trimmed.replace(/\s+/g, '').toLowerCase();
+        const consumeChord = () => {
+            const ch = chordLines[chordIdx] ?? '';
+            chordIdx++;
+            return ch;
+        };
+        if (norm === titleKey) {
+            // Drop lyric line and corresponding chord line
+            consumeChord();
+            continue;
+        }
+        outLyrics.push(line);
+        outChords.push(consumeChord());
+    }
+    return { lyrics: outLyrics.join('\n'), chords: outChords.join('\n') };
+}
+
+// Normalize section spacing and remove intra-section blank lyric lines.
+// - Ensures the first non-empty line is a [Section] label; if missing, inserts [Verse 1].
+// - Inserts exactly one blank lyric line between sections (before each [Section] except the first).
+// - Removes other blank lyric lines; preserves chord alignment by dropping chords for removed lyric lines
+//   and using empty chords for labels and inserted blank separators.
+function normalizeSectionSpacing(lyricsText = '', chordsText = '') {
+    const isLabel = (line = '') => /^\s*\[[^\n\]]+\]\s*$/.test(line || '');
+    const lyricsIn = String(lyricsText || '').replace(/\r\n?/g, '\n').split('\n');
+    const chordsIn = String(chordsText || '').replace(/\r\n?/g, '\n').split('\n');
+    const outLyrics = [];
+    const outChords = [];
+    let chordIdx = 0;
+
+    const firstNonEmpty = lyricsIn.find(l => (l || '').trim() !== '') || '';
+    if (!isLabel(firstNonEmpty)) {
+        outLyrics.push('[Verse 1]');
+        outChords.push('');
+    }
+
+    for (let i = 0; i < lyricsIn.length; i++) {
+        const raw = lyricsIn[i] ?? '';
+        const trimmed = raw.trim();
+        if (isLabel(trimmed)) {
+            if (outLyrics.length > 0) {
+                const last = outLyrics[outLyrics.length - 1] ?? '';
+                if (last.trim() !== '') {
+                    outLyrics.push('');
+                    outChords.push('');
+                }
+            }
+            outLyrics.push(trimmed);
+            outChords.push('');
+            continue;
+        }
+        if (trimmed === '') {
+            if (chordIdx < chordsIn.length) chordIdx++;
+            continue;
+        }
+        outLyrics.push(raw);
+        outChords.push(chordsIn[chordIdx] ?? '');
+        chordIdx++;
+    }
+
+    while (outLyrics.length && outLyrics[outLyrics.length - 1].trim() === '') {
+        outLyrics.pop();
+        outChords.pop();
+    }
+    return { lyrics: outLyrics.join('\n'), chords: outChords.join('\n') };
+}
+
 function enforceAlternating(lines) {
     const chords = [];
     const lyrics = [];
@@ -632,11 +718,13 @@ function enforceAlternating(lines) {
             const normalizedLyrics = lyrics.trim()
                 ? this.normalizeSectionLabels(lyrics)
                 : this.defaultSections;
+            const stripped = stripTitleEverywhere(title, normalizedLyrics, chords);
+            const spaced = normalizeSectionSpacing(stripped.lyrics, stripped.chords);
             return {
                 id: this.generateId(),
                 title,
-                lyrics: normalizedLyrics,
-                chords,
+                lyrics: spaced.lyrics,
+                chords: spaced.chords,
                 key: '',
                 tempo: 120,
                 timeSignature: '4/4',
@@ -1229,8 +1317,11 @@ function enforceAlternating(lines) {
             if (/^Continue the (song|lyrics) after:/i.test(prompt)) {
                 const normalized = computeLyricsAndChordsFromText(cleaned);
                 if (!this.currentSong) { this.hideAIReview(); return; }
-                this.currentSong.lyrics = [this.currentSong.lyrics, this.normalizeSectionLabels(normalized.lyricsText)].filter(Boolean).join('\n');
-                this.currentSong.chords = [this.currentSong.chords, normalized.chordsText].filter(Boolean).join('\n');
+                const addLyrics = this.normalizeSectionLabels(normalized.lyricsText);
+                const addStripped = stripTitleEverywhere(this.currentSong.title, addLyrics, normalized.chordsText);
+                const addSpaced = normalizeSectionSpacing(addStripped.lyrics, addStripped.chords);
+                this.currentSong.lyrics = [this.currentSong.lyrics, addSpaced.lyrics].filter(Boolean).join('\n');
+                this.currentSong.chords = [this.currentSong.chords, addSpaced.chords].filter(Boolean).join('\n');
                 this.renderLyrics();
                 this.saveCurrentSong(true);
                 ClipboardManager.showToast('Lyrics continued', 'success');
@@ -1266,12 +1357,15 @@ function enforceAlternating(lines) {
 
             // Default: apply to full song (tools/modals)
             const normalized = computeLyricsAndChordsFromText(cleaned);
+            const normLyrics = this.normalizeSectionLabels(normalized.lyricsText);
+            const stripped = stripTitleEverywhere(this.currentSong.title, normLyrics, normalized.chordsText);
+            const spaced = normalizeSectionSpacing(stripped.lyrics, stripped.chords);
             if (append) {
-                this.currentSong.lyrics = [this.currentSong.lyrics, this.normalizeSectionLabels(normalized.lyricsText)].filter(Boolean).join('\n');
-                this.currentSong.chords = [this.currentSong.chords, normalized.chordsText].filter(Boolean).join('\n');
+                this.currentSong.lyrics = [this.currentSong.lyrics, spaced.lyrics].filter(Boolean).join('\n');
+                this.currentSong.chords = [this.currentSong.chords, spaced.chords].filter(Boolean).join('\n');
             } else {
-                this.currentSong.lyrics = this.normalizeSectionLabels(normalized.lyricsText);
-                this.currentSong.chords = normalized.chordsText;
+                this.currentSong.lyrics = spaced.lyrics;
+                this.currentSong.chords = spaced.chords;
             }
             this.renderLyrics();
             this.saveCurrentSong(true);
@@ -1319,12 +1413,14 @@ function enforceAlternating(lines) {
             const cleaned = cleanAIOutput(responseText);
             const { lyricsText, chordsText } = computeLyricsAndChordsFromText(cleaned);
             const finalLyrics = this.normalizeSectionLabels(lyricsText);
+            const stripped = stripTitleEverywhere(this.currentSong.title, finalLyrics, chordsText);
+            const spaced = normalizeSectionSpacing(stripped.lyrics, stripped.chords);
             if (append) {
-                this.currentSong.lyrics = [this.currentSong.lyrics, finalLyrics].filter(Boolean).join('\n');
-                this.currentSong.chords = [this.currentSong.chords, chordsText].filter(Boolean).join('\n');
+                this.currentSong.lyrics = [this.currentSong.lyrics, spaced.lyrics].filter(Boolean).join('\n');
+                this.currentSong.chords = [this.currentSong.chords, spaced.chords].filter(Boolean).join('\n');
             } else {
-                this.currentSong.lyrics = finalLyrics;
-                this.currentSong.chords = chordsText;
+                this.currentSong.lyrics = spaced.lyrics;
+                this.currentSong.chords = spaced.chords;
             }
             this.renderLyrics();
             this.saveCurrentSong(true);
@@ -1427,9 +1523,11 @@ saveCurrentSong(isExplicit = false) {
 
             const lyrics = this.trimExtraEmptyLines(lyricLines.join('\n'));
             const chords = this.trimExtraEmptyLines(chordLines.join('\n'));
-
-            this.currentSong.lyrics = this.normalizeSectionLabels(lyrics);
-            this.currentSong.chords = chords;
+            const normalized = this.normalizeSectionLabels(lyrics);
+            const stripped = stripTitleEverywhere(this.currentSong.title, normalized, chords);
+            const spaced = normalizeSectionSpacing(stripped.lyrics, stripped.chords);
+            this.currentSong.lyrics = spaced.lyrics;
+            this.currentSong.chords = spaced.chords;
             this.currentSong.lastEditedAt = new Date().toISOString();
             const editedText = new Date(this.currentSong.lastEditedAt).toLocaleString();
             const editedEl = document.getElementById('song-edited');
@@ -1490,17 +1588,11 @@ saveCurrentSong(isExplicit = false) {
             if (headerEdited) headerEdited.textContent = editedText;
             if (metaEdited) metaEdited.textContent = editedText;
 
-            this.currentSong.lyrics = this.normalizeSectionLabels(this.currentSong.lyrics || '');
-
-            const linesNoTitle = this.currentSong.lyrics.split('\n');
-            const normalizedTitle = (this.currentSong.title || '').trim().toLowerCase();
-            if (linesNoTitle.length && linesNoTitle[0].trim().toLowerCase() === normalizedTitle) {
-                linesNoTitle.shift();
-                if (linesNoTitle[0]?.trim() === '') {
-                    linesNoTitle.shift();
-                }
-                this.currentSong.lyrics = linesNoTitle.join('\n');
-            }
+            const prelim = this.normalizeSectionLabels(this.currentSong.lyrics || '');
+            const stripped = stripTitleEverywhere(this.currentSong.title, prelim, this.currentSong.chords || '');
+            const spaced = normalizeSectionSpacing(stripped.lyrics, stripped.chords);
+            this.currentSong.lyrics = spaced.lyrics;
+            this.currentSong.chords = spaced.chords;
 
             this.renderLyrics();
 
@@ -1523,22 +1615,11 @@ saveCurrentSong(isExplicit = false) {
 
         renderLyrics() {
             if (!this.currentSong) return;
-            const lyrics = this.currentSong.lyrics || '';
-            const chords = this.currentSong.chords || '';
-
-            let lyricLines = lyrics.split('\n');
-            let chordLines = chords.split('\n');
-
-            const normalizedTitle = (this.currentSong.title || '').trim().toLowerCase();
-            if (lyricLines.length && lyricLines[0].trim().toLowerCase() === normalizedTitle) {
-                lyricLines.shift();
-                if (lyricLines[0]?.trim() === '') {
-                    lyricLines.shift();
-                }
-                if (chordLines.length) {
-                    chordLines.shift();
-                }
-            }
+            const lyricsIn = this.currentSong.lyrics || '';
+            const chordsIn = this.currentSong.chords || '';
+            const view = stripTitleEverywhere(this.currentSong.title, lyricsIn, chordsIn);
+            let lyricLines = view.lyrics.split('\n');
+            let chordLines = view.chords.split('\n');
 
             this.lyricsDisplay.innerHTML = '';
 

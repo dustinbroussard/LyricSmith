@@ -269,10 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     migrateSongFormat(song) {
       // Ensure all songs have the new metadata fields
-      return {
+      const updated = {
         id: song.id || this.generateId(),
         title: song.title || 'Untitled',
-        lyrics: this.normalizeSectionLabels(song.lyrics || ''),
+        lyrics: this.stripTitleFromLyrics(song.title || 'Untitled', this.normalizeSectionLabels(song.lyrics || '')),
         chords: song.chords || '',
         key: song.key || '',
         tempo: song.tempo || 120,
@@ -282,17 +282,23 @@ document.addEventListener('DOMContentLoaded', () => {
         lastEditedAt: song.lastEditedAt || new Date().toISOString(),
         tags: song.tags || []
       };
+      const spaced = this.normalizeSectionSpacing(updated.lyrics, updated.chords);
+      updated.lyrics = spaced.lyrics;
+      updated.chords = spaced.chords;
+      return updated;
     },
 
     createSong(title, lyrics = '', chords = '') {
       const normalizedLyrics = lyrics.trim()
         ? this.normalizeSectionLabels(lyrics)
         : this.defaultSections;
+      const cleanLyrics = this.stripTitleFromLyrics(title, normalizedLyrics);
+      const spaced = this.normalizeSectionSpacing(cleanLyrics, chords);
       return {
         id: this.generateId(),
         title,
-        lyrics: normalizedLyrics,
-        chords,
+        lyrics: spaced.lyrics,
+        chords: spaced.chords,
         key: '',
         tempo: 120,
         timeSignature: '4/4',
@@ -379,6 +385,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return line;
       }).join('\n');
+    },
+
+    stripTitleFromLyrics(title = '', text = '') {
+      const t = String(title || '').trim().replace(/\s+/g, '');
+      if (!t) return String(text || '');
+      return String(text || '')
+        .replace(/\r\n?/g, '\n')
+        .split('\n')
+        .filter(line => {
+          const trimmed = (line || '').trim();
+          // Keep section labels intact
+          if (/^\s*\[[^\n\]]+\]\s*$/.test(trimmed)) return true;
+          const norm = trimmed.replace(/\s+/g, '').toLowerCase();
+          return norm !== t.toLowerCase();
+        })
+        .join('\n');
+    },
+
+    normalizeSectionSpacing(lyricsText = '', chordsText = '') {
+      const isLabel = (line = '') => /^\s*\[[^\n\]]+\]\s*$/.test(line || '');
+      const lyricsIn = String(lyricsText || '').replace(/\r\n?/g, '\n').split('\n');
+      const chordsIn = String(chordsText || '').replace(/\r\n?/g, '\n').split('\n');
+
+      const outLyrics = [];
+      const outChords = [];
+      let chordIdx = 0;
+
+      // Ensure first non-empty is a section label; if not, insert a default one
+      const firstNonEmpty = lyricsIn.find(l => (l || '').trim() !== '') || '';
+      if (!isLabel(firstNonEmpty)) {
+        outLyrics.push('[Verse 1]');
+        outChords.push('');
+      }
+
+      for (let i = 0; i < lyricsIn.length; i++) {
+        const raw = lyricsIn[i] ?? '';
+        const trimmed = raw.trim();
+        if (isLabel(trimmed)) {
+          // Ensure a single blank line before each section label (except at very start)
+          if (outLyrics.length > 0) {
+            const last = outLyrics[outLyrics.length - 1] ?? '';
+            if (last.trim() !== '') {
+              outLyrics.push('');
+              outChords.push('');
+            }
+          }
+          outLyrics.push(trimmed);
+          outChords.push('');
+          continue;
+        }
+        if (trimmed === '') {
+          // Drop blank lyric lines inside sections; still consume corresponding chord line
+          if (lyricsIn[i] !== undefined) {
+            // consume a chord entry if present for this lyric line
+            if (chordIdx < chordsIn.length) chordIdx++;
+          }
+          continue;
+        }
+        // Regular lyric line
+        outLyrics.push(raw);
+        outChords.push(chordsIn[chordIdx] ?? '');
+        chordIdx++;
+      }
+
+      // Trim trailing blanks
+      while (outLyrics.length && outLyrics[outLyrics.length - 1].trim() === '') {
+        outLyrics.pop();
+        outChords.pop();
+      }
+
+      return { lyrics: outLyrics.join('\n'), chords: outChords.join('\n') };
     },
 
     cleanAIOutput(text) {
@@ -643,8 +720,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       document.getElementById('add-song-btn')?.addEventListener('click', () => this.createNewSong());
       document.getElementById('export-library-btn')?.addEventListener('click', () => {
-        const includeMetadata = confirm('Include metadata in export?');
-        this.exportLibrary(includeMetadata);
+        const choice = (prompt('Export format: type "json" or "txt"', 'json') || '').trim().toLowerCase();
+        if (!choice) return;
+        if (choice.startsWith('t')) {
+          const includeChords = confirm('Include chords above lyrics in TXT?');
+          this.exportLibraryTxt(!!includeChords);
+        } else {
+          const includeMetadata = confirm('Include metadata in JSON export?');
+          this.exportLibrary(includeMetadata);
+        }
       });
       document.getElementById('normalize-library-btn')?.addEventListener('click', () => this.normalizeLibrary());
       document.getElementById('import-clipboard-btn')?.addEventListener('click', async () => {
@@ -774,6 +858,62 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     },
 
+    // Export library as plain text (.txt): Title, blank line, lyrics (with [Section] labels).
+    // Optionally include chords above lyrics lines. Removes duplicate title if it appears
+    // as the first non-empty line of the lyrics.
+    async exportLibraryTxt(includeChords = false) {
+      try {
+        const parts = [];
+        const sep = '--------------------';
+        const stripDuplicateTitle = (title, text) => {
+          const t = String(title || '').trim().replace(/\s+/g, ' ');
+          const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+          let i = 0;
+          while (i < lines.length && lines[i].trim() === '') i++;
+          if (i < lines.length) {
+            const first = lines[i].trim().replace(/\s+/g, ' ');
+            if (first.toLowerCase() === t.toLowerCase()) {
+              lines.splice(i, 1);
+              // If next line is blank, collapse single leading blank
+              if (i < lines.length && lines[i].trim() === '') lines.splice(i, 1);
+            }
+          }
+          return lines.join('\n');
+        };
+        for (const song of this.songs) {
+          const title = String(song.title || 'Untitled').trim();
+          const normalizedLyrics = this.normalizeSectionLabels(String(song.lyrics || ''))
+            .replace(/\r\n?/g, '\n');
+          let body = stripDuplicateTitle(title, normalizedLyrics);
+          if (includeChords && song.chords && String(song.chords).trim()) {
+            const chords = String(song.chords || '').replace(/\r\n?/g, '\n');
+            // Merge chords with the lyrics AFTER stripping duplicate title
+            body = ClipboardManager.formatLyricsWithChords(body, chords);
+          }
+          parts.push(title);
+          parts.push(''); // blank line between title and body
+          if (body) parts.push(body);
+          parts.push(sep);
+          parts.push(''); // extra blank line between songs
+        }
+        // Join with newlines; keep a trailing newline for readability
+        let content = parts.join('\n');
+
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `lyricsmith-library-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        ClipboardManager.showToast(`Exported ${this.songs.length} songs to TXT`, 'success');
+      } catch (err) {
+        console.error('TXT export failed:', err);
+        ClipboardManager.showToast('TXT export failed', 'error');
+      }
+    },
+
     async importLibrary(file) {
       try {
         const text = await file.text();
@@ -861,7 +1001,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ctrl/Cmd + E for export
         if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
           e.preventDefault();
-          this.exportLibrary();
+          const choice = (prompt('Export format: type "json" or "txt"', 'json') || '').trim().toLowerCase();
+          if (!choice) return;
+          if (choice.startsWith('t')) {
+            const includeChords = confirm('Include chords above lyrics in TXT?');
+            this.exportLibraryTxt(!!includeChords);
+          } else {
+            const includeMetadata = confirm('Include metadata in JSON export?');
+            this.exportLibrary(includeMetadata);
+          }
         }
       });
 
