@@ -246,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.loadSongs();
       this.renderSongs();
       this.renderToolbar();
+      this.setupExportModal();
       this.bindEvents();
       this.initDragSort();
 
@@ -679,14 +680,29 @@ document.addEventListener('DOMContentLoaded', () => {
     },
 
     async quickCopySong(song) {
-      // Default to lyrics with chords if available, otherwise just lyrics
-      let textToCopy = '';
-      if (song.chords && song.chords.trim()) {
-        textToCopy = ClipboardManager.formatLyricsWithChords(song.lyrics, song.chords);
-      } else {
-        textToCopy = song.lyrics || '';
+      const title = String(song.title || 'Untitled').trim();
+      const stripDuplicateTitle = (t, text) => {
+        const ttl = String(t || '').trim().replace(/\s+/g, ' ');
+        const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+        let i = 0;
+        while (i < lines.length && lines[i].trim() === '') i++;
+        if (i < lines.length) {
+          const first = lines[i].trim().replace(/\s+/g, ' ');
+          if (first.toLowerCase() === ttl.toLowerCase()) {
+            lines.splice(i, 1);
+            if (i < lines.length && lines[i].trim() === '') lines.splice(i, 1);
+          }
+        }
+        return lines.join('\n');
+      };
+
+      const normalizedLyrics = String(song.lyrics || '').replace(/\r\n?/g, '\n');
+      let body = stripDuplicateTitle(title, normalizedLyrics);
+      if (song.chords && String(song.chords).trim()) {
+        const chords = String(song.chords || '').replace(/\r\n?/g, '\n');
+        body = ClipboardManager.formatLyricsWithChords(body, chords);
       }
-      
+      const textToCopy = `${title}\n\n${body}`;
       await ClipboardManager.copyToClipboard(textToCopy);
     },
 
@@ -719,17 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       document.getElementById('add-song-btn')?.addEventListener('click', () => this.createNewSong());
-      document.getElementById('export-library-btn')?.addEventListener('click', () => {
-        const choice = (prompt('Export format: type "json" or "txt"', 'json') || '').trim().toLowerCase();
-        if (!choice) return;
-        if (choice.startsWith('t')) {
-          const includeChords = confirm('Include chords above lyrics in TXT?');
-          this.exportLibraryTxt(!!includeChords);
-        } else {
-          const includeMetadata = confirm('Include metadata in JSON export?');
-          this.exportLibrary(includeMetadata);
-        }
-      });
+      document.getElementById('export-library-btn')?.addEventListener('click', () => this.openExportModal?.());
       document.getElementById('normalize-library-btn')?.addEventListener('click', () => this.normalizeLibrary());
       document.getElementById('import-clipboard-btn')?.addEventListener('click', async () => {
         try {
@@ -1001,15 +1007,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ctrl/Cmd + E for export
         if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
           e.preventDefault();
-          const choice = (prompt('Export format: type "json" or "txt"', 'json') || '').trim().toLowerCase();
-          if (!choice) return;
-          if (choice.startsWith('t')) {
-            const includeChords = confirm('Include chords above lyrics in TXT?');
-            this.exportLibraryTxt(!!includeChords);
-          } else {
-            const includeMetadata = confirm('Include metadata in JSON export?');
-            this.exportLibrary(includeMetadata);
-          }
+          this.openExportModal?.();
         }
       });
 
@@ -1020,6 +1018,57 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('song-search-input')?.focus();
         }
       });
+    }
+    ,
+
+    setupExportModal() {
+      const overlay = document.getElementById('export-modal-overlay');
+      if (!overlay) return;
+      const formatRadios = Array.from(document.querySelectorAll('input[name="export-format"]'));
+      const jsonOptions = document.getElementById('json-options');
+      const txtOptions = document.getElementById('txt-options');
+      const cancelBtn = document.getElementById('export-cancel-btn');
+      const confirmBtn = document.getElementById('export-confirm-btn');
+
+      const updateOptions = () => {
+        const fmt = (formatRadios.find(r => r.checked)?.value) || 'json';
+        if (fmt === 'txt') {
+          if (jsonOptions) jsonOptions.style.display = 'none';
+          if (txtOptions) txtOptions.style.display = '';
+        } else {
+          if (jsonOptions) jsonOptions.style.display = '';
+          if (txtOptions) txtOptions.style.display = 'none';
+        }
+      };
+
+      formatRadios.forEach(r => r.addEventListener('change', updateOptions));
+      cancelBtn?.addEventListener('click', () => { overlay.hidden = true; });
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.hidden = true; });
+
+      confirmBtn?.addEventListener('click', () => {
+        const fmt = (formatRadios.find(r => r.checked)?.value) || 'json';
+        if (fmt === 'txt') {
+          const includeChords = !!document.getElementById('export-include-chords')?.checked;
+          this.exportLibraryTxt(includeChords);
+        } else {
+          const includeMetadata = !!document.getElementById('export-include-metadata')?.checked;
+          this.exportLibrary(includeMetadata);
+        }
+        overlay.hidden = true;
+      });
+
+      this.openExportModal = () => {
+        try {
+          const jsonRadio = document.querySelector('input[name="export-format"][value="json"]');
+          if (jsonRadio) jsonRadio.checked = true;
+          const incMeta = document.getElementById('export-include-metadata');
+          if (incMeta) incMeta.checked = true;
+          const incChords = document.getElementById('export-include-chords');
+          if (incChords) incChords.checked = false;
+          updateOptions();
+        } catch {}
+        overlay.hidden = false;
+      };
     }
   };
 

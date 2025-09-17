@@ -2153,12 +2153,35 @@ saveCurrentSong(isExplicit = false) {
             const copyType = e.target.dataset.copyType;
             let textToCopy = '';
 
+            // Helper: strip duplicate leading title from lyrics text
+            const stripDuplicateTitle = (title, text) => {
+                const t = String(title || '').trim().replace(/\s+/g, ' ');
+                const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+                let i = 0;
+                while (i < lines.length && lines[i].trim() === '') i++;
+                if (i < lines.length) {
+                    const first = lines[i].trim().replace(/\s+/g, ' ');
+                    if (first.toLowerCase() === t.toLowerCase()) {
+                        lines.splice(i, 1);
+                        if (i < lines.length && lines[i].trim() === '') lines.splice(i, 1);
+                    }
+                }
+                return lines.join('\n');
+            };
+
             if (copyType === 'download') {
-                const content = ClipboardManager.formatSongForExport(this.currentSong, true);
+                const title = String(this.currentSong.title || 'Untitled').trim();
+                const normalizedLyrics = (this.currentSong.lyrics || '').replace(/\r\n?/g, '\n');
+                let body = stripDuplicateTitle(title, normalizedLyrics);
+                if (this.currentSong.chords && String(this.currentSong.chords).trim()) {
+                    const chords = String(this.currentSong.chords || '').replace(/\r\n?/g, '\n');
+                    body = ClipboardManager.formatLyricsWithChords(body, chords);
+                }
+                const content = `${title}\n\n${body}`;
                 const blob = new Blob([content], { type: 'text/plain' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `${this.currentSong.title.replace(/\s+/g, '_')}.txt`;
+                link.download = `${title.replace(/\s+/g, '_')}.txt`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -2166,12 +2189,21 @@ saveCurrentSong(isExplicit = false) {
             }
 
             switch (copyType) {
-                case 'raw':
-                    textToCopy = this.currentSong.lyrics || '';
+                case 'raw': {
+                    const title = String(this.currentSong.title || 'Untitled').trim();
+                    const normalizedLyrics = (this.currentSong.lyrics || '').replace(/\r\n?/g, '\n');
+                    const body = stripDuplicateTitle(title, normalizedLyrics);
+                    textToCopy = `${title}\n\n${body}`;
                     break;
-                case 'chords':
-                    textToCopy = ClipboardManager.formatLyricsWithChords(this.currentSong.lyrics, this.currentSong.chords);
+                }
+                case 'chords': {
+                    const title = String(this.currentSong.title || 'Untitled').trim();
+                    const normalizedLyrics = (this.currentSong.lyrics || '').replace(/\r\n?/g, '\n');
+                    let body = stripDuplicateTitle(title, normalizedLyrics);
+                    body = ClipboardManager.formatLyricsWithChords(body, this.currentSong.chords || '');
+                    textToCopy = `${title}\n\n${body}`;
                     break;
+                }
                 case 'formatted':
                     textToCopy = ClipboardManager.formatSongForExport(this.currentSong, true);
                     break;

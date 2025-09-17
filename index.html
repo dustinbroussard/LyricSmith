@@ -52,6 +52,27 @@
       </section>
     </main>
   </div>
+    <!-- Export Modal -->
+    <div id="export-modal-overlay" class="modal-overlay" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="export-modal-title" style="min-width: 280px; max-width: 520px;">
+        <h3 id="export-modal-title" style="margin-top:0; margin-bottom:0.75rem;">Export Library</h3>
+        <div class="modal-item" style="margin-bottom:0.5rem;">
+          <label style="margin-right:1rem; font-weight:600;">Format:</label>
+          <label style="margin-right:0.75rem;"><input type="radio" name="export-format" value="json" checked> JSON</label>
+          <label><input type="radio" name="export-format" value="txt"> TXT</label>
+        </div>
+        <div id="json-options" class="modal-item" style="margin-bottom:0.5rem;">
+          <label><input type="checkbox" id="export-include-metadata" checked> Include metadata</label>
+        </div>
+        <div id="txt-options" class="modal-item" style="margin-bottom:0.5rem; display:none;">
+          <label><input type="checkbox" id="export-include-chords"> Include chords above lyrics</label>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:0.5rem; padding-top:0.5rem;">
+          <button id="export-cancel-btn" class="btn" type="button">Cancel</button>
+          <button id="export-confirm-btn" class="btn" type="button"><i class="fas fa-download" aria-hidden="true"></i>&nbsp;Export</button>
+        </div>
+      </div>
+    </div>
     <script>
         // Register service worker and check for updates
         if ('serviceWorker' in navigator) {
