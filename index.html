@@ -52,6 +52,13 @@
       </section>
     </main>
   </div>
+    <!-- Global Busy Overlay (main app) -->
+    <div id="busy-overlay" class="busy-overlay" hidden>
+      <div class="busy-box">
+        <div class="busy-spinner" aria-hidden="true"></div>
+        <div id="busy-text" class="busy-text">Working…</div>
+      </div>
+    </div>
     <!-- Export Modal -->
     <div id="export-modal-overlay" class="modal-overlay" hidden>
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="export-modal-title" style="min-width: 280px; max-width: 520px;">
@@ -67,6 +74,7 @@
         <div id="txt-options" class="modal-item" style="margin-bottom:0.5rem; display:none;">
           <label><input type="checkbox" id="export-include-chords"> Include chords above lyrics</label>
         </div>
+        <button class="modal-close-x" title="Close" aria-label="Close"><i class="fas fa-times"></i></button>
         <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:0.5rem; padding-top:0.5rem;">
           <button id="export-cancel-btn" class="btn" type="button">Cancel</button>
           <button id="export-confirm-btn" class="btn" type="button"><i class="fas fa-download" aria-hidden="true"></i>&nbsp;Export</button>

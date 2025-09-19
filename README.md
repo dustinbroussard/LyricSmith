@@ -19,3 +19,31 @@ LyricSmith is a fully installable PWA with offline support powered by a service 
 
 # lyrics-create-edit
 # LyricSmith
+
+## Voice Input (Speech-to-Text)
+
+LyricSmith supports speech-to-text for both searching your library and dictating lyrics in the editor.
+
+- Voice Search (Library)
+  - Click the microphone button next to the search field.
+  - Speak your query; results filter live as you talk.
+  - If your browser doesn’t support speech recognition, a toast explains that voice input isn’t available.
+
+- Voice Dictation (Editor)
+  - Select a lyric line (click into the line so the caret is visible).
+  - Click the microphone button in the editor header to start dictation.
+  - The mic pulses while listening. Dictation inserts text into the selected line.
+  - Commands during dictation:
+    - “next line”, “new line”, “go next”, “line next” → move focus to the next line (creates a new line if needed).
+    - “previous line”, “prev line”, “go back”, “line previous” → move focus to the previous line (creates one above if needed).
+    - “stop dictation”, “stop listening”, “end dictation”, “cancel dictation”, “done dictation” → stop dictation.
+  - The above command phrases are not inserted into your lyrics; they only control navigation.
+
+Browser support
+- Voice features use the Web Speech API (`SpeechRecognition`/`webkitSpeechRecognition`). These are supported in Chromium-based browsers and some versions of Safari. If not supported, the app will show a friendly toast.
+
+## Processing Indicators & Notifications
+
+- Button spinners appear on long-running actions like Normalize Library, Paste from Clipboard, Upload/Import, Export, and Hook Mill sync.
+- A global busy overlay shows status for heavier operations (e.g., importing files, Hook Mill sync).
+- Toast notifications communicate success, info, and errors; many toasts are accessible and dismissible, with a sticky mode for long messages.

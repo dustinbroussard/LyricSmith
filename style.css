@@ -567,6 +567,10 @@ mark {
     color: var(--text-secondary); /* Placeholder text uses muted text color */
 }
 
+/* Search input with voice button */
+.search-with-voice { display: flex; align-items: center; gap: 0.5rem; }
+.search-with-voice .search-input { flex: 1; }
+
 .btn {
     background-color: var(--accent-primary); /* Buttons use accent primary */
     color: var(--bg-primary); /* Text on buttons should contrast, using bg-primary for dark themes */
@@ -812,10 +816,54 @@ mark {
     width: 20px;
     height: 20px;
     margin: -10px 0 0 -10px;
-    border: 2px solid var(--border-color);
-    border-top: 2px solid var(--accent-color);
+    border: 2px solid var(--border);
+    border-top: 2px solid var(--accent-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
+}
+
+/* Global Busy Overlay (main app) */
+.busy-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+}
+.busy-overlay.show { display: flex; }
+.busy-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-base);
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  box-shadow: var(--shadow-lg);
+}
+.busy-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent-primary);
+  animation: spin 0.9s linear infinite;
+}
+.busy-text { color: var(--text-primary); font-size: 0.95rem; }
+
+/* Mic listening pulse */
+.mic-listening {
+  position: relative;
+  background: var(--accent-active) !important;
+  box-shadow: 0 0 0 0 rgba(212, 189, 140, 0.5);
+  animation: micPulse 1.5s ease-out infinite;
+}
+@keyframes micPulse {
+  0% { box-shadow: 0 0 0 0 rgba(212, 189, 140, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(212, 189, 140, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 189, 140, 0); }
 }
 
 @keyframes spin {
@@ -1663,7 +1711,28 @@ textarea:focus,
   border-radius: calc(var(--border-radius-base) * 1.25);
   padding: 1rem;
   box-shadow: var(--shadow-lg);
+  position: relative;
 }
+
+/* Top-right close (X) */
+.modal .modal-close-x {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.modal .modal-close-x:hover { color: var(--text-primary); }
+
+/* Subtle scrollbars for large content */
+.modal { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.modal::-webkit-scrollbar { width: 10px; }
+.modal::-webkit-scrollbar-track { background: transparent; }
+.modal::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+.modal::-webkit-scrollbar-thumb:hover { background-color: var(--accent-secondary); }
 
 /* Page/tab entrance (subtle) */
 .tab.active { animation: fade-in 220ms ease both; }

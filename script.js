@@ -35,7 +35,28 @@ document.addEventListener('DOMContentLoaded', () => {
       document.documentElement.dataset.theme = newTheme;
       localStorage.setItem('theme', newTheme);
       setThemeColorMeta(newTheme);
+      try { ClipboardManager.showToast(`Theme: ${newTheme[0].toUpperCase()}${newTheme.slice(1)}`, 'info'); } catch {}
     });
+  }
+
+  // Global busy overlay helpers
+  function showGlobalBusy(text = 'Working…') {
+    try {
+      const overlay = document.getElementById('busy-overlay');
+      const label = document.getElementById('busy-text');
+      if (!overlay || !label) return;
+      label.textContent = text;
+      overlay.hidden = false;
+      overlay.classList.add('show');
+    } catch {}
+  }
+  function hideGlobalBusy() {
+    try {
+      const overlay = document.getElementById('busy-overlay');
+      if (!overlay) return;
+      overlay.classList.remove('show');
+      overlay.hidden = true;
+    } catch {}
   }
   attachThemeToggle();
 
@@ -58,7 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (choice === 'all' || choice === 'starred' || choice === '') {
         const starredOnly = choice !== 'all';
-        await app.syncHookMill(starredOnly);
+        btn.classList.add('loading');
+        try {
+          await app.syncHookMill(starredOnly);
+        } finally {
+          btn.classList.remove('loading');
+        }
       }
     });
   }
@@ -191,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    static showToast(message, type = 'info') {
+    static showToast(message, type = 'info', duration = 3000) {
       let container = document.querySelector('.toast-container');
       if (!container) {
         container = document.createElement('div');
@@ -201,17 +227,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
-      toast.textContent = message;
-      container.appendChild(toast);
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('tabindex', '0');
 
-      // Trigger animation
+      const content = document.createElement('div');
+      content.className = 'toast-content';
+      content.textContent = message;
+      toast.appendChild(content);
+
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'toast-close';
+      closeBtn.setAttribute('aria-label', 'Close');
+      closeBtn.innerHTML = '&times;';
+      closeBtn.onclick = () => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      };
+      toast.appendChild(closeBtn);
+
+      toast.addEventListener('click', () => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      });
+
+      toast.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }
+      });
+
+      container.appendChild(toast);
       setTimeout(() => toast.classList.add('show'), 10);
 
-      // Remove after 3 seconds with fade out
+      if (duration <= 0) {
+        toast.classList.add('toast-sticky');
+        return;
+      }
+
       setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
-      }, 3000);
+      }, duration);
     }
 
     static formatLyricsWithChords(lyrics, chords) {
@@ -628,6 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.songs = this.songs.filter(s => s.id !== song.id);
             this.saveSongs();
             this.renderSongs(searchQuery);
+            ClipboardManager.showToast('Song deleted', 'info');
           }
         });
 
@@ -709,7 +768,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderToolbar() {
       const toolbar = document.getElementById('tab-toolbar');
       toolbar.innerHTML = `
-        <input type="text" id="song-search-input" class="search-input" placeholder="Search by title, tag, or key...">
+        <div class="search-with-voice">
+          <input type="text" id="song-search-input" class="search-input" placeholder="Search by title, tag, or key...">
+          <button id="voice-search-btn" class="btn icon-btn" title="Voice Search" aria-label="Voice search"><i class="fas fa-microphone"></i></button>
+        </div>
         <div class="toolbar-buttons-group">
           <select id="song-sort-select" class="sort-select">
             <option value="titleAsc">Title A–Z</option>
@@ -732,12 +794,21 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('songSortOrder', this.sortOrder);
         const query = document.getElementById('song-search-input')?.value || '';
         this.renderSongs(query);
+        const labels = { titleAsc: 'Title A–Z', titleDesc: 'Title Z–A', recent: 'Recently Edited' };
+        ClipboardManager.showToast(`Sort: ${labels[this.sortOrder] || this.sortOrder}`, 'info');
       });
 
       document.getElementById('add-song-btn')?.addEventListener('click', () => this.createNewSong());
       document.getElementById('export-library-btn')?.addEventListener('click', () => this.openExportModal?.());
-      document.getElementById('normalize-library-btn')?.addEventListener('click', () => this.normalizeLibrary());
-      document.getElementById('import-clipboard-btn')?.addEventListener('click', async () => {
+      document.getElementById('normalize-library-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.classList.add('loading');
+        try { await Promise.resolve(this.normalizeLibrary()); }
+        finally { btn.classList.remove('loading'); }
+      });
+      document.getElementById('import-clipboard-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.classList.add('loading');
         try {
           const text = await navigator.clipboard.readText();
           if (text.trim()) {
@@ -748,6 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
               this.songs.push(newSong);
               this.saveSongs();
               this.renderSongs();
+              ClipboardManager.showToast('Song pasted from clipboard', 'success');
             }
           } else {
             ClipboardManager.showToast('Clipboard is empty', 'info');
@@ -755,12 +827,49 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
           console.error('Clipboard read failed', err);
           ClipboardManager.showToast('Clipboard not accessible', 'error');
+        } finally {
+          btn.classList.remove('loading');
         }
       });
       document.getElementById('delete-all-songs-btn')?.addEventListener('click', () => this.confirmDeleteAll());
       document.getElementById('song-search-input')?.addEventListener('input', (e) => {
         const query = e.target.value;
         this.renderSongs(query);
+      });
+
+      // Voice search setup
+      const voiceBtn = document.getElementById('voice-search-btn');
+      const inputEl = document.getElementById('song-search-input');
+      voiceBtn?.addEventListener('click', () => {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) { ClipboardManager.showToast('Voice input not supported on this browser', 'error'); return; }
+        try {
+          const rec = new SR();
+          rec.lang = (navigator.language || 'en-US');
+          rec.interimResults = true;
+          rec.continuous = false;
+          voiceBtn.classList.add('mic-listening');
+          ClipboardManager.showToast('Listening… Speak your search', 'info', 1500);
+          let finalText = inputEl?.value || '';
+          rec.onresult = (event) => {
+            let interim = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              const tr = event.results[i][0].transcript;
+              if (event.results[i].isFinal) { finalText = (finalText ? finalText + ' ' : '') + tr; }
+              else { interim += tr; }
+            }
+            if (inputEl) {
+              inputEl.value = (finalText + ' ' + interim).trim();
+              this.renderSongs(inputEl.value);
+            }
+          };
+          rec.onerror = (e) => { ClipboardManager.showToast(`Voice error: ${e.error || e.message}`, 'error'); };
+          rec.onend = () => { voiceBtn.classList.remove('mic-listening'); };
+          rec.start();
+        } catch (err) {
+          voiceBtn.classList.remove('mic-listening');
+          ClipboardManager.showToast('Could not start voice input', 'error');
+        }
       });
 
       document.getElementById('song-upload-input')?.addEventListener('change', async (e) => {
@@ -810,7 +919,11 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         };
 
+        // Show loading indicator on the upload button label + global busy
+        const uploadLabel = document.querySelector('label[for="song-upload-input"]');
+        uploadLabel?.classList.add('loading');
         ClipboardManager.showToast(`Processing ${files.length} file(s)...`, 'info');
+        showGlobalBusy('Importing files…');
 
         const songs = await Promise.all(files.map(processFile));
         const validSongs = songs.filter(Boolean);
@@ -821,6 +934,8 @@ document.addEventListener('DOMContentLoaded', () => {
         this.renderSongs();
         ClipboardManager.showToast(`Imported ${importCount} song(s)`, 'success');
         e.target.value = ""; // Clear input
+        uploadLabel?.classList.remove('loading');
+        hideGlobalBusy();
       });
     },
 
@@ -922,6 +1037,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async importLibrary(file) {
       try {
+        showGlobalBusy('Importing library…');
         const text = await file.text();
         const importData = JSON.parse(text);
         
@@ -951,6 +1067,8 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         console.error('Import failed:', err);
         ClipboardManager.showToast('Import failed - invalid file format', 'error');
+      } finally {
+        hideGlobalBusy();
       }
     },
 
@@ -1024,6 +1142,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setupExportModal() {
       const overlay = document.getElementById('export-modal-overlay');
       if (!overlay) return;
+      // Close with top-right X
+      overlay.querySelector('.modal-close-x')?.addEventListener('click', () => { overlay.hidden = true; });
       const formatRadios = Array.from(document.querySelectorAll('input[name="export-format"]'));
       const jsonOptions = document.getElementById('json-options');
       const txtOptions = document.getElementById('txt-options');
@@ -1045,16 +1165,21 @@ document.addEventListener('DOMContentLoaded', () => {
       cancelBtn?.addEventListener('click', () => { overlay.hidden = true; });
       overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.hidden = true; });
 
-      confirmBtn?.addEventListener('click', () => {
-        const fmt = (formatRadios.find(r => r.checked)?.value) || 'json';
-        if (fmt === 'txt') {
-          const includeChords = !!document.getElementById('export-include-chords')?.checked;
-          this.exportLibraryTxt(includeChords);
-        } else {
-          const includeMetadata = !!document.getElementById('export-include-metadata')?.checked;
-          this.exportLibrary(includeMetadata);
+      confirmBtn?.addEventListener('click', async () => {
+        confirmBtn.classList.add('loading');
+        try {
+          const fmt = (formatRadios.find(r => r.checked)?.value) || 'json';
+          if (fmt === 'txt') {
+            const includeChords = !!document.getElementById('export-include-chords')?.checked;
+            await this.exportLibraryTxt(includeChords);
+          } else {
+            const includeMetadata = !!document.getElementById('export-include-metadata')?.checked;
+            await this.exportLibrary(includeMetadata);
+          }
+          overlay.hidden = true;
+        } finally {
+          confirmBtn.classList.remove('loading');
         }
-        overlay.hidden = true;
       });
 
       this.openExportModal = () => {
@@ -1079,6 +1204,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Extend app with Hook Mill sync routine
   app.syncHookMill = async function(starredOnly = true) {
     try {
+      ClipboardManager.showToast(starredOnly ? 'Syncing starred Hook Mill items…' : 'Syncing Hook Mill items…', 'info');
+      showGlobalBusy('Syncing Hook Mill…');
       const items = await getHookMillItems();
       if (!items.length) {
         ClipboardManager.showToast('No Hook Mill items found', 'info');
@@ -1146,6 +1273,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.error('Hook Mill sync failed', err);
       ClipboardManager.showToast('Hook Mill sync failed', 'error');
+    } finally {
+      hideGlobalBusy();
     }
   };
 });

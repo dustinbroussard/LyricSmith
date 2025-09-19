@@ -520,6 +520,9 @@
   box-shadow: var(--shadow-lg);
   max-width: 90vw;
   width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
@@ -607,6 +610,33 @@
 .close-modal-btn:hover {
   color: var(--text-primary);
 }
+
+/* Help modal polish */
+.modal h2 { margin: 0 0 0.25rem 0; color: var(--text-primary); }
+.modal h3 { margin: 0.5rem 0 0.25rem 0; color: var(--text-secondary); font-size: 1rem; }
+.modal .modal-section { padding: 0.5rem 0; border-top: 1px solid var(--border-light); }
+.modal .modal-section:first-of-type { border-top: none; }
+.modal ul { margin: 0.25rem 0 0.5rem 1.25rem; line-height: 1.5; }
+
+/* Top-right close (X) */
+.modal .modal-close-x {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.modal .modal-close-x:hover { color: var(--text-primary); }
+
+/* Subtle scrollbars */
+.modal { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.modal::-webkit-scrollbar { width: 10px; }
+.modal::-webkit-scrollbar-track { background: transparent; }
+.modal::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+.modal::-webkit-scrollbar-thumb:hover { background-color: var(--accent-secondary); }
 
 /* Section-based editing */
 .section-label {

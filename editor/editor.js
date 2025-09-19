@@ -483,6 +483,7 @@ function enforceAlternating(lines) {
         addSectionModal: document.getElementById('add-section-modal'),
         aiContextMenu: document.getElementById('ai-context-menu'),
         aiToolsBtn: document.getElementById('ai-tools-btn'),
+        voiceDictationBtn: document.getElementById('voice-dictation-btn'),
         aiSettingsBtn: document.getElementById('ai-settings-btn'),
         aiSettingsPanel: document.getElementById('ai-settings-panel'),
         aiSettingsClose: document.getElementById('ai-settings-close'),
@@ -857,7 +858,143 @@ function enforceAlternating(lines) {
             // Existing event listeners
             this.decreaseFontBtn?.addEventListener('click', () => { this.adjustFontSize(-this.fontSizeStep); this.resetFontControlsHideTimer?.(); });
             this.increaseFontBtn?.addEventListener('click', () => { this.adjustFontSize(this.fontSizeStep); this.resetFontControlsHideTimer?.(); });
-            this.toggleThemeBtn?.addEventListener('click', () => this.toggleTheme());
+            this.toggleThemeBtn?.addEventListener('click', () => {
+                this.toggleTheme();
+                try {
+                    const t = document.documentElement.dataset.theme || 'dark';
+                    ClipboardManager.showToast(`Theme: ${t[0].toUpperCase()}${t.slice(1)}`, 'info');
+                } catch {}
+            });
+            // Voice dictation toggle: requires selecting a lyric line first
+            this.voiceDictationBtn?.addEventListener('click', () => {
+                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SR) { ClipboardManager.showToast('Voice input not supported on this browser', 'error'); return; }
+                try {
+                    if (this._dictationActive && this._recognizer) {
+                        this._recognizer.stop();
+                        return;
+                    }
+                    // Require an active lyric line selection/focus
+                    let target = document.activeElement;
+                    if (!(target && target.classList && target.classList.contains('lyric-text'))) {
+                        ClipboardManager.showToast('Select a lyric line to dictate', 'info');
+                        return;
+                    }
+                    this._dictationTarget = target;
+
+                    // Show one-time hint for dictation commands
+                    try {
+                        if (!localStorage.getItem('dictationHintShown')) {
+                            ClipboardManager.showToast(
+                                'Voice dictation: Speak to insert into the selected line. Say "next line" or "new line" to move down, "previous line" to move up, and "stop dictation" to finish.',
+                                'info',
+                                0
+                            );
+                            localStorage.setItem('dictationHintShown', '1');
+                        }
+                    } catch {}
+
+                    const rec = new SR();
+                    this._recognizer = rec;
+                    rec.lang = (navigator.language || 'en-US');
+                    rec.interimResults = true;
+                    rec.continuous = true;
+                    this.voiceDictationBtn.classList.add('mic-listening');
+                    ClipboardManager.showToast('Listening… Speak your lyrics', 'info', 1500);
+
+                    const gotoNextLine = () => {
+                        if (!this._dictationTarget) return;
+                        const group = this._dictationTarget.closest('.lyrics-line-group');
+                        if (!group) return;
+                        let next = group.nextElementSibling;
+                        // Skip non-lyric groups if any
+                        if (!next || !next.querySelector) {
+                            next = null;
+                        }
+                        let nextLyric = next?.querySelector?.('.lyric-text');
+                        if (!nextLyric) {
+                            // Create a new lyric line after current
+                            const container = group.parentElement || this.lyricsDisplay;
+                            const newGroup = this.addLyricLine('', '', null, 0, container, group.nextSibling);
+                            nextLyric = newGroup?.querySelector?.('.lyric-text');
+                        }
+                        if (nextLyric) {
+                            nextLyric.focus();
+                            this._dictationTarget = nextLyric;
+                        }
+                    };
+
+                    const gotoPrevLine = () => {
+                        if (!this._dictationTarget) return;
+                        const group = this._dictationTarget.closest('.lyrics-line-group');
+                        if (!group) return;
+                        let prev = group.previousElementSibling;
+                        let prevLyric = prev?.querySelector?.('.lyric-text');
+                        if (!prevLyric) {
+                            // Create a new lyric line before current
+                            const container = group.parentElement || this.lyricsDisplay;
+                            const newGroup = this.addLyricLine('', '', null, 0, container, group /* insert before */);
+                            prevLyric = newGroup?.querySelector?.('.lyric-text');
+                        }
+                        if (prevLyric) {
+                            prevLyric.focus();
+                            this._dictationTarget = prevLyric;
+                        }
+                    };
+
+                    const nextPhrases = /(\bnext line\b|\bnew line\b|\bgo next\b|\bline next\b)/i;
+                    const prevPhrases = /(\bprevious line\b|\bprev line\b|\bgo back\b|\bline previous\b)/i;
+                    const stopPhrases = /(\bstop dictation\b|\bstop listening\b|\bend dictation\b|\bcancel dictation\b|\bdone dictation\b)/i;
+                    const stripControls = (txt) => txt
+                        .replace(nextPhrases, '')
+                        .replace(prevPhrases, '')
+                        .replace(stopPhrases, '')
+                        .trim();
+
+                    const appendToTarget = (text) => {
+                        if (!this._dictationTarget) return;
+                        const current = this._dictationTarget.textContent || '';
+                        const toAdd = (current && !/\s$/.test(current)) ? ' ' + text : text;
+                        this._dictationTarget.textContent = (current + toAdd).replace(/\s+/g, ' ');
+                        this.hasUnsavedChanges = true;
+                        this.debouncedSaveCurrentSong && this.debouncedSaveCurrentSong();
+                    };
+
+                    rec.onresult = (event) => {
+                        let finalChunk = '';
+                        let interim = '';
+                        for (let i = event.resultIndex; i < event.results.length; i++) {
+                            const tr = event.results[i][0].transcript;
+                            if (event.results[i].isFinal) finalChunk += tr;
+                            else interim += tr;
+                        }
+                        // Handle control phrases (only on final to avoid jitter)
+                        if (finalChunk) {
+                            if (stopPhrases.test(finalChunk)) {
+                                try { this._recognizer && this._recognizer.stop(); } catch {}
+                                ClipboardManager.showToast('Dictation stopped', 'info');
+                                return; // Do not append stop phrase text
+                            }
+                            if (nextPhrases.test(finalChunk)) {
+                                gotoNextLine();
+                            } else if (prevPhrases.test(finalChunk)) {
+                                gotoPrevLine();
+                            }
+                            finalChunk = stripControls(finalChunk);
+                        }
+                        // Append interim (without controls) to show live text
+                        if (interim) appendToTarget(stripControls(interim));
+                        if (finalChunk) appendToTarget(finalChunk);
+                    };
+                    rec.onerror = (e) => { ClipboardManager.showToast(`Voice error: ${e.error || e.message}`, 'error'); };
+                    rec.onend = () => { this.voiceDictationBtn.classList.remove('mic-listening'); this._dictationActive = false; };
+                    rec.onstart = () => { this._dictationActive = true; };
+                    rec.start();
+                } catch (err) {
+                    this.voiceDictationBtn.classList.remove('mic-listening');
+                    ClipboardManager.showToast('Could not start voice input', 'error');
+                }
+            });
             this.exitEditorBtn?.addEventListener('click', () => this.exitEditorMode());
             this.lyricsDisplay?.addEventListener('click', (e) => this.handleLyricsClick(e));
             this.lyricsDisplay?.addEventListener('keydown', (e) => this.handleLyricsKeydown(e));
@@ -922,11 +1059,13 @@ function enforceAlternating(lines) {
                     localStorage.setItem(`measureMode_${this.currentSong.id}`, this.isMeasureMode ? '1' : '0');
                 }
                 this.renderLyrics();
+                try { ClipboardManager.showToast(`Measure mode: ${this.isMeasureMode ? 'On' : 'Off'}`, 'info'); } catch {}
             });
 
             this.rhymeModeToggle?.addEventListener('change', (e) => {
                 this.isRhymeMode = e.target.checked;
                 this.renderLyrics();
+                try { ClipboardManager.showToast(`Rhyme mode: ${this.isRhymeMode ? 'On' : 'Off'}`, 'info'); } catch {}
             });
 
             this.addSectionBtn?.addEventListener('click', () => {
@@ -1503,7 +1642,7 @@ function enforceAlternating(lines) {
         },
 
         
-saveCurrentSong(isExplicit = false) {
+    saveCurrentSong(isExplicit = false) {
         if (!this.currentSong || (!window.CONFIG.autosaveEnabled && !isExplicit)) return;
         this.showSaveStatus('saving');
         try {
@@ -1543,6 +1682,9 @@ saveCurrentSong(isExplicit = false) {
             if (ok) {
                 this.hasUnsavedChanges = false;
                 this.showSaveStatus('saved');
+                if (isExplicit && typeof ClipboardManager !== 'undefined' && ClipboardManager.showToast) {
+                    try { ClipboardManager.showToast('Saved', 'success'); } catch {}
+                }
             } else {
                 this.showSaveStatus('error');
             }
@@ -2234,6 +2376,9 @@ saveCurrentSong(isExplicit = false) {
     document.querySelector('#copy-modal .close-modal-btn')?.addEventListener('click', () => {
         document.getElementById('copy-modal')?.classList.remove('visible');
     });
+    document.querySelector('#copy-modal .modal-close-x')?.addEventListener('click', () => {
+        document.getElementById('copy-modal')?.classList.remove('visible');
+    });
 
     document.getElementById('editor-menu-btn')?.addEventListener('click', () => {
         document.getElementById('editor-modal')?.classList.add('visible');
@@ -2241,11 +2386,17 @@ saveCurrentSong(isExplicit = false) {
     document.querySelector('#editor-modal .close-modal-btn')?.addEventListener('click', () => {
         document.getElementById('editor-modal')?.classList.remove('visible');
     });
+    document.querySelector('#editor-modal .modal-close-x')?.addEventListener('click', () => {
+        document.getElementById('editor-modal')?.classList.remove('visible');
+    });
 
     document.getElementById('ai-tools-btn')?.addEventListener('click', () => {
         document.getElementById('ai-tools-modal')?.classList.add('visible');
     });
     document.querySelector('#ai-tools-modal .close-modal-btn')?.addEventListener('click', () => {
+        document.getElementById('ai-tools-modal')?.classList.remove('visible');
+    });
+    document.querySelector('#ai-tools-modal .modal-close-x')?.addEventListener('click', () => {
         document.getElementById('ai-tools-modal')?.classList.remove('visible');
     });
     document.querySelectorAll('#ai-tools-modal .tool-option')?.forEach(btn => {
@@ -2284,4 +2435,56 @@ saveCurrentSong(isExplicit = false) {
     });
 
     window.app = app;
+    // Help modal wiring
+    document.getElementById('help-btn')?.addEventListener('click', () => {
+        document.getElementById('editor-modal')?.classList.remove('visible');
+        document.getElementById('help-modal')?.classList.add('visible');
+    });
+    document.querySelector('#help-modal .close-modal-btn')?.addEventListener('click', () => {
+        document.getElementById('help-modal')?.classList.remove('visible');
+    });
+    document.querySelector('#help-modal .modal-close-x')?.addEventListener('click', () => {
+        document.getElementById('help-modal')?.classList.remove('visible');
+    });
+    // Overlay click-to-close and ESC for modals
+    const addOverlayClickClose = (id, closer) => {
+        const overlay = document.getElementById(id);
+        overlay?.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                if (closer) closer(); else overlay.classList.remove('visible');
+            }
+        });
+    };
+    addOverlayClickClose('help-modal');
+    addOverlayClickClose('editor-modal');
+    addOverlayClickClose('copy-modal');
+    addOverlayClickClose('ai-tools-modal');
+    addOverlayClickClose('ai-review-modal', () => app.hideAIReview && app.hideAIReview());
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        const overlays = [
+            'help-modal',
+            'editor-modal',
+            'copy-modal',
+            'ai-tools-modal',
+            'ai-review-modal'
+        ];
+        let closed = false;
+        for (const id of overlays) {
+            const el = document.getElementById(id);
+            if (!el) continue;
+            if (id === 'ai-review-modal' && el.classList.contains('visible')) {
+                app.hideAIReview && app.hideAIReview();
+                closed = true;
+                break;
+            }
+            if (el.classList && el.classList.contains('visible')) {
+                el.classList.remove('visible');
+                closed = true;
+                break;
+            }
+        }
+        if (!closed) return;
+    });
 });
